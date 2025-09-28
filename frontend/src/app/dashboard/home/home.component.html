@@ -1,0 +1,30 @@
+<div style="padding: 20px; max-width: 800px; margin: 0 auto">
+  <h1 style="color: #333; margin-bottom: 30px">Welcome to Visnet E-Learning Dashboard</h1>
+
+  <div
+    *ngIf="authService.currentUserValue as user"
+    style="
+      background: #f5f5f5;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    "
+  >
+    <h2 style="color: #555; margin-bottom: 20px">Hello, {{ user.firstName }}! 👋</h2>
+
+    <div style="margin-bottom: 20px">
+      <p style="margin: 10px 0">
+        <strong>Full Name:</strong> {{ user.firstName }} {{ user.lastName }}
+      </p>
+      <p style="margin: 10px 0"><strong>Email:</strong> {{ user.email }}</p>
+      <p style="margin: 10px 0">
+        <strong>Role:</strong>
+        <span style="text-transform: capitalize; color: #2196f3">{{ user.role }}</span>
+      </p>
+    </div>
+
+    <button mat-raised-button color="warn" (click)="logout()" style="margin-top: 20px">
+      Logout
+    </button>
+  </div>
+</div>

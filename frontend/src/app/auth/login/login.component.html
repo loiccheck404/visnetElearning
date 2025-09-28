@@ -1,37 +1,36 @@
-<div style="max-width: 400px; margin: 100px auto; padding: 20px">
+<div class="login-container">
   <h2>Login</h2>
-
   <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-    <mat-form-field appearance="outline" style="width: 100%; margin-bottom: 15px">
-      <mat-label>Email</mat-label>
-      <input matInput formControlName="email" type="email" />
-      <mat-error *ngIf="loginForm.get('email')?.invalid">Valid email required</mat-error>
-    </mat-form-field>
+    <div>
+      <label for="email">Email:</label>
+      <input type="email" id="email" formControlName="email" placeholder="Enter your email" />
+      <div *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched" class="error">
+        Please enter a valid email
+      </div>
+    </div>
 
-    <mat-form-field appearance="outline" style="width: 100%; margin-bottom: 15px">
-      <mat-label>Password</mat-label>
-      <input matInput formControlName="password" type="password" />
-      <mat-error *ngIf="loginForm.get('password')?.invalid"
-        >Password required (min 6 chars)</mat-error
+    <div>
+      <label for="password">Password:</label>
+      <input
+        type="password"
+        id="password"
+        formControlName="password"
+        placeholder="Enter your password"
+      />
+      <div
+        *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
+        class="error"
       >
-    </mat-form-field>
+        Password must be at least 6 characters
+      </div>
+    </div>
 
-    <div *ngIf="error" style="color: red; margin-bottom: 15px">{{ error }}</div>
-
-    <button
-      mat-raised-button
-      color="primary"
-      type="submit"
-      [disabled]="loading || loginForm.invalid"
-      style="width: 100%"
-    >
-      <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
-      <span *ngIf="!loading">Login</span>
+    <button type="submit" [disabled]="loading || loginForm.invalid">
+      {{ loading ? 'Logging in...' : 'Login' }}
     </button>
 
-    <p style="text-align: center; margin-top: 15px">
-      Don't have an account?
-      <button mat-button color="primary" type="button" (click)="goToRegister()">Register</button>
-    </p>
+    <div *ngIf="error" class="error">{{ error }}</div>
   </form>
+
+  <p>Don't have an account? <a (click)="goToRegister()">Register here</a></p>
 </div>
