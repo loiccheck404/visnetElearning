@@ -1,0 +1,37 @@
+<div style="max-width: 400px; margin: 100px auto; padding: 20px">
+  <h2>Login</h2>
+
+  <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+    <mat-form-field appearance="outline" style="width: 100%; margin-bottom: 15px">
+      <mat-label>Email</mat-label>
+      <input matInput formControlName="email" type="email" />
+      <mat-error *ngIf="loginForm.get('email')?.invalid">Valid email required</mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" style="width: 100%; margin-bottom: 15px">
+      <mat-label>Password</mat-label>
+      <input matInput formControlName="password" type="password" />
+      <mat-error *ngIf="loginForm.get('password')?.invalid"
+        >Password required (min 6 chars)</mat-error
+      >
+    </mat-form-field>
+
+    <div *ngIf="error" style="color: red; margin-bottom: 15px">{{ error }}</div>
+
+    <button
+      mat-raised-button
+      color="primary"
+      type="submit"
+      [disabled]="loading || loginForm.invalid"
+      style="width: 100%"
+    >
+      <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
+      <span *ngIf="!loading">Login</span>
+    </button>
+
+    <p style="text-align: center; margin-top: 15px">
+      Don't have an account?
+      <button mat-button color="primary" type="button" (click)="goToRegister()">Register</button>
+    </p>
+  </form>
+</div>
