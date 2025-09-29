@@ -5,9 +5,6 @@ const morgan = require("morgan");
 const compression = require("compression");
 require("dotenv").config();
 
-// Import routes
-const authRoutes = require("./routes/auth");
-
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -63,8 +60,15 @@ app.get("/api/db-test", async (req, res) => {
   }
 });
 
-// Authentication routes
-app.use("/api/auth", authRoutes);
+// Authentication routes - FIXED: Only register once with error handling
+try {
+  const authRoutes = require("./routes/auth");
+  app.use("/api/auth", authRoutes);
+  console.log("✅ Auth routes loaded successfully");
+} catch (error) {
+  console.error("❌ Failed to load auth routes:", error.message);
+  console.error("Stack:", error.stack);
+}
 
 // Basic error handling
 app.use((err, req, res, next) => {
@@ -76,7 +80,7 @@ app.use((err, req, res, next) => {
   });
 });
 
-// 404 handler
+// 404 handler - MUST BE LAST
 app.use("*", (req, res) => {
   res.status(404).json({
     status: "ERROR",
