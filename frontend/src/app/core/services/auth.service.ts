@@ -3,6 +3,8 @@ import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
 import { jwtDecode } from 'jwt-decode';
+import { isPlatformBrowser } from '@angular/common';
+import { Inject, PLATFORM_ID } from '@angular/core';
 import { environment } from '../../../environments/environment';
 
 export interface User {
@@ -33,8 +35,11 @@ export class AuthService {
   public currentUser$ = this.currentUserSubject.asObservable();
   public token$ = this.tokenSubject.asObservable();
 
-  constructor(private http: HttpClient) {
-    this.loadStoredAuth();
+  constructor(private http: HttpClient, @Inject(PLATFORM_ID) private platformId: Object) {
+    // Only try to load stored auth if we're in the browser
+    if (isPlatformBrowser(this.platformId)) {
+      this.loadStoredAuth();
+    }
   }
 
   get currentUserValue(): User | null {
@@ -72,20 +77,28 @@ export class AuthService {
   }
 
   logout(): void {
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('current_user');
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('current_user');
+    }
     this.currentUserSubject.next(null);
     this.tokenSubject.next(null);
   }
 
   private setSession(token: string, user: User): void {
-    localStorage.setItem('auth_token', token);
-    localStorage.setItem('current_user', JSON.stringify(user));
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.setItem('auth_token', token);
+      localStorage.setItem('current_user', JSON.stringify(user));
+    }
     this.tokenSubject.next(token);
     this.currentUserSubject.next(user);
   }
 
   private loadStoredAuth(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
     const token = localStorage.getItem('auth_token');
     const userStr = localStorage.getItem('current_user');
 
