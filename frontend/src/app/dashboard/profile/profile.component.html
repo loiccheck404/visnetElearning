@@ -1,0 +1,153 @@
+<div class="profile-container">
+  <div class="profile-header">
+    <button class="back-btn" [routerLink]="getDashboardLink()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="19" y1="12" x2="5" y2="12"></line>
+        <polyline points="12 19 5 12 12 5"></polyline>
+      </svg>
+      Back to Dashboard
+    </button>
+  </div>
+
+  <div class="profile-content">
+    <div class="profile-card">
+      <div class="profile-banner">
+        <div class="profile-avatar-large">
+          {{ currentUser()?.firstName.charAt(0) }}{{ currentUser()?.lastName.charAt(0) }}
+        </div>
+      </div>
+
+      <div class="profile-info">
+        <h1>{{ currentUser()?.firstName }} {{ currentUser()?.lastName }}</h1>
+        <p class="user-role">{{ currentUser()?.role }}</p>
+        <p class="user-email">{{ currentUser()?.email }}</p>
+      </div>
+
+      @if (successMessage()) {
+        <div class="success-message">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          {{ successMessage() }}
+        </div>
+      }
+
+      @if (errorMessage()) {
+        <div class="error-message">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          {{ errorMessage() }}
+        </div>
+      }
+
+      <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="profile-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="firstName">First Name</label>
+            <input
+              id="firstName"
+              type="text"
+              formControlName="firstName"
+              [readonly]="!isEditing()"
+              [class.invalid]="isFieldInvalid('firstName')"
+            />
+            @if (isFieldInvalid('firstName')) {
+              <span class="error-text">{{ getFieldError('firstName') }}</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label for="lastName">Last Name</label>
+            <input
+              id="lastName"
+              type="text"
+              formControlName="lastName"
+              [readonly]="!isEditing()"
+              [class.invalid]="isFieldInvalid('lastName')"
+            />
+            @if (isFieldInvalid('lastName')) {
+              <span class="error-text">{{ getFieldError('lastName') }}</span>
+            }
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input
+            id="email"
+            type="email"
+            formControlName="email"
+            readonly
+            class="readonly-field"
+          />
+          <span class="field-hint">Email cannot be changed</span>
+        </div>
+
+        <div class="form-group">
+          <label for="bio">Bio</label>
+          <textarea
+            id="bio"
+            formControlName="bio"
+            rows="4"
+            [readonly]="!isEditing()"
+            placeholder="Tell us about yourself..."
+            [class.invalid]="isFieldInvalid('bio')"
+          ></textarea>
+          @if (isFieldInvalid('bio')) {
+            <span class="error-text">{{ getFieldError('bio') }}</span>
+          }
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="phone">Phone</label>
+            <input
+              id="phone"
+              type="tel"
+              formControlName="phone"
+              [readonly]="!isEditing()"
+              placeholder="+1234567890"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="dateOfBirth">Date of Birth</label>
+            <input
+              id="dateOfBirth"
+              type="date"
+              formControlName="dateOfBirth"
+              [readonly]="!isEditing()"
+            />
+          </div>
+        </div>
+
+        <div class="form-actions">
+          @if (!isEditing()) {
+            <button type="button" class="btn-edit" (click)="toggleEdit()">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+              </svg>
+              Edit Profile
+            </button>
+          } @else {
+            <button type="button" class="btn-cancel" (click)="toggleEdit()">
+              Cancel
+            </button>
+            <button type="submit" class="btn-save" [disabled]="isSaving()">
+              @if (isSaving()) {
+                <span class="spinner"></span>
+                Saving...
+              } @else {
+                Save Changes
+              }
+            </button>
+          }
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
