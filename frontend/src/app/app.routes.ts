@@ -19,7 +19,7 @@ export const routes: Routes = [
   // Temporary dashboard route - using login component until you create dashboard
   {
     path: 'dashboard',
-    loadComponent: () => import('./auth/login/login.component').then((m) => m.LoginComponent),
+    loadComponent: () => import('./dashboard/home/home.component').then((m) => m.HomeComponent),
     canActivate: [authGuard],
   },
 
