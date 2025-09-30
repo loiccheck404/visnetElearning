@@ -1,0 +1,119 @@
+// Light Theme Variables
+:root,
+.light-theme {
+  // Background Colors
+  --bg-primary: #ffffff;
+  --bg-secondary: #f7fafc;
+  --bg-tertiary: #edf2f7;
+  --bg-hover: #e2e8f0;
+
+  // Text Colors
+  --text-primary: #1a202c;
+  --text-secondary: #2d3748;
+  --text-tertiary: #4a5568;
+  --text-muted: #718096;
+  --text-disabled: #a0aec0;
+
+  // Border Colors
+  --border-color: #e2e8f0;
+  --border-hover: #cbd5e0;
+  --border-focus: #667eea;
+
+  // Brand Colors
+  --primary: #667eea;
+  --primary-dark: #5a67d8;
+  --primary-light: #7f9cf5;
+  --secondary: #764ba2;
+
+  // Status Colors
+  --success: #48bb78;
+  --success-light: #c6f6d5;
+  --success-dark: #22543d;
+  --error: #f56565;
+  --error-light: #fed7d7;
+  --error-dark: #742a2a;
+  --warning: #ed8936;
+  --warning-light: #feebc8;
+  --warning-dark: #7c2d12;
+  --info: #4299e1;
+  --info-light: #bee3f8;
+  --info-dark: #2c5282;
+
+  // Shadows
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.15);
+  --shadow-lg: 0 8px 20px rgba(0, 0, 0, 0.2);
+  --shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.3);
+
+  // Card
+  --card-bg: #ffffff;
+  --card-border: #e2e8f0;
+
+  // Input
+  --input-bg: #ffffff;
+  --input-border: #e2e8f0;
+  --input-focus-border: #667eea;
+  --input-disabled-bg: #edf2f7;
+}
+
+// Dark Theme Variables
+.dark-theme {
+  // Background Colors
+  --bg-primary: #1a202c;
+  --bg-secondary: #2d3748;
+  --bg-tertiary: #4a5568;
+  --bg-hover: #2d3748;
+
+  // Text Colors
+  --text-primary: #f7fafc;
+  --text-secondary: #e2e8f0;
+  --text-tertiary: #cbd5e0;
+  --text-muted: #a0aec0;
+  --text-disabled: #718096;
+
+  // Border Colors
+  --border-color: #4a5568;
+  --border-hover: #718096;
+  --border-focus: #7f9cf5;
+
+  // Brand Colors (slightly lighter for dark mode)
+  --primary: #7f9cf5;
+  --primary-dark: #667eea;
+  --primary-light: #a3bffa;
+  --secondary: #9f7aea;
+
+  // Status Colors (adjusted for dark mode)
+  --success: #68d391;
+  --success-light: #2f855a;
+  --success-dark: #c6f6d5;
+  --error: #fc8181;
+  --error-light: #c53030;
+  --error-dark: #fed7d7;
+  --warning: #f6ad55;
+  --warning-light: #dd6b20;
+  --warning-dark: #feebc8;
+  --info: #63b3ed;
+  --info-light: #3182ce;
+  --info-dark: #bee3f8;
+
+  // Shadows (darker for dark mode)
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 8px 20px rgba(0, 0, 0, 0.6);
+  --shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.7);
+
+  // Card
+  --card-bg: #2d3748;
+  --card-border: #4a5568;
+
+  // Input
+  --input-bg: #2d3748;
+  --input-border: #4a5568;
+  --input-focus-border: #7f9cf5;
+  --input-disabled-bg: #1a202c;
+}
+
+// Smooth transitions for theme changes
+* {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
