@@ -1,215 +1,224 @@
 <div class="register-container">
-  <div class="register-card">
-    <div class="register-header">
-      <h1>Create Account</h1>
-      <p>Join Visnet E-Learning Platform</p>
+  <!-- Left Panel - Welcome Section -->
+  <div class="welcome-panel">
+    <div class="welcome-content">
+      <h1>WELCOME!</h1>
+      <p>
+        Create your account to access Visnet E-Learning Platform and start your learning journey.
+      </p>
     </div>
+  </div>
 
-    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="register-form">
-      <!-- Error Message -->
-      @if (errorMessage()) {
-      <div class="error-banner">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <circle cx="12" cy="12" r="10"></circle>
-          <line x1="12" y1="8" x2="12" y2="12"></line>
-          <line x1="12" y1="16" x2="12.01" y2="16"></line>
-        </svg>
-        <span>{{ errorMessage() }}</span>
-      </div>
-      }
-
-      <!-- First Name -->
-      <div class="form-group">
-        <label for="firstName">First Name</label>
-        <input
-          id="firstName"
-          type="text"
-          formControlName="firstName"
-          placeholder="Enter your first name"
-          [class.invalid]="isFieldInvalid('firstName')"
-        />
-        @if (isFieldInvalid('firstName')) {
-        <span class="error-message">{{ getFieldError('firstName') }}</span>
-        }
+  <!-- Right Panel - Registration Form -->
+  <div class="form-panel">
+    <div class="form-card">
+      <div class="brand-header">
+        <h1>VISNET</h1>
       </div>
 
-      <!-- Last Name -->
-      <div class="form-group">
-        <label for="lastName">Last Name</label>
-        <input
-          id="lastName"
-          type="text"
-          formControlName="lastName"
-          placeholder="Enter your last name"
-          [class.invalid]="isFieldInvalid('lastName')"
-        />
-        @if (isFieldInvalid('lastName')) {
-        <span class="error-message">{{ getFieldError('lastName') }}</span>
-        }
-      </div>
-
-      <!-- Email -->
-      <div class="form-group">
-        <label for="email">Email</label>
-        <input
-          id="email"
-          type="email"
-          formControlName="email"
-          placeholder="your.email@example.com"
-          [class.invalid]="isFieldInvalid('email')"
-        />
-        @if (isFieldInvalid('email')) {
-        <span class="error-message">{{ getFieldError('email') }}</span>
-        }
-      </div>
-
-      <!-- Role Selection -->
-      <div class="form-group">
-        <label for="role">I am a</label>
-        <select id="role" formControlName="role">
-          <option value="student">Student</option>
-          <option value="instructor">Instructor</option>
-        </select>
-      </div>
-
-      <!-- Password -->
-      <div class="form-group">
-        <label for="password">Password</label>
-        <div class="password-input-wrapper">
-          <input
-            id="password"
-            [type]="showPassword() ? 'text' : 'password'"
-            formControlName="password"
-            placeholder="Minimum 6 characters"
-            [class.invalid]="isFieldInvalid('password')"
-          />
-          <button
-            type="button"
-            class="toggle-password"
-            (click)="togglePasswordVisibility('password')"
-            [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
+      <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="register-form">
+        <!-- Error Message -->
+        @if (errorMessage()) {
+        <div class="error-banner">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
           >
-            @if (showPassword()) {
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          <span>{{ errorMessage() }}</span>
+        </div>
+        }
+
+        <!-- First Name -->
+        <div class="form-group">
+          <input
+            id="firstName"
+            type="text"
+            formControlName="firstName"
+            placeholder="First Name"
+            [class.invalid]="isFieldInvalid('firstName')"
+          />
+          @if (isFieldInvalid('firstName')) {
+          <span class="error-message">{{ getFieldError('firstName') }}</span>
+          }
+        </div>
+
+        <!-- Last Name -->
+        <div class="form-group">
+          <input
+            id="lastName"
+            type="text"
+            formControlName="lastName"
+            placeholder="Last Name"
+            [class.invalid]="isFieldInvalid('lastName')"
+          />
+          @if (isFieldInvalid('lastName')) {
+          <span class="error-message">{{ getFieldError('lastName') }}</span>
+          }
+        </div>
+
+        <!-- Email -->
+        <div class="form-group">
+          <input
+            id="email"
+            type="email"
+            formControlName="email"
+            placeholder="your.email@example.com"
+            [class.invalid]="isFieldInvalid('email')"
+          />
+          @if (isFieldInvalid('email')) {
+          <span class="error-message">{{ getFieldError('email') }}</span>
+          }
+        </div>
+
+        <!-- Role Selection -->
+        <div class="form-group">
+          <select id="role" formControlName="role">
+            <option value="student">Student</option>
+            <option value="instructor">Instructor</option>
+          </select>
+        </div>
+
+        <!-- Password -->
+        <div class="form-group">
+          <div class="password-input-wrapper">
+            <input
+              id="password"
+              [type]="showPassword() ? 'text' : 'password'"
+              formControlName="password"
+              placeholder="Password (min. 6 characters)"
+              [class.invalid]="isFieldInvalid('password')"
+            />
+            <button
+              type="button"
+              class="toggle-password"
+              (click)="togglePasswordVisibility('password')"
+              [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
             >
-              <path
-                d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
-              ></path>
-              <line x1="1" y1="1" x2="23" y2="23"></line>
-            </svg>
+              @if (showPassword()) {
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
+                ></path>
+                <line x1="1" y1="1" x2="23" y2="23"></line>
+              </svg>
+              } @else {
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+              }
+            </button>
+          </div>
+          @if (isFieldInvalid('password')) {
+          <span class="error-message">{{ getFieldError('password') }}</span>
+          }
+        </div>
+
+        <!-- Confirm Password -->
+        <div class="form-group">
+          <div class="password-input-wrapper">
+            <input
+              id="confirmPassword"
+              [type]="showConfirmPassword() ? 'text' : 'password'"
+              formControlName="confirmPassword"
+              placeholder="Confirm Password"
+              [class.invalid]="isFieldInvalid('confirmPassword')"
+            />
+            <button
+              type="button"
+              class="toggle-password"
+              (click)="togglePasswordVisibility('confirm')"
+              [attr.aria-label]="showConfirmPassword() ? 'Hide password' : 'Show password'"
+            >
+              @if (showConfirmPassword()) {
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
+                ></path>
+                <line x1="1" y1="1" x2="23" y2="23"></line>
+              </svg>
+              } @else {
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+              }
+            </button>
+          </div>
+          @if (isFieldInvalid('confirmPassword')) {
+          <span class="error-message">{{ getFieldError('confirmPassword') }}</span>
+          }
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="button-group">
+          <button type="submit" class="sign-up-button" [disabled]="isLoading()">
+            @if (isLoading()) {
+            <span class="spinner"></span>
+            <span>Creating...</span>
             } @else {
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-              <circle cx="12" cy="12" r="3"></circle>
-            </svg>
+            <span>Sign up</span>
             }
           </button>
+          <button type="button" class="sign-in-button" routerLink="/auth/login">Sign in</button>
         </div>
-        @if (isFieldInvalid('password')) {
-        <span class="error-message">{{ getFieldError('password') }}</span>
-        }
-      </div>
 
-      <!-- Confirm Password -->
-      <div class="form-group">
-        <label for="confirmPassword">Confirm Password</label>
-        <div class="password-input-wrapper">
-          <input
-            id="confirmPassword"
-            [type]="showConfirmPassword() ? 'text' : 'password'"
-            formControlName="confirmPassword"
-            placeholder="Re-enter your password"
-            [class.invalid]="isFieldInvalid('confirmPassword')"
-          />
-          <button
-            type="button"
-            class="toggle-password"
-            (click)="togglePasswordVisibility('confirm')"
-            [attr.aria-label]="showConfirmPassword() ? 'Hide password' : 'Show password'"
-          >
-            @if (showConfirmPassword()) {
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path
-                d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
-              ></path>
-              <line x1="1" y1="1" x2="23" y2="23"></line>
-            </svg>
-            } @else {
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-              <circle cx="12" cy="12" r="3"></circle>
-            </svg>
-            }
-          </button>
+        <!-- Login Link -->
+        <div class="login-link">
+          Already have an account? <a routerLink="/auth/login">Login here</a>
         </div>
-        @if (isFieldInvalid('confirmPassword')) {
-        <span class="error-message">{{ getFieldError('confirmPassword') }}</span>
-        }
-      </div>
-
-      <!-- Submit Button -->
-      <button type="submit" class="register-button" [disabled]="isLoading()">
-        @if (isLoading()) {
-        <span class="spinner"></span>
-        <span>Creating account...</span>
-        } @else {
-        <span>Create Account</span>
-        }
-      </button>
-
-      <!-- Login Link -->
-      <div class="login-link">
-        Already have an account? <a routerLink="/auth/login">Login here</a>
-      </div>
-    </form>
+      </form>
+    </div>
   </div>
 </div>
