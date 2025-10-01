@@ -1,0 +1,245 @@
+<div class="course-detail">
+  @if (isLoading()) {
+  <app-loading-spinner [size]="60" message="Loading course..."></app-loading-spinner>
+  } @else if (course()) {
+  <div class="course-header">
+    <div class="header-content">
+      <button class="back-btn" routerLink="/courses">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+        Back to Courses
+      </button>
+
+      <div class="header-info">
+        <div class="breadcrumb">
+          <span>{{ course()!.category_name }}</span>
+          <span class="separator">›</span>
+          <span class="level">{{ course()!.level }}</span>
+        </div>
+
+        <h1>{{ course()!.title }}</h1>
+        <p class="short-desc">{{ course()!.short_description }}</p>
+
+        <div class="course-meta">
+          <div class="meta-item">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            {{ course()!.instructor_name }}
+          </div>
+
+          <div class="meta-item">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+            >
+              <polygon
+                points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+              ></polygon>
+            </svg>
+            {{ course()!.rating || 0 }} ({{ course()!.rating_count }} reviews)
+          </div>
+
+          <div class="meta-item">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+            {{ course()!.enrollment_count }} students
+          </div>
+
+          @if (getTotalDuration()) {
+          <div class="meta-item">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            {{ getTotalDuration() }}
+          </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="course-content">
+    <div class="main-content">
+      <section class="description-section">
+        <h2>About This Course</h2>
+        <p>{{ course()!.description }}</p>
+      </section>
+
+      <section class="curriculum-section">
+        <h2>Course Curriculum</h2>
+        <p class="curriculum-info">{{ lessons().length }} lessons</p>
+
+        <div class="lessons-list">
+          @for (lesson of lessons(); track lesson.id) {
+          <div class="lesson-item">
+            <div class="lesson-number">{{ lesson.order_index }}</div>
+            <div class="lesson-info">
+              <h4>{{ lesson.title }}</h4>
+              @if (lesson.description) {
+              <p>{{ lesson.description }}</p>
+              }
+            </div>
+            <div class="lesson-meta">
+              @if (lesson.is_preview) {
+              <span class="preview-badge">Preview</span>
+              } @if (lesson.duration_minutes) {
+              <span class="duration">{{ lesson.duration_minutes }} min</span>
+              }
+            </div>
+          </div>
+          }
+        </div>
+      </section>
+    </div>
+
+    <aside class="sidebar">
+      <div class="enroll-card">
+        @if (course()!.thumbnail_url) {
+        <img [src]="course()!.thumbnail_url" [alt]="course()!.title" class="course-image" />
+        } @else {
+        <div class="placeholder-image">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="64"
+            height="64"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+          </svg>
+        </div>
+        }
+
+        <div class="price-section">
+          @if (course()!.price > 0) {
+          <div class="price">${{ course()!.price }}</div>
+          } @else {
+          <div class="price free">Free</div>
+          }
+        </div>
+
+        <button class="enroll-btn" (click)="enrollCourse()">
+          @if (isEnrolled()) { Go to Course } @else { Enroll Now }
+        </button>
+
+        <div class="course-includes">
+          <h4>This course includes:</h4>
+          <ul>
+            <li>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <polygon points="23 7 16 12 23 17 23 7"></polygon>
+                <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+              </svg>
+              {{ lessons().length }} video lessons
+            </li>
+            <li>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+              {{ getTotalDuration() }} total duration
+            </li>
+            <li>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M12 2a10 10 0 1 0 10 10H12V2z"></path>
+              </svg>
+              Full lifetime access
+            </li>
+            <li>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+              </svg>
+              Certificate of completion
+            </li>
+          </ul>
+        </div>
+      </div>
+    </aside>
+  </div>
+  } @else {
+  <div class="error-state">
+    <h2>Course not found</h2>
+    <button routerLink="/courses">Browse Courses</button>
+  </div>
+  }
+</div>

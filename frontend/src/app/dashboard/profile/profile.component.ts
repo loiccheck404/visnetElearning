@@ -5,6 +5,7 @@ import { Router, RouterModule } from '@angular/router';
 import { AuthService, User } from '../../core/services/auth.service';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
+import { ToastService } from '../../core/services/toast.service';
 
 @Component({
   selector: 'app-profile',
@@ -26,7 +27,8 @@ export class ProfileComponent implements OnInit {
     private fb: FormBuilder,
     private authService: AuthService,
     private http: HttpClient,
-    private router: Router
+    private router: Router,
+    private toastService: ToastService
   ) {
     this.profileForm = this.fb.group({
       firstName: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]],
@@ -94,7 +96,7 @@ export class ProfileComponent implements OnInit {
       .subscribe({
         next: (response: any) => {
           this.isSaving.set(false);
-          this.successMessage.set('Profile updated successfully!');
+          this.toastService.success('Profile updated successfully!');
           this.isEditing.set(false);
 
           // Update stored user data
@@ -110,7 +112,7 @@ export class ProfileComponent implements OnInit {
         },
         error: (error) => {
           this.isSaving.set(false);
-          this.errorMessage.set(
+          this.toastService.error(
             error.error?.message || 'Failed to update profile. Please try again.'
           );
         },

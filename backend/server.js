@@ -7,6 +7,7 @@ require("dotenv").config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const courseRoutes = require("./routes/courses");
 
 // Basic middleware
 app.use(helmet());
@@ -64,6 +65,7 @@ app.get("/api/db-test", async (req, res) => {
 try {
   const authRoutes = require("./routes/auth");
   app.use("/api/auth", authRoutes);
+  app.use("/api/courses", courseRoutes);
   console.log("✅ Auth routes loaded successfully");
 } catch (error) {
   console.error("❌ Failed to load auth routes:", error.message);

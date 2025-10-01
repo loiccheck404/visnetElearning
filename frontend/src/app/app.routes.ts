@@ -17,6 +17,20 @@ export const routes: Routes = [
       import('./auth/register/register.component').then((m) => m.RegisterComponent),
   },
 
+  {
+    path: 'courses',
+    loadComponent: () =>
+      import('./courses/course-list/course-list.component').then((m) => m.CourseListComponent),
+  },
+
+  {
+    path: 'courses/:id',
+    loadComponent: () =>
+      import('./courses/course-detail/course-detail.component').then(
+        (m) => m.CourseDetailComponent
+      ),
+  },
+
   // Dashboard routes
   {
     path: 'dashboard',

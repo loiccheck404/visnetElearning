@@ -12,6 +12,7 @@
       </nav>
       <div class="user-menu">
         @if (currentUser()) {
+        <app-theme-toggle></app-theme-toggle>
         <div class="user-info">
           <div class="user-avatar admin">
             {{ currentUser()!.firstName.charAt(0) }}{{ currentUser()!.lastName.charAt(0) }}

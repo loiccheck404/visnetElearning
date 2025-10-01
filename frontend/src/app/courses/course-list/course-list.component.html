@@ -1,0 +1,224 @@
+<div class="courses-page">
+  <div class="courses-header">
+    <h1>Explore Courses</h1>
+    <p>Discover your next learning adventure</p>
+  </div>
+
+  <div class="courses-container">
+    <!-- Filters Sidebar -->
+    <aside class="filters-sidebar">
+      <div class="filter-section">
+        <h3>Search</h3>
+        <div class="search-box">
+          <input
+            type="text"
+            [(ngModel)]="searchTerm"
+            (keyup.enter)="onSearch()"
+            placeholder="Search courses..."
+          />
+          <button (click)="onSearch()">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <circle cx="11" cy="11" r="8"></circle>
+              <path d="m21 21-4.35-4.35"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="filter-section">
+        <h3>Category</h3>
+        <ul class="filter-list">
+          <li>
+            <button [class.active]="!filters.category" (click)="onCategoryFilter(null)">
+              All Categories
+            </button>
+          </li>
+          @for (category of categories(); track category.id) {
+          <li>
+            <button
+              [class.active]="filters.category === category.id"
+              (click)="onCategoryFilter(category.id)"
+            >
+              {{ category.name }}
+            </button>
+          </li>
+          }
+        </ul>
+      </div>
+
+      <div class="filter-section">
+        <h3>Level</h3>
+        <ul class="filter-list">
+          <li>
+            <button [class.active]="!filters.level" (click)="onLevelFilter(null)">
+              All Levels
+            </button>
+          </li>
+          <li>
+            <button
+              [class.active]="filters.level === 'beginner'"
+              (click)="onLevelFilter('beginner')"
+            >
+              Beginner
+            </button>
+          </li>
+          <li>
+            <button
+              [class.active]="filters.level === 'intermediate'"
+              (click)="onLevelFilter('intermediate')"
+            >
+              Intermediate
+            </button>
+          </li>
+          <li>
+            <button
+              [class.active]="filters.level === 'advanced'"
+              (click)="onLevelFilter('advanced')"
+            >
+              Advanced
+            </button>
+          </li>
+        </ul>
+      </div>
+
+      <button class="clear-filters-btn" (click)="clearFilters()">Clear All Filters</button>
+    </aside>
+
+    <!-- Courses Grid -->
+    <main class="courses-main">
+      @if (isLoading()) {
+      <app-loading-spinner [size]="60" message="Loading courses..."></app-loading-spinner>
+      } @else { @if (courses().length === 0) {
+      <div class="no-courses">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="64"
+          height="64"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+          <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+        </svg>
+        <h2>No courses found</h2>
+        <p>Try adjusting your filters</p>
+      </div>
+      } @else {
+      <div class="courses-grid">
+        @for (course of courses(); track course.id) {
+        <div class="course-card" [routerLink]="['/courses', course.id]">
+          <div class="course-thumbnail">
+            @if (course.thumbnail_url) {
+            <img [src]="course.thumbnail_url" [alt]="course.title" />
+            } @else {
+            <div class="placeholder-thumbnail">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="48"
+                height="48"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+              </svg>
+            </div>
+            }
+            <span class="course-level">{{ course.level }}</span>
+          </div>
+
+          <div class="course-content">
+            <div class="course-meta">
+              <span class="category">{{ course.category_name }}</span>
+              @if (course.is_featured) {
+              <span class="featured-badge">Featured</span>
+              }
+            </div>
+
+            <h3>{{ course.title }}</h3>
+            <p class="course-description">{{ course.short_description }}</p>
+
+            <div class="course-instructor">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+              {{ course.instructor_name }}
+            </div>
+
+            <div class="course-footer">
+              <div class="rating">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <polygon
+                    points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+                  ></polygon>
+                </svg>
+                <span>{{ course.rating || 0 }}</span>
+                <span class="rating-count">({{ course.rating_count }})</span>
+              </div>
+
+              <div class="price">
+                @if (course.price > 0) {
+                <span>${{ course.price }}</span>
+                } @else {
+                <span class="free">Free</span>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+        }
+      </div>
+
+      <!-- Pagination -->
+      @if (totalPages() > 1) {
+      <div class="pagination">
+        <button [disabled]="filters.page === 1" (click)="onPageChange(filters.page! - 1)">
+          Previous
+        </button>
+
+        <div class="page-numbers">
+          @for (page of [].constructor(totalPages()); track $index) {
+          <button [class.active]="filters.page === $index + 1" (click)="onPageChange($index + 1)">
+            {{ $index + 1 }}
+          </button>
+          }
+        </div>
+
+        <button
+          [disabled]="filters.page === totalPages()"
+          (click)="onPageChange(filters.page! + 1)"
+        >
+          Next
+        </button>
+      </div>
+      } } }
+    </main>
+  </div>
+</div>
