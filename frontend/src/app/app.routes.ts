@@ -50,6 +50,15 @@ export const routes: Routes = [
         data: { roles: ['student'] },
       },
       {
+        path: 'courses/:id',
+        loadComponent: () =>
+          import('./courses/course-detail/course-detail.component').then(
+            (m) => m.CourseDetailComponent
+          ),
+        canActivate: [roleGuard],
+        data: { roles: ['student'] },
+      },
+      {
         path: 'progress',
         loadComponent: () => import('./dashboard/home/home.component').then((m) => m.HomeComponent),
         canActivate: [roleGuard],

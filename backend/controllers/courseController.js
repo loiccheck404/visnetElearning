@@ -70,6 +70,9 @@ const getCourseById = async (req, res) => {
   try {
     const { id } = req.params;
 
+    // Check if id is numeric
+    const isNumeric = /^\d+$/.test(id);
+
     const query = `
       SELECT c.*, 
              cat.name as category_name,
@@ -79,10 +82,10 @@ const getCourseById = async (req, res) => {
       FROM courses c
       LEFT JOIN categories cat ON c.category_id = cat.id
       LEFT JOIN users u ON c.instructor_id = u.id
-      WHERE c.id = $1 OR c.slug = $1
+      WHERE ${isNumeric ? "c.id = $1" : "c.slug = $1"}
     `;
 
-    const result = await db.query(query, [id]);
+    const result = await db.query(query, [isNumeric ? parseInt(id) : id]);
 
     if (result.rows.length === 0) {
       return res.status(404).json({

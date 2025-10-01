@@ -116,7 +116,7 @@
       } @else {
       <div class="courses-grid">
         @for (course of courses(); track course.id) {
-        <div class="course-card" [routerLink]="['/courses', course.id]">
+        <div class="course-card" [routerLink]="['/dashboard/courses', course.id]">
           <div class="course-thumbnail">
             @if (course.thumbnail_url) {
             <img [src]="course.thumbnail_url" [alt]="course.title" />

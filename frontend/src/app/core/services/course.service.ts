@@ -73,9 +73,9 @@ export class CourseService {
     return this.http.get<CoursesResponse>(this.apiUrl, { params });
   }
 
-  getCourseById(id: string): Observable<any> {
-    return this.http.get(`${this.apiUrl}/${id}`);
-  }
+  getCourseById(id: string | number): Observable<any> {
+  return this.http.get(`${this.apiUrl}/${id}`);
+}
 
   getCategories(): Observable<any> {
     return this.http.get(`${this.apiUrl}/categories`);

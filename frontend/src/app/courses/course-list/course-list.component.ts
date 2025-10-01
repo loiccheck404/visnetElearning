@@ -24,6 +24,7 @@ export class CourseListComponent implements OnInit {
 
   totalPages = signal(1);
   searchTerm = '';
+  router: any;
 
   constructor(private courseService: CourseService) {}
 
@@ -89,4 +90,8 @@ export class CourseListComponent implements OnInit {
     this.searchTerm = '';
     this.loadCourses();
   }
+
+  viewCourseDetails(courseId: number) {
+  this.router.navigate(['/dashboard/courses', courseId]);
+}
 }
