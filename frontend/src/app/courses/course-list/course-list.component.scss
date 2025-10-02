@@ -369,3 +369,33 @@ h3 {
     font-size: 2rem;
   }
 }
+
+.back-navigation {
+  margin-bottom: 2rem;
+}
+
+.back-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: var(--hover-bg);
+    transform: translateX(-4px);
+  }
+
+  svg {
+    transition: transform 0.3s ease;
+  }
+
+  &:hover svg {
+    transform: translateX(-4px);
+  }
+}

@@ -45,7 +45,8 @@ export const routes: Routes = [
       },
       {
         path: 'courses',
-        loadComponent: () => import('./dashboard/home/home.component').then((m) => m.HomeComponent),
+        loadComponent: () =>
+          import('./courses/course-list/course-list.component').then((m) => m.CourseListComponent),
         canActivate: [roleGuard],
         data: { roles: ['student'] },
       },
@@ -78,9 +79,16 @@ export const routes: Routes = [
       {
         path: 'instructor/courses',
         loadComponent: () =>
-          import('./dashboard/instructor/instructor-dashboard.component').then(
-            (m) => m.InstructorDashboardComponent
-          ),
+          import('./courses/course-list/course-list.component').then((m) => m.CourseListComponent), // Changed this
+        canActivate: [roleGuard],
+        data: { roles: ['instructor'] },
+      },
+      {
+        path: 'instructor/courses/:id',
+        loadComponent: () =>
+          import('./courses/course-detail/course-detail.component').then(
+            (m) => m.CourseDetailComponent
+          ), // Add this
         canActivate: [roleGuard],
         data: { roles: ['instructor'] },
       },
@@ -116,9 +124,16 @@ export const routes: Routes = [
       {
         path: 'admin/courses',
         loadComponent: () =>
-          import('./dashboard/admin/admin-dashboard.component').then(
-            (m) => m.AdminDashboardComponent
-          ),
+          import('./courses/course-list/course-list.component').then((m) => m.CourseListComponent), // Changed this
+        canActivate: [roleGuard],
+        data: { roles: ['admin'] },
+      },
+      {
+        path: 'admin/courses/:id',
+        loadComponent: () =>
+          import('./courses/course-detail/course-detail.component').then(
+            (m) => m.CourseDetailComponent
+          ), // Add this
         canActivate: [roleGuard],
         data: { roles: ['admin'] },
       },

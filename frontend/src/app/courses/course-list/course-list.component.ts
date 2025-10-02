@@ -1,9 +1,10 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CourseService, Course, Category, CourseFilters } from '../../core/services/course.service';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
+import { Location } from '@angular/common';
 
 @Component({
   selector: 'app-course-list',
@@ -24,9 +25,16 @@ export class CourseListComponent implements OnInit {
 
   totalPages = signal(1);
   searchTerm = '';
-  router: any;
 
-  constructor(private courseService: CourseService) {}
+  constructor(
+    private courseService: CourseService,
+    private router: Router,
+    private location: Location // Add this
+  ) {}
+
+  goBack() {
+    this.location.back();
+  }
 
   ngOnInit() {
     this.loadCategories();
@@ -92,6 +100,6 @@ export class CourseListComponent implements OnInit {
   }
 
   viewCourseDetails(courseId: number) {
-  this.router.navigate(['/dashboard/courses', courseId]);
-}
+    this.router.navigate(['/dashboard/courses', courseId]);
+  }
 }
