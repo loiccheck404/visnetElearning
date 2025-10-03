@@ -61,7 +61,8 @@ export const routes: Routes = [
       },
       {
         path: 'progress',
-        loadComponent: () => import('./dashboard/home/home.component').then((m) => m.HomeComponent),
+        loadComponent: () =>
+          import('./dashboard/progress/progress.component').then((m) => m.ProgressComponent),
         canActivate: [roleGuard],
         data: { roles: ['student'] },
       },

@@ -1,0 +1,268 @@
+<div class="dashboard-container">
+  <!-- Header -->
+  <header class="dashboard-header">
+    <div class="header-content">
+      <div class="logo">
+        <h2>VISNET</h2>
+      </div>
+      <nav class="nav-links">
+        <a routerLink="/dashboard/home">Home</a>
+        <a routerLink="/dashboard/courses">Courses</a>
+        <a routerLink="/dashboard/progress" routerLinkActive="active">Progress</a>
+        <a routerLink="/dashboard/profile">View Profile</a>
+      </nav>
+      <div class="user-menu">
+        @if (currentUser()) {
+        <app-theme-toggle></app-theme-toggle>
+        <div class="user-info">
+          <div class="user-avatar">
+            {{ currentUser()!.firstName?.charAt(0) || ''
+            }}{{ currentUser()!.lastName?.charAt(0) || '' }}
+          </div>
+          <div class="user-details">
+            <span class="user-name"
+              >{{ currentUser()!.firstName }} {{ currentUser()!.lastName }}</span
+            >
+            <span class="user-role">{{ currentUser()!.role }}</span>
+          </div>
+        </div>
+        <button class="logout-btn" (click)="onLogout()">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+          Logout
+        </button>
+        }
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="dashboard-main">
+    <!-- Header Section -->
+    <section class="page-header">
+      <h1>{{ getGreeting() }}, {{ currentUser()?.firstName }}!</h1>
+      <p>Track your learning progress and achievements</p>
+    </section>
+
+    <!-- Stats Cards -->
+    <section class="stats-section">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div
+            class="stat-icon"
+            style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+              <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+            </svg>
+          </div>
+          <div class="stat-info">
+            <h3>{{ stats().totalCourses }}</h3>
+            <p>Total Courses</p>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div
+            class="stat-icon"
+            style="background: linear-gradient(135deg, #48bb78 0%, #38a169 100%)"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </div>
+          <div class="stat-info">
+            <h3>{{ stats().completedCourses }}</h3>
+            <p>Completed</p>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div
+            class="stat-icon"
+            style="background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%)"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+            </svg>
+          </div>
+          <div class="stat-info">
+            <h3>{{ stats().inProgressCourses }}</h3>
+            <p>In Progress</p>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div
+            class="stat-icon"
+            style="background: linear-gradient(135deg, #f6ad55 0%, #ed8936 100%)"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+          </div>
+          <div class="stat-info">
+            <h3>{{ stats().averageProgress }}%</h3>
+            <p>Avg. Progress</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Course Progress List -->
+    <section class="courses-section">
+      <h2>Your Learning Journey</h2>
+
+      @if (loading()) {
+      <div class="loading-state">
+        <p>Loading your progress...</p>
+      </div>
+      } @else if (enrolledCourses().length === 0) {
+      <div class="empty-state">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="64"
+          height="64"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+          <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+        </svg>
+        <h3>No Courses Yet</h3>
+        <p>Start your learning journey by enrolling in a course</p>
+        <button class="primary-btn" routerLink="/dashboard/courses">Browse Courses</button>
+      </div>
+      } @else {
+      <div class="progress-list">
+        @for (course of enrolledCourses(); track course.id) {
+        <div class="progress-card" (click)="viewCourse(course.id)">
+          <div class="progress-card-header">
+            <div class="course-thumbnail">
+              <img
+                [src]="course.thumbnail_url || 'https://via.placeholder.com/300x200'"
+                [alt]="course.title"
+              />
+            </div>
+            <div class="course-info">
+              <h3>{{ course.title }}</h3>
+              <p class="course-meta">
+                <span class="category">{{ course.category_name }}</span>
+                <span class="instructor">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                  </svg>
+                  {{ course.instructor_name }}
+                </span>
+              </p>
+              <p class="last-accessed">Last accessed: {{ formatDate(course.last_accessed_at) }}</p>
+            </div>
+          </div>
+
+          <div class="progress-details">
+            <div class="progress-bar-container">
+              <div class="progress-info-row">
+                <span class="progress-label">
+                  <span class="status-badge" [style.background]="getProgressColor(course.progress)">
+                    {{ getProgressLabel(course.progress) }}
+                  </span>
+                </span>
+                <span class="progress-percentage">{{ course.progress || 0 }}%</span>
+              </div>
+              <div class="progress-bar">
+                <div
+                  class="progress-fill"
+                  [style.width.%]="course.progress || 0"
+                  [style.background]="getProgressColor(course.progress)"
+                ></div>
+              </div>
+              <div class="lesson-count">
+                {{ course.completed_lessons }} of {{ course.total_lessons }} lessons completed
+              </div>
+            </div>
+
+            <button
+              class="continue-btn"
+              (click)="continueCourse(course.id); $event.stopPropagation()"
+            >
+              @if (course.progress >= 100) { Review Course } @else if (course.progress > 0) {
+              Continue Learning } @else { Start Course }
+            </button>
+          </div>
+        </div>
+        }
+      </div>
+      }
+    </section>
+  </main>
+</div>

@@ -4,6 +4,7 @@ const helmet = require("helmet");
 const morgan = require("morgan");
 const compression = require("compression");
 require("dotenv").config();
+const progressRoutes = require("./routes/progress");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -36,6 +37,8 @@ app.get("/api/health", (req, res) => {
     environment: process.env.NODE_ENV || "development",
   });
 });
+
+app.use("/api/progress", progressRoutes);
 
 // Database test route
 app.get("/api/db-test", async (req, res) => {
