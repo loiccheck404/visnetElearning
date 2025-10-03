@@ -31,9 +31,12 @@ export class ProgressComponent implements OnInit {
   ) {}
 
   ngOnInit() {
+  // Add a small delay to ensure proper initialization
+  setTimeout(() => {
     this.loadUserData();
     this.loadProgress();
-  }
+  }, 0);
+}
 
   loadUserData() {
     const user = this.authService.getCurrentUser();
