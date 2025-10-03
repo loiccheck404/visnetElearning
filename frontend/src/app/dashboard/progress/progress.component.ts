@@ -40,6 +40,7 @@ export class ProgressComponent implements OnInit {
 
   loadUserData() {
     const user = this.authService.getCurrentUser();
+    console.log('Progress - Current User:', user);
     this.currentUser.set(user);
   }
 
