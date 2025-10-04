@@ -33,7 +33,7 @@ export class CourseListComponent implements OnInit {
   ) {}
 
   goBack() {
-    this.location.back();
+    this.router.navigate(['/dashboard/home']);
   }
 
   ngOnInit() {

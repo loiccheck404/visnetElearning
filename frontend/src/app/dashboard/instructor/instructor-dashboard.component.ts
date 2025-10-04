@@ -96,7 +96,7 @@ export class InstructorDashboardComponent implements OnInit {
   }
 
   createCourse() {
-    console.log('Create new course');
+    this.router.navigate(['/dashboard/instructor/create-course']);
   }
 
   editCourse(courseId: number) {

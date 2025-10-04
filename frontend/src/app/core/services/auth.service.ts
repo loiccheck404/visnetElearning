@@ -28,8 +28,8 @@ export interface AuthResponse {
   providedIn: 'root',
 })
 export class AuthService {
-  getCurrentUser() {
-    throw new Error('Method not implemented.');
+  getCurrentUser(): User | null {
+    return this.currentUserValue;
   }
   private apiUrl = `${environment.apiUrl}/auth`;
   private currentUserSubject = new BehaviorSubject<User | null>(null);

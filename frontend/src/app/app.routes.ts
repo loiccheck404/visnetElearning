@@ -102,6 +102,15 @@ export const routes: Routes = [
         canActivate: [roleGuard],
         data: { roles: ['instructor'] },
       },
+      {
+        path: 'instructor/create-course',
+        loadComponent: () =>
+          import('./courses/course-create/course-create.component').then(
+            (m) => m.CourseCreateComponent
+          ),
+        canActivate: [roleGuard],
+        data: { roles: ['instructor'] },
+      },
 
       // Admin Dashboard
       {
