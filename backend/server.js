@@ -5,6 +5,7 @@ const morgan = require("morgan");
 const compression = require("compression");
 require("dotenv").config();
 const progressRoutes = require("./routes/progress");
+const enrollmentRoutes = require("./routes/enrollments");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -39,6 +40,8 @@ app.get("/api/health", (req, res) => {
 });
 
 app.use("/api/progress", progressRoutes);
+
+app.use("/api/enrollments", enrollmentRoutes);
 
 // Database test route
 app.get("/api/db-test", async (req, res) => {
