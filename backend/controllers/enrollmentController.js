@@ -3,8 +3,10 @@ const db = require("../config/database");
 // Enroll in a course
 const enrollInCourse = async (req, res) => {
   try {
-    const studentId = req.user.userId;
+    const studentId = req.user.id; // Make sure this is req.user.id
     const { courseId } = req.params;
+
+    console.log("Enrolling student:", studentId, "in course:", courseId); // Debug log
 
     // Check if already enrolled
     const checkQuery = `
@@ -64,7 +66,7 @@ const enrollInCourse = async (req, res) => {
 // Unenroll from a course
 const unenrollFromCourse = async (req, res) => {
   try {
-    const studentId = req.user.userId;
+    const studentId = req.user.id; // Changed here too
     const { courseId } = req.params;
 
     const deleteQuery = `
@@ -103,7 +105,7 @@ const unenrollFromCourse = async (req, res) => {
 // Get student's enrolled courses
 const getMyEnrollments = async (req, res) => {
   try {
-    const studentId = req.user.userId;
+    const studentId = req.user.id; // Changed here too
 
     const query = `
       SELECT 
@@ -137,7 +139,7 @@ const getMyEnrollments = async (req, res) => {
 // Check if enrolled in a course
 const checkEnrollment = async (req, res) => {
   try {
-    const studentId = req.user.userId;
+    const studentId = req.user.id; // Changed here too
     const { courseId } = req.params;
 
     const query = `
