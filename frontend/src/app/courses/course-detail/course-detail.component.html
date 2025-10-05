@@ -165,9 +165,14 @@
           }
         </div>
 
-        <button class="enroll-btn" (click)="enrollCourse()">
-          @if (isEnrolled()) { Go to Course } @else { Enroll Now }
+        @if (!isEnrolled() && currentUser()?.role === 'student') {
+        <button class="enroll-btn" (click)="enrollInCourse()" [disabled]="enrolling()">
+          @if (enrolling()) { Enrolling... } @else { Enroll Now }
         </button>
+        } @else if (isEnrolled()) {
+        <button class="start-btn" (click)="startCourse()">Start Course</button>
+        <span class="enrolled-badge">✓ Enrolled</span>
+        }
 
         <div class="course-includes">
           <h4>This course includes:</h4>

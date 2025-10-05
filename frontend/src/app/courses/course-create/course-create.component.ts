@@ -5,6 +5,7 @@ import { Router, RouterModule } from '@angular/router';
 import { CourseService } from '../../core/services/course.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ThemeToggleComponent } from '../../shared/components/theme-toggle/theme-toggle.component';
+import { ToastService } from '../../core/services/toast.service';
 
 @Component({
   selector: 'app-course-create',
@@ -25,7 +26,8 @@ export class CourseCreateComponent implements OnInit {
     private fb: FormBuilder,
     private courseService: CourseService,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private toastService: ToastService
   ) {}
 
   ngOnInit() {
@@ -78,22 +80,26 @@ export class CourseCreateComponent implements OnInit {
   onSubmit() {
     if (this.courseForm.valid) {
       this.loading.set(true);
+      console.log('Submitting course:', this.courseForm.value); // Debug log
       this.courseService.createCourse(this.courseForm.value).subscribe({
         next: (response) => {
           if (response.status === 'SUCCESS') {
-            alert('Course created successfully!');
+            this.toastService.success('Course created successfully!');
             this.router.navigate(['/dashboard/instructor']);
           }
           this.loading.set(false);
         },
         error: (error) => {
           console.error('Error creating course:', error);
-          alert('Failed to create course. Please try again.');
+          this.toastService.error('Failed to create course. Please try again.');
           this.loading.set(false);
         },
       });
     } else {
+      console.log('Form is invalid:', this.courseForm.errors); // Debug log
+      console.log('Form values:', this.courseForm.value); // Debug log
       this.markFormGroupTouched(this.courseForm);
+      this.toastService.warning('Please fill in all required fields correctly');
     }
   }
 

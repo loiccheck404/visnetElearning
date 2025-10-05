@@ -108,7 +108,7 @@ import { ToastService } from '../../../core/services/toast.service';
         padding: 1rem;
         border-radius: 0.5rem;
         box-shadow: var(--shadow-lg);
-        animation: slideIn 0.3s ease-out;
+        animation: slideIn 0.66s ease-out;
         min-width: 300px;
       }
 
@@ -158,6 +158,7 @@ import { ToastService } from '../../../core/services/toast.service';
         flex: 1;
         font-size: 0.95rem;
         font-weight: 500;
+        color: black;
       }
 
       .toast-close {
