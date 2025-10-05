@@ -9,7 +9,7 @@ import { ToastService } from '../../../core/services/toast.service';
   template: `
     <div class="toast-container">
       @for (toast of toastService.toasts(); track toast.id) {
-      <div class="toast" [class]="'toast-' + toast.type" [@slideIn]>
+      <div class="toast" [class]="'toast-' + toast.type">
         <div class="toast-icon">
           @if (toast.type === 'success') {
           <svg

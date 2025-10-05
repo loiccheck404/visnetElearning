@@ -70,12 +70,15 @@ export class CourseService {
     if (filters.page) params = params.set('page', filters.page.toString());
     if (filters.limit) params = params.set('limit', filters.limit.toString());
 
+    // Add timestamp to prevent caching
+    params = params.set('_t', Date.now().toString());
+
     return this.http.get<CoursesResponse>(this.apiUrl, { params });
   }
 
   getCourseById(id: string | number): Observable<any> {
-  return this.http.get(`${this.apiUrl}/${id}`);
-}
+    return this.http.get(`${this.apiUrl}/${id}`);
+  }
 
   getCategories(): Observable<any> {
     return this.http.get(`${this.apiUrl}/categories`);

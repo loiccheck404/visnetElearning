@@ -81,7 +81,13 @@ const authenticate = (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
+    // Normalize the user object to always use 'id'
+    req.user = {
+      id: decoded.userId, // Map userId to id
+      email: decoded.email,
+      role: decoded.role,
+    };
+    console.log("Authenticated user:", req.user); // Debug log
     next();
   } catch (error) {
     return res.status(401).json({

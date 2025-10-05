@@ -140,7 +140,7 @@ const createCourse = async (req, res) => {
       INSERT INTO courses (
         title, slug, description, short_description, instructor_id, 
         category_id, level, language, price, status
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'draft')
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'published')
       RETURNING *
     `;
 

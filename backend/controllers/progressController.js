@@ -3,7 +3,7 @@ const db = require("../config/database");
 // Get student's progress for a specific course
 const getCourseProgress = async (req, res) => {
   try {
-    const studentId = req.user.id;
+    const studentId = req.user.userId;
     const { courseId } = req.params;
 
     // Get enrollment
@@ -57,7 +57,7 @@ const getCourseProgress = async (req, res) => {
 // Mark lesson as complete
 const markLessonComplete = async (req, res) => {
   try {
-    const studentId = req.user.id;
+    const studentId = req.user.userId;
     const { courseId, lessonId } = req.params;
     const { timeSpent } = req.body; // in seconds
 
@@ -129,7 +129,7 @@ const markLessonComplete = async (req, res) => {
 // Update time spent on a lesson (without marking complete)
 const updateLessonTime = async (req, res) => {
   try {
-    const studentId = req.user.id;
+    const studentId = req.user.userId;
     const { courseId, lessonId } = req.params;
     const { timeSpent } = req.body;
 
@@ -179,7 +179,7 @@ const updateLessonTime = async (req, res) => {
 // Get all student's enrolled courses with progress
 const getStudentProgress = async (req, res) => {
   try {
-    const studentId = req.user.id;
+    const studentId = req.user.userId;
 
     const query = `
       SELECT 
