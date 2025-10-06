@@ -311,13 +311,16 @@ const deleteCourse = async (req, res) => {
 // Get instructor's courses
 const getInstructorCourses = async (req, res) => {
   try {
-    const instructorId = req.user.id;
+    const instructorId = req.user.id; // Make sure this is correct
 
     const query = `
-      SELECT c.*, cat.name as category_name
+      SELECT c.*, cat.name as category_name,
+             COUNT(DISTINCT e.id) as student_count
       FROM courses c
       LEFT JOIN categories cat ON c.category_id = cat.id
+      LEFT JOIN enrollments e ON c.id = e.course_id
       WHERE c.instructor_id = $1
+      GROUP BY c.id, cat.name
       ORDER BY c.created_at DESC
     `;
 

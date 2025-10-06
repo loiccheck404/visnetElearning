@@ -45,4 +45,6 @@ router.delete(
   courseController.deleteCourse
 );
 
+// Add this route
+
 module.exports = router;

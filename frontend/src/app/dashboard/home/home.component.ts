@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService, User } from '../../core/services/auth.service';
 import { ThemeToggleComponent } from '../../shared/components/theme-toggle/theme-toggle.component';
+import { EnrollmentService } from '../../core/services/enrollment.service';
 
 interface Course {
   id: number;
@@ -57,8 +58,11 @@ export class HomeComponent implements OnInit {
     { type: 'quiz', course: 'Database Design', date: '2 days ago' },
   ]);
 
-  constructor(private authService: AuthService, private router: Router) {}
-
+  constructor(
+    private authService: AuthService,
+    private router: Router,
+    private enrollmentService: EnrollmentService
+  ) {}
   ngOnInit() {
     this.loadUserData();
   }
@@ -90,5 +94,25 @@ export class HomeComponent implements OnInit {
   viewAllCourses() {
     // TODO: Navigate to courses page
     console.log('View all courses');
+  }
+
+  loadEnrolledCourses() {
+    // Replace mock data with real API call
+    this.enrollmentService.getMyEnrollments().subscribe({
+      next: (response) => {
+        if (response.status === 'SUCCESS') {
+          const courses = response.data.courses.map((course: any) => ({
+            id: course.id,
+            title: course.title,
+            instructor: course.instructor_name,
+            category: course.category_name,
+            progress: course.progress || 0,
+            thumbnail: course.thumbnail_url || 'https://via.placeholder.com/300x200',
+          }));
+          this.enrolledCourses.set(courses);
+        }
+      },
+      error: (err) => console.error('Error loading enrolled courses:', err),
+    });
   }
 }

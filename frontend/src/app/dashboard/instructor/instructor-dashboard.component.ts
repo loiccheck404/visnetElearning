@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService, User } from '../../core/services/auth.service';
 import { ThemeToggleComponent } from '../../shared/components/theme-toggle/theme-toggle.component';
+import { CourseService } from '../../core/services/course.service';
 
 interface Course {
   id: number;
@@ -22,29 +23,7 @@ interface Course {
 export class InstructorDashboardComponent implements OnInit {
   currentUser = signal<User | null>(null);
 
-  myCourses = signal<Course[]>([
-    {
-      id: 1,
-      title: 'Introduction to Angular',
-      students: 234,
-      progress: 100,
-      status: 'published',
-    },
-    {
-      id: 2,
-      title: 'Advanced TypeScript',
-      students: 156,
-      progress: 100,
-      status: 'published',
-    },
-    {
-      id: 3,
-      title: 'Node.js Masterclass',
-      students: 0,
-      progress: 45,
-      status: 'draft',
-    },
-  ]);
+  myCourses = signal<any[]>([]);
 
   recentActivity = signal([
     {
@@ -61,11 +40,13 @@ export class InstructorDashboardComponent implements OnInit {
       date: '1 day ago',
     },
   ]);
+  courseService: any;
 
   constructor(private authService: AuthService, private router: Router) {}
 
   ngOnInit() {
     this.loadUserData();
+    this.loadInstructorCourses();
   }
 
   loadUserData() {
@@ -105,5 +86,16 @@ export class InstructorDashboardComponent implements OnInit {
 
   viewStudents(courseId: number) {
     console.log('View students for course:', courseId);
+  }
+
+  loadInstructorCourses() {
+    this.courseService.getInstructorCourses().subscribe({
+      next: (response) => {
+        if (response.status === 'SUCCESS') {
+          this.myCourses.set(response.data.courses);
+        }
+      },
+      error: (err) => console.error('Error loading courses:', err),
+    });
   }
 }
