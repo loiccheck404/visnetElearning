@@ -136,9 +136,9 @@ import { ToastService } from '../../../core/services/toast.service';
       }
 
       .toast-warning {
-        background: var(--warning-light);
-        color: var(--warning-dark);
-        border: 1px solid var(--warning);
+        background: red;
+        color: black;
+        border: 2px solid var(--warning);
       }
 
       .toast-info {
@@ -157,7 +157,7 @@ import { ToastService } from '../../../core/services/toast.service';
       .toast-message {
         flex: 1;
         font-size: 0.95rem;
-        font-weight: 500;
+        font-weight: 700;
         color: black;
       }
 

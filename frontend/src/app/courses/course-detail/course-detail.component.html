@@ -170,9 +170,13 @@
           @if (enrolling()) { Enrolling... } @else { Enroll Now }
         </button>
         } @else if (isEnrolled()) {
-        <button class="start-btn" (click)="startCourse()">Start Course</button>
-        <span class="enrolled-badge">✓ Enrolled</span>
-        }
+  <div class="enrolled-status">
+    <span class="enrolled-badge">✓ Enrolled</span>
+  </div>
+  <button class="start-btn" (click)="startCourse()">
+    Start Learning
+  </button>
+}
 
         <div class="course-includes">
           <h4>This course includes:</h4>

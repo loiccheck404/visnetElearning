@@ -144,11 +144,26 @@ export class CourseDetailComponent implements OnInit {
   }
 
   startCourse() {
+    const courseId = this.course()?.id;
     const firstLesson = this.lessons()[0];
-    if (firstLesson) {
-      // Navigate to lesson viewer (implement this later)
-      this.toastService.info('Lesson viewer coming soon!');
+
+    if (!courseId) {
+      this.toastService.error('Course not found');
+      return;
     }
+
+    if (!firstLesson) {
+      this.toastService.warning('This course has no lessons yet. Check back later!');
+      return;
+    }
+
+    // For now, navigate to a placeholder or show info
+    this.toastService.info(
+      'Lesson viewer coming soon! The instructor needs to add lessons to this course.'
+    );
+
+    // Later, you'll navigate to:
+    // this.router.navigate(['/dashboard/courses', courseId, 'lessons', firstLesson.id]);
   }
 
   goBack() {
