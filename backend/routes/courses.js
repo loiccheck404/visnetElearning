@@ -5,8 +5,8 @@ const { authenticateToken, requireRole } = require("../middleware/auth");
 const router = express.Router();
 
 // Public routes
-router.get("/", courseController.getAllCourses);
 router.get("/categories", courseController.getCategories);
+router.get("/", courseController.getAllCourses);
 router.get("/:id", courseController.getCourseById);
 
 // Instructor routes
@@ -23,6 +23,8 @@ router.get(
   requireRole(["instructor", "admin"]),
   courseController.getInstructorCourses
 );
+
+router.get("/:id", courseController.getCourseById);
 
 router.put(
   "/:id",

@@ -40,9 +40,12 @@ export class InstructorDashboardComponent implements OnInit {
       date: '1 day ago',
     },
   ]);
-  courseService: any;
 
-  constructor(private authService: AuthService, private router: Router) {}
+  constructor(
+    private authService: AuthService,
+    private router: Router,
+    private courseService: CourseService
+  ) {}
 
   ngOnInit() {
     this.loadUserData();
