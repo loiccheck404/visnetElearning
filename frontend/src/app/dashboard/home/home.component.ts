@@ -6,7 +6,8 @@ import { ThemeToggleComponent } from '../../shared/components/theme-toggle/theme
 import { EnrollmentService } from '../../core/services/enrollment.service';
 import { ProgressService } from '../../core/services/progress.service';
 import { ActivityService, StudentActivity } from '../../core/services/activity.service';
-import { forkJoin } from 'rxjs';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 interface EnrolledCourse {
   id: number;
@@ -83,14 +84,35 @@ export class HomeComponent implements OnInit {
   loadDashboardData() {
     this.isLoading.set(true);
 
-    // Load enrollments, progress data, and activities
+    // Load enrollments, progress data, and activities with fallback
     forkJoin({
-      enrollments: this.enrollmentService.getMyEnrollments(),
-      progress: this.progressService.getMyProgress(),
-      activities: this.activityService.getMyActivities(10),
+      enrollments: this.enrollmentService.getMyEnrollments().pipe(
+        catchError((err) => {
+          console.error('Error loading enrollments:', err);
+          return of({ status: 'ERROR', data: { courses: [] } });
+        })
+      ),
+      progress: this.progressService.getMyProgress().pipe(
+        catchError((err) => {
+          console.error('Error loading progress:', err);
+          return of({
+            status: 'ERROR',
+            data: { courses: [], totalLearningTime: { formatted: '0h' } },
+          });
+        })
+      ),
+      activities: this.activityService.getMyActivities(10).pipe(
+        catchError((err) => {
+          console.error('Error loading activities:', err);
+          return of({ status: 'ERROR', data: { activities: [] } });
+        })
+      ),
     }).subscribe({
       next: (results) => {
-        if (results.enrollments.status === 'SUCCESS') {
+        console.log('Dashboard data loaded:', results);
+
+        // Load enrolled courses
+        if (results.enrollments.status === 'SUCCESS' && results.enrollments.data.courses) {
           const courses = results.enrollments.data.courses.map((course: any) => ({
             id: course.id,
             title: course.title,
@@ -102,6 +124,7 @@ export class HomeComponent implements OnInit {
             last_accessed_at: course.last_accessed_at,
           }));
           this.enrolledCourses.set(courses);
+          console.log('Enrolled courses set:', courses);
         }
 
         // Set learning time from progress data
@@ -110,7 +133,7 @@ export class HomeComponent implements OnInit {
         }
 
         // Set real activities from backend
-        if (results.activities.status === 'SUCCESS') {
+        if (results.activities.status === 'SUCCESS' && results.activities.data.activities) {
           const activities = results.activities.data.activities.map(
             (activity: StudentActivity) => ({
               type: this.mapActivityType(activity.activity_type),
@@ -120,6 +143,10 @@ export class HomeComponent implements OnInit {
             })
           );
           this.recentActivity.set(activities);
+          console.log('Activities set:', activities);
+        } else {
+          // Fallback: Generate activities from enrollment data
+          this.generateActivitiesFromEnrollments();
         }
 
         this.isLoading.set(false);
@@ -129,6 +156,20 @@ export class HomeComponent implements OnInit {
         this.isLoading.set(false);
       },
     });
+  }
+
+  generateActivitiesFromEnrollments() {
+    const courses = this.enrolledCourses();
+    if (courses.length === 0) return;
+
+    const activities: Activity[] = courses.slice(0, 3).map((course) => ({
+      type: 'started' as const,
+      course: course.title,
+      date: this.getRelativeTime(course.enrolled_at),
+      timestamp: new Date(course.enrolled_at),
+    }));
+
+    this.recentActivity.set(activities);
   }
 
   mapActivityType(activityType: string): 'completed' | 'started' | 'quiz' {

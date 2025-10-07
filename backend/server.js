@@ -11,7 +11,6 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const courseRoutes = require("./routes/courses");
 const activityRoutes = require("./routes/activities");
-app.use("/api/activities", activityRoutes);
 
 // Basic middleware
 app.use(helmet());
@@ -40,6 +39,8 @@ app.get("/api/health", (req, res) => {
     environment: process.env.NODE_ENV || "development",
   });
 });
+
+app.use("/api/activities", activityRoutes);
 
 app.use("/api/progress", progressRoutes);
 
