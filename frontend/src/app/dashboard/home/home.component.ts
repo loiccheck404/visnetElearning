@@ -1,17 +1,29 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService, User } from '../../core/services/auth.service';
 import { ThemeToggleComponent } from '../../shared/components/theme-toggle/theme-toggle.component';
 import { EnrollmentService } from '../../core/services/enrollment.service';
+import { ProgressService } from '../../core/services/progress.service';
+import { ActivityService, StudentActivity } from '../../core/services/activity.service';
+import { forkJoin } from 'rxjs';
 
-interface Course {
+interface EnrolledCourse {
   id: number;
   title: string;
-  instructor: string;
+  instructor_name: string;
   progress: number;
-  thumbnail: string;
-  category: string;
+  thumbnail_url: string;
+  category_name: string;
+  enrolled_at: string;
+  last_accessed_at: string;
+}
+
+interface Activity {
+  type: 'completed' | 'started' | 'quiz';
+  course: string;
+  date: string;
+  timestamp: Date;
 }
 
 @Component({
@@ -23,48 +35,42 @@ interface Course {
 })
 export class HomeComponent implements OnInit {
   currentUser = signal<User | null>(null);
+  enrolledCourses = signal<EnrolledCourse[]>([]);
+  recentActivity = signal<Activity[]>([]);
+  isLoading = signal(true);
 
-  // Mock data for now - will be replaced with API calls later
-  enrolledCourses = signal<Course[]>([
-    {
-      id: 1,
-      title: 'Introduction to Angular',
-      instructor: 'John Doe',
-      progress: 65,
-      thumbnail: 'https://via.placeholder.com/300x200/667eea/ffffff?text=Angular',
-      category: 'Web Development',
-    },
-    {
-      id: 2,
-      title: 'Node.js Fundamentals',
-      instructor: 'Jane Smith',
-      progress: 40,
-      thumbnail: 'https://via.placeholder.com/300x200/764ba2/ffffff?text=Node.js',
-      category: 'Backend Development',
-    },
-    {
-      id: 3,
-      title: 'PostgreSQL Database Design',
-      instructor: 'Mike Johnson',
-      progress: 80,
-      thumbnail: 'https://via.placeholder.com/300x200/48bb78/ffffff?text=PostgreSQL',
-      category: 'Database',
-    },
-  ]);
+  // Computed statistics
+  totalEnrolled = computed(() => this.enrolledCourses().length);
 
-  recentActivity = signal([
-    { type: 'completed', course: 'Angular Basics', date: '2 hours ago' },
-    { type: 'started', course: 'Node.js Advanced', date: '1 day ago' },
-    { type: 'quiz', course: 'Database Design', date: '2 days ago' },
-  ]);
+  averageProgress = computed(() => {
+    const courses = this.enrolledCourses();
+    if (courses.length === 0) return 0;
+    const total = courses.reduce((sum, course) => sum + (course.progress || 0), 0);
+    return Math.round(total / courses.length);
+  });
+
+  totalLearningTime = signal('0h');
+
+  completedCourses = computed(() => {
+    return this.enrolledCourses().filter((course) => course.progress >= 100).length;
+  });
+
+  inProgressCourses = computed(() => {
+    return this.enrolledCourses().filter((course) => course.progress > 0 && course.progress < 100)
+      .length;
+  });
 
   constructor(
     private authService: AuthService,
     private router: Router,
-    private enrollmentService: EnrollmentService
+    private enrollmentService: EnrollmentService,
+    private progressService: ProgressService,
+    private activityService: ActivityService
   ) {}
+
   ngOnInit() {
     this.loadUserData();
+    this.loadDashboardData();
   }
 
   loadUserData() {
@@ -72,6 +78,102 @@ export class HomeComponent implements OnInit {
     if (user) {
       this.currentUser.set(user);
     }
+  }
+
+  loadDashboardData() {
+    this.isLoading.set(true);
+
+    // Load enrollments, progress data, and activities
+    forkJoin({
+      enrollments: this.enrollmentService.getMyEnrollments(),
+      progress: this.progressService.getMyProgress(),
+      activities: this.activityService.getMyActivities(10),
+    }).subscribe({
+      next: (results) => {
+        if (results.enrollments.status === 'SUCCESS') {
+          const courses = results.enrollments.data.courses.map((course: any) => ({
+            id: course.id,
+            title: course.title,
+            instructor_name: course.instructor_name,
+            category_name: course.category_name,
+            progress: Math.round(course.progress || 0),
+            thumbnail_url: course.thumbnail_url || this.getPlaceholderImage(course.category_name),
+            enrolled_at: course.enrolled_at,
+            last_accessed_at: course.last_accessed_at,
+          }));
+          this.enrolledCourses.set(courses);
+        }
+
+        // Set learning time from progress data
+        if (results.progress.status === 'SUCCESS' && results.progress.data.totalLearningTime) {
+          this.totalLearningTime.set(results.progress.data.totalLearningTime.formatted);
+        }
+
+        // Set real activities from backend
+        if (results.activities.status === 'SUCCESS') {
+          const activities = results.activities.data.activities.map(
+            (activity: StudentActivity) => ({
+              type: this.mapActivityType(activity.activity_type),
+              course: activity.course_title,
+              date: this.getRelativeTime(activity.created_at),
+              timestamp: new Date(activity.created_at),
+            })
+          );
+          this.recentActivity.set(activities);
+        }
+
+        this.isLoading.set(false);
+      },
+      error: (err) => {
+        console.error('Error loading dashboard data:', err);
+        this.isLoading.set(false);
+      },
+    });
+  }
+
+  mapActivityType(activityType: string): 'completed' | 'started' | 'quiz' {
+    if (activityType === 'lesson_completed' || activityType === 'course_completed') {
+      return 'completed';
+    } else if (activityType === 'quiz_completed' || activityType === 'quiz_started') {
+      return 'quiz';
+    }
+    return 'started';
+  }
+
+  getRelativeTime(timestamp: string): string {
+    const now = new Date();
+    const then = new Date(timestamp);
+    const diffMs = now.getTime() - then.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 60) {
+      return diffMins <= 1 ? 'Just now' : `${diffMins} minutes ago`;
+    } else if (diffHours < 24) {
+      return diffHours === 1 ? '1 hour ago' : `${diffHours} hours ago`;
+    } else if (diffDays < 7) {
+      return diffDays === 1 ? '1 day ago' : `${diffDays} days ago`;
+    } else {
+      return then.toLocaleDateString();
+    }
+  }
+
+  getPlaceholderImage(category: string): string {
+    const colors: Record<string, string> = {
+      'Web Development': '667eea',
+      'Backend Development': '764ba2',
+      Database: '48bb78',
+      'Data Science': '4299e1',
+      Design: 'ed8936',
+      Business: 'f6ad55',
+      Marketing: 'fc8181',
+    };
+
+    const color = colors[category] || '8b7dff';
+    return `https://via.placeholder.com/300x200/${color}/ffffff?text=${encodeURIComponent(
+      category
+    )}`;
   }
 
   getGreeting(): string {
@@ -87,32 +189,10 @@ export class HomeComponent implements OnInit {
   }
 
   continueCourse(courseId: number) {
-    // TODO: Navigate to course detail page
-    console.log('Continue course:', courseId);
+    this.router.navigate(['/dashboard/courses', courseId]);
   }
 
   viewAllCourses() {
-    // TODO: Navigate to courses page
-    console.log('View all courses');
-  }
-
-  loadEnrolledCourses() {
-    // Replace mock data with real API call
-    this.enrollmentService.getMyEnrollments().subscribe({
-      next: (response) => {
-        if (response.status === 'SUCCESS') {
-          const courses = response.data.courses.map((course: any) => ({
-            id: course.id,
-            title: course.title,
-            instructor: course.instructor_name,
-            category: course.category_name,
-            progress: course.progress || 0,
-            thumbnail: course.thumbnail_url || 'https://via.placeholder.com/300x200',
-          }));
-          this.enrolledCourses.set(courses);
-        }
-      },
-      error: (err) => console.error('Error loading enrolled courses:', err),
-    });
+    this.router.navigate(['/dashboard/courses']);
   }
 }
