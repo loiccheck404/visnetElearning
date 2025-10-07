@@ -1,6 +1,4 @@
-// Update to home.component.ts - Add unenroll functionality
-
-import { Component, OnInit, signal, computed } from '@angular/core';
+import { Component, OnInit, signal, computed, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService, User } from '../../core/services/auth.service';
@@ -45,6 +43,8 @@ export class HomeComponent implements OnInit {
   selectedCourse = signal<EnrolledCourse | null>(null);
   isUnenrolling = signal(false);
   showCourseMenu = signal<number | null>(null);
+  showMobileMenu = signal(false);
+  showUserDropdown = signal(false);
 
   // Computed statistics
   totalEnrolled = computed(() => this.enrolledCourses().length);
@@ -74,6 +74,14 @@ export class HomeComponent implements OnInit {
     private progressService: ProgressService,
     private activityService: ActivityService
   ) {}
+
+  // Close dropdowns when clicking outside
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    this.showCourseMenu.set(null);
+    this.showUserDropdown.set(false);
+    this.showMobileMenu.set(false);
+  }
 
   ngOnInit() {
     this.loadUserData();
@@ -221,12 +229,27 @@ export class HomeComponent implements OnInit {
     return 'Good Evening';
   }
 
+  toggleMobileMenu() {
+    this.showMobileMenu.update((show) => !show);
+    this.showUserDropdown.set(false);
+  }
+
+  toggleUserDropdown() {
+    this.showUserDropdown.update((show) => !show);
+    this.showMobileMenu.set(false);
+  }
+
+  closeUserDropdown() {
+    this.showUserDropdown.set(false);
+  }
+
   onLogout() {
     this.authService.logout();
     this.router.navigate(['/auth/login']);
   }
 
   continueCourse(courseId: number) {
+    this.showCourseMenu.set(null);
     this.router.navigate(['/dashboard/courses', courseId]);
   }
 
