@@ -51,234 +51,345 @@
   <!-- Main Content -->
   <main class="dashboard-main">
     @if (isLoading()) {
-      <div class="loading-state">
-        <div class="spinner"></div>
-        <p>Loading your dashboard...</p>
-      </div>
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading your dashboard...</p>
+    </div>
     } @else {
-      <!-- Welcome Section -->
-      <section class="welcome-section">
-        <div class="welcome-content">
-          <h1>{{ getGreeting() }}, {{ currentUser()?.firstName }}!</h1>
-          <p>Ready to continue your learning journey?</p>
-        </div>
-        <div class="stats-grid">
-          <div class="stat-card">
-            <div
-              class="stat-icon"
-              style="background: linear-gradient(135deg, #8b7dff 0%, #b794f6 100%)"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
-                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
-              </svg>
-            </div>
-            <div class="stat-info">
-              <h3>{{ totalEnrolled() }}</h3>
-              <p>Courses Enrolled</p>
-            </div>
-          </div>
-          <div class="stat-card">
-            <div
-              class="stat-icon"
-              style="background: linear-gradient(135deg, #48bb78 0%, #38a169 100%)"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
-              </svg>
-            </div>
-            <div class="stat-info">
-              <h3>{{ averageProgress() }}%</h3>
-              <p>Avg. Progress</p>
-            </div>
-          </div>
-          <div class="stat-card">
-            <div
-              class="stat-icon"
-              style="background: linear-gradient(135deg, #f6ad55 0%, #ed8936 100%)"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <circle cx="12" cy="12" r="10"></circle>
-                <polyline points="12 6 12 12 16 14"></polyline>
-              </svg>
-            </div>
-            <div class="stat-info">
-              <h3>{{ totalLearningTime() }}</h3>
-              <p>Learning Time</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Enrolled Courses Section -->
-      <section class="courses-section">
-        <div class="section-header">
-          <h2>Continue Learning</h2>
-          <button class="view-all-btn" (click)="viewAllCourses()">View All</button>
-        </div>
-        @if (enrolledCourses().length > 0) {
-          <div class="courses-grid">
-            @for (course of enrolledCourses(); track course.id) {
-            <div class="course-card">
-              <div class="course-thumbnail">
-                <img [src]="course.thumbnail_url" [alt]="course.title" />
-                <span class="course-category">{{ course.category_name }}</span>
-              </div>
-              <div class="course-content">
-                <h3>{{ course.title }}</h3>
-                <p class="course-instructor">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="12" cy="7" r="4"></circle>
-                  </svg>
-                  {{ course.instructor_name }}
-                </p>
-                <div class="progress-bar">
-                  <div class="progress-fill" [style.width.%]="course.progress"></div>
-                </div>
-                <div class="course-footer">
-                  <span class="progress-text">{{ course.progress }}% Complete</span>
-                  <button class="continue-btn" (click)="continueCourse(course.id)">Continue</button>
-                </div>
-              </div>
-            </div>
-            }
-          </div>
-        } @else {
-          <div class="empty-state">
+    <!-- Welcome Section -->
+    <section class="welcome-section">
+      <div class="welcome-content">
+        <h1>{{ getGreeting() }}, {{ currentUser()?.firstName }}!</h1>
+        <p>Ready to continue your learning journey?</p>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div
+            class="stat-icon"
+            style="background: linear-gradient(135deg, #8b7dff 0%, #b794f6 100%)"
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              width="64"
-              height="64"
+              width="24"
+              height="24"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
-              stroke-width="1.5"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
             >
               <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
               <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
             </svg>
-            <h3>No Courses Yet</h3>
-            <p>Start your learning journey by enrolling in a course</p>
-            <button class="browse-btn" (click)="viewAllCourses()">Browse Courses</button>
           </div>
-        }
-      </section>
+          <div class="stat-info">
+            <h3>{{ totalEnrolled() }}</h3>
+            <p>Courses Enrolled</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div
+            class="stat-icon"
+            style="background: linear-gradient(135deg, #48bb78 0%, #38a169 100%)"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+            </svg>
+          </div>
+          <div class="stat-info">
+            <h3>{{ averageProgress() }}%</h3>
+            <p>Avg. Progress</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div
+            class="stat-icon"
+            style="background: linear-gradient(135deg, #f6ad55 0%, #ed8936 100%)"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+          </div>
+          <div class="stat-info">
+            <h3>{{ totalLearningTime() }}</h3>
+            <p>Learning Time</p>
+          </div>
+        </div>
+      </div>
+    </section>
 
-      <!-- Recent Activity Section -->
-      <section class="activity-section">
-        <h2>Recent Activity</h2>
-        @if (recentActivity().length > 0) {
-          <div class="activity-list">
-            @for (activity of recentActivity(); track $index) {
-            <div class="activity-item">
-              <div class="activity-icon" [class]="'activity-' + activity.type">
-                @if (activity.type === 'completed') {
+    <!-- Enrolled Courses Section -->
+    <section class="courses-section">
+      <div class="section-header">
+        <h2>Continue Learning</h2>
+        <button class="view-all-btn" (click)="viewAllCourses()">View All</button>
+      </div>
+      @if (enrolledCourses().length > 0) {
+      <div class="courses-grid">
+        @for (course of enrolledCourses(); track course.id) {
+        <div class="course-card">
+          <div class="course-thumbnail">
+            <img [src]="course.thumbnail_url" [alt]="course.title" />
+            <span class="course-category">{{ course.category_name }}</span>
+
+            <!-- Three-dot menu button -->
+            <button class="course-menu-btn" (click)="toggleCourseMenu(course.id, $event)">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <circle cx="12" cy="12" r="1"></circle>
+                <circle cx="12" cy="5" r="1"></circle>
+                <circle cx="12" cy="19" r="1"></circle>
+              </svg>
+            </button>
+
+            <!-- Dropdown menu -->
+            @if (showCourseMenu() === course.id) {
+            <div class="course-dropdown-menu" (click)="$event.stopPropagation()">
+              <button class="menu-item" (click)="continueCourse(course.id)">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
+                  width="18"
+                  height="18"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
                   stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <polyline points="20 6 9 17 4 12"></polyline>
-                </svg>
-                } @if (activity.type === 'started') {
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
                 >
                   <polygon points="5 3 19 12 5 21 5 3"></polygon>
                 </svg>
-                } @if (activity.type === 'quiz') {
+                Continue Course
+              </button>
+              <button class="menu-item danger" (click)="confirmUnenroll(course, $event)">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
+                  width="18"
+                  height="18"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
                   stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
                 >
-                  <path d="M9 11l3 3L22 4"></path>
-                  <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
                 </svg>
-                }
-              </div>
-              <div class="activity-details">
-                <p class="activity-text">
-                  @if (activity.type === 'completed') {
-                  <strong>Completed</strong> lesson in {{ activity.course }}
-                  } @if (activity.type === 'started') {
-                  <strong>Started</strong> {{ activity.course }}
-                  } @if (activity.type === 'quiz') {
-                  <strong>Completed quiz</strong> in {{ activity.course }}
-                  }
-                </p>
-                <span class="activity-time">{{ activity.date }}</span>
-              </div>
+                Unenroll
+              </button>
             </div>
             }
           </div>
-        } @else {
-          <div class="empty-activity">
-            <p>No recent activity yet. Start learning to see your progress here!</p>
+          <div class="course-content">
+            <h3>{{ course.title }}</h3>
+            <p class="course-instructor">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+              {{ course.instructor_name }}
+            </p>
+            <div class="progress-bar">
+              <div class="progress-fill" [style.width.%]="course.progress"></div>
+            </div>
+            <div class="course-footer">
+              <span class="progress-text">{{ course.progress }}% Complete</span>
+              <button class="continue-btn" (click)="continueCourse(course.id)">Continue</button>
+            </div>
           </div>
+        </div>
         }
-      </section>
+      </div>
+      } @else {
+      <div class="empty-state">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="64"
+          height="64"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+        >
+          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+          <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+        </svg>
+        <h3>No Courses Yet</h3>
+        <p>Start your learning journey by enrolling in a course</p>
+        <button class="browse-btn" (click)="viewAllCourses()">Browse Courses</button>
+      </div>
+      }
+    </section>
+
+    <!-- Recent Activity Section -->
+    <section class="activity-section">
+      <h2>Recent Activity</h2>
+      @if (recentActivity().length > 0) {
+      <div class="activity-list">
+        @for (activity of recentActivity(); track $index) {
+        <div class="activity-item">
+          <div class="activity-icon" [class]="'activity-' + activity.type">
+            @if (activity.type === 'completed') {
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            } @if (activity.type === 'started') {
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+            } @if (activity.type === 'quiz') {
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M9 11l3 3L22 4"></path>
+              <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+            </svg>
+            }
+          </div>
+          <div class="activity-details">
+            <p class="activity-text">
+              @if (activity.type === 'completed') {
+              <strong>Completed</strong> lesson in {{ activity.course }}
+              } @if (activity.type === 'started') {
+              <strong>Started</strong> {{ activity.course }}
+              } @if (activity.type === 'quiz') {
+              <strong>Completed quiz</strong> in {{ activity.course }}
+              }
+            </p>
+            <span class="activity-time">{{ activity.date }}</span>
+          </div>
+        </div>
+        }
+      </div>
+      } @else {
+      <div class="empty-activity">
+        <p>No recent activity yet. Start learning to see your progress here!</p>
+      </div>
+      }
+    </section>
     }
   </main>
+  @if (showUnenrollDialog()) {
+  <div class="dialog-overlay" (click)="cancelUnenroll()">
+    <div class="dialog-content" (click)="$event.stopPropagation()">
+      <div class="dialog-header">
+        <h3>Unenroll from Course?</h3>
+        <button class="close-btn" (click)="cancelUnenroll()">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="dialog-body">
+        <div class="warning-icon">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="48"
+            height="48"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+        </div>
+        <p>
+          Are you sure you want to unenroll from <strong>{{ selectedCourse()?.title }}</strong
+          >?
+        </p>
+        <p class="warning-text">
+          Your progress will be saved, but you'll need to re-enroll to continue this course.
+        </p>
+      </div>
+
+      <div class="dialog-actions">
+        <button class="btn-cancel" (click)="cancelUnenroll()" [disabled]="isUnenrolling()">
+          Cancel
+        </button>
+        <button class="btn-confirm" (click)="unenrollFromCourse()" [disabled]="isUnenrolling()">
+          @if (isUnenrolling()) {
+          <span class="btn-spinner"></span>
+          Unenrolling... } @else { Yes, Unenroll }
+        </button>
+      </div>
+    </div>
+  </div>
+  }
 </div>

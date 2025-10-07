@@ -166,15 +166,18 @@
         </div>
 
         @if (!isEnrolled() && currentUser()?.role === 'student') {
-        <button class="enroll-btn" (click)="enrollInCourse()" [disabled]="enrolling()">
-          @if (enrolling()) { Enrolling... } @else { Enroll Now }
-        </button>
-        } @else if (isEnrolled()) {
+<button class="enroll-btn" (click)="enrollInCourse()" [disabled]="enrolling()">
+  @if (enrolling()) { Enrolling... } @else { Enroll Now }
+</button>
+} @else if (isEnrolled()) {
   <div class="enrolled-status">
     <span class="enrolled-badge">✓ Enrolled</span>
   </div>
   <button class="start-btn" (click)="startCourse()">
     Start Learning
+  </button>
+  <button class="unenroll-btn" (click)="confirmUnenroll()" [disabled]="isUnenrolling()">
+    @if (isUnenrolling()) { Unenrolling... } @else { Unenroll from Course }
   </button>
 }
 

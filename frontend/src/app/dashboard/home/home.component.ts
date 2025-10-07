@@ -1,3 +1,5 @@
+// Update to home.component.ts - Add unenroll functionality
+
 import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
@@ -39,6 +41,10 @@ export class HomeComponent implements OnInit {
   enrolledCourses = signal<EnrolledCourse[]>([]);
   recentActivity = signal<Activity[]>([]);
   isLoading = signal(true);
+  showUnenrollDialog = signal(false);
+  selectedCourse = signal<EnrolledCourse | null>(null);
+  isUnenrolling = signal(false);
+  showCourseMenu = signal<number | null>(null);
 
   // Computed statistics
   totalEnrolled = computed(() => this.enrolledCourses().length);
@@ -84,7 +90,6 @@ export class HomeComponent implements OnInit {
   loadDashboardData() {
     this.isLoading.set(true);
 
-    // Load enrollments, progress data, and activities with fallback
     forkJoin({
       enrollments: this.enrollmentService.getMyEnrollments().pipe(
         catchError((err) => {
@@ -109,9 +114,6 @@ export class HomeComponent implements OnInit {
       ),
     }).subscribe({
       next: (results) => {
-        console.log('Dashboard data loaded:', results);
-
-        // Load enrolled courses
         if (results.enrollments.status === 'SUCCESS' && results.enrollments.data.courses) {
           const courses = results.enrollments.data.courses.map((course: any) => ({
             id: course.id,
@@ -124,15 +126,12 @@ export class HomeComponent implements OnInit {
             last_accessed_at: course.last_accessed_at,
           }));
           this.enrolledCourses.set(courses);
-          console.log('Enrolled courses set:', courses);
         }
 
-        // Set learning time from progress data
         if (results.progress.status === 'SUCCESS' && results.progress.data.totalLearningTime) {
           this.totalLearningTime.set(results.progress.data.totalLearningTime.formatted);
         }
 
-        // Set real activities from backend
         if (results.activities.status === 'SUCCESS' && results.activities.data.activities) {
           const activities = results.activities.data.activities.map(
             (activity: StudentActivity) => ({
@@ -143,9 +142,7 @@ export class HomeComponent implements OnInit {
             })
           );
           this.recentActivity.set(activities);
-          console.log('Activities set:', activities);
         } else {
-          // Fallback: Generate activities from enrollment data
           this.generateActivitiesFromEnrollments();
         }
 
@@ -235,5 +232,54 @@ export class HomeComponent implements OnInit {
 
   viewAllCourses() {
     this.router.navigate(['/dashboard/courses']);
+  }
+
+  toggleCourseMenu(courseId: number, event: Event) {
+    event.stopPropagation();
+    if (this.showCourseMenu() === courseId) {
+      this.showCourseMenu.set(null);
+    } else {
+      this.showCourseMenu.set(courseId);
+    }
+  }
+
+  confirmUnenroll(course: EnrolledCourse, event: Event) {
+    event.stopPropagation();
+    this.selectedCourse.set(course);
+    this.showUnenrollDialog.set(true);
+    this.showCourseMenu.set(null);
+  }
+
+  cancelUnenroll() {
+    this.showUnenrollDialog.set(false);
+    this.selectedCourse.set(null);
+  }
+
+  unenrollFromCourse() {
+    const course = this.selectedCourse();
+    if (!course) return;
+
+    this.isUnenrolling.set(true);
+    this.enrollmentService.unenrollFromCourse(course.id).subscribe({
+      next: (response) => {
+        if (response.status === 'SUCCESS') {
+          // Remove course from the list
+          const updatedCourses = this.enrolledCourses().filter((c) => c.id !== course.id);
+          this.enrolledCourses.set(updatedCourses);
+
+          this.showUnenrollDialog.set(false);
+          this.selectedCourse.set(null);
+
+          // Refresh dashboard data
+          this.loadDashboardData();
+        }
+        this.isUnenrolling.set(false);
+      },
+      error: (err) => {
+        console.error('Error unenrolling:', err);
+        alert('Failed to unenroll from course. Please try again.');
+        this.isUnenrolling.set(false);
+      },
+    });
   }
 }

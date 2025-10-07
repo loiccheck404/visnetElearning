@@ -29,6 +29,8 @@ export class CourseDetailComponent implements OnInit {
   isLoading = signal(true);
   isEnrolled = signal(false);
   enrolling = signal<boolean>(false);
+  isUnenrolling = signal(false);
+  showUnenrollDialog = signal(false);
   currentUser = signal<any>(null);
 
   constructor(
@@ -164,6 +166,40 @@ export class CourseDetailComponent implements OnInit {
 
     // Later, you'll navigate to:
     // this.router.navigate(['/dashboard/courses', courseId, 'lessons', firstLesson.id]);
+  }
+
+  confirmUnenroll() {
+    const course = this.course();
+    if (!course) return;
+
+    if (
+      confirm(
+        `Are you sure you want to unenroll from "${course.title}"? Your progress will be saved.`
+      )
+    ) {
+      this.unenrollFromCourse();
+    }
+  }
+
+  unenrollFromCourse() {
+    const course = this.course();
+    if (!course) return;
+
+    this.isUnenrolling.set(true);
+    this.enrollmentService.unenrollFromCourse(course.id).subscribe({
+      next: (response) => {
+        if (response.status === 'SUCCESS') {
+          this.toastService.success('Successfully unenrolled from course');
+          this.router.navigate(['/dashboard/courses']);
+        }
+        this.isUnenrolling.set(false);
+      },
+      error: (err) => {
+        console.error('Error unenrolling:', err);
+        this.toastService.error('Failed to unenroll. Please try again.');
+        this.isUnenrolling.set(false);
+      },
+    });
   }
 
   goBack() {
