@@ -1,12 +1,37 @@
 const db = require("../config/database");
 
+// Helper function to log activity
+const logActivity = async (
+  studentId,
+  courseId,
+  activityType,
+  lessonId = null,
+  metadata = null
+) => {
+  try {
+    const query = `
+      INSERT INTO student_activities (student_id, course_id, activity_type, lesson_id, metadata)
+      VALUES ($1, $2, $3, $4, $5)
+    `;
+    await db.query(query, [
+      studentId,
+      courseId,
+      activityType,
+      lessonId,
+      metadata,
+    ]);
+  } catch (error) {
+    console.error("Error logging activity:", error);
+  }
+};
+
 // Enroll in a course
 const enrollInCourse = async (req, res) => {
   try {
-    const studentId = req.user.id; // Make sure this is req.user.id
+    const studentId = req.user.id;
     const { courseId } = req.params;
 
-    console.log("Enrolling student:", studentId, "in course:", courseId); // Debug log
+    console.log("Enrolling student:", studentId, "in course:", courseId);
 
     // Check if already enrolled
     const checkQuery = `
@@ -49,6 +74,9 @@ const enrollInCourse = async (req, res) => {
       [courseId]
     );
 
+    // Log enrollment activity
+    await logActivity(studentId, courseId, "course_enrolled");
+
     res.json({
       status: "SUCCESS",
       message: "Successfully enrolled in course",
@@ -66,7 +94,7 @@ const enrollInCourse = async (req, res) => {
 // Unenroll from a course
 const unenrollFromCourse = async (req, res) => {
   try {
-    const studentId = req.user.id; // Changed here too
+    const studentId = req.user.id;
     const { courseId } = req.params;
 
     const deleteQuery = `
@@ -105,7 +133,7 @@ const unenrollFromCourse = async (req, res) => {
 // Get student's enrolled courses
 const getMyEnrollments = async (req, res) => {
   try {
-    const studentId = req.user.id; // Changed here too
+    const studentId = req.user.id;
 
     const query = `
       SELECT 
@@ -139,7 +167,7 @@ const getMyEnrollments = async (req, res) => {
 // Check if enrolled in a course
 const checkEnrollment = async (req, res) => {
   try {
-    const studentId = req.user.id; // Changed here too
+    const studentId = req.user.id;
     const { courseId } = req.params;
 
     const query = `

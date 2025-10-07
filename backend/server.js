@@ -10,6 +10,8 @@ const enrollmentRoutes = require("./routes/enrollments");
 const app = express();
 const PORT = process.env.PORT || 3000;
 const courseRoutes = require("./routes/courses");
+const activityRoutes = require("./routes/activities");
+app.use("/api/activities", activityRoutes);
 
 // Basic middleware
 app.use(helmet());
