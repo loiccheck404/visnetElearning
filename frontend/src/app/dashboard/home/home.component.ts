@@ -8,6 +8,7 @@ import { ProgressService } from '../../core/services/progress.service';
 import { ActivityService, StudentActivity } from '../../core/services/activity.service';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { ConfirmationDialogComponent } from '../../shared/components/confirmation-dialog/confirmation-dialog.component';
 
 interface EnrolledCourse {
   id: number;
@@ -30,7 +31,7 @@ interface Activity {
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, RouterModule, ThemeToggleComponent],
+  imports: [CommonModule, RouterModule, ThemeToggleComponent, ConfirmationDialogComponent],
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss'],
 })
@@ -40,6 +41,7 @@ export class HomeComponent implements OnInit {
   recentActivity = signal<Activity[]>([]);
   isLoading = signal(true);
   showUnenrollDialog = signal(false);
+  selectedCourseForUnenroll = signal<EnrolledCourse | null>(null);
   selectedCourse = signal<EnrolledCourse | null>(null);
   isUnenrolling = signal(false);
   showCourseMenu = signal<number | null>(null);
@@ -77,16 +79,16 @@ export class HomeComponent implements OnInit {
 
   // Close dropdowns when clicking outside
   @HostListener('document:click', ['$event'])
-onDocumentClick(event: MouseEvent) {
-  const target = event.target as HTMLElement;
-  
-  // Don't close if clicking on the hamburger button or inside the menu
-  if (!target.closest('.mobile-menu-toggle') && !target.closest('.nav-links')) {
-    this.showMobileMenu.set(false);
+  onDocumentClick(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+
+    // Don't close if clicking on the hamburger button or inside the menu
+    if (!target.closest('.mobile-menu-toggle') && !target.closest('.nav-links')) {
+      this.showMobileMenu.set(false);
+    }
+
+    this.showCourseMenu.set(null);
   }
-  
-  this.showCourseMenu.set(null);
-}
 
   ngOnInit() {
     this.loadUserData();
@@ -275,39 +277,34 @@ onDocumentClick(event: MouseEvent) {
 
   confirmUnenroll(course: EnrolledCourse, event: Event) {
     event.stopPropagation();
-    this.selectedCourse.set(course);
+    this.selectedCourseForUnenroll.set(course);
     this.showUnenrollDialog.set(true);
     this.showCourseMenu.set(null);
   }
 
   cancelUnenroll() {
     this.showUnenrollDialog.set(false);
-    this.selectedCourse.set(null);
+    this.selectedCourseForUnenroll.set(null);
   }
 
   unenrollFromCourse() {
-    const course = this.selectedCourse();
+    const course = this.selectedCourseForUnenroll();
     if (!course) return;
 
     this.isUnenrolling.set(true);
     this.enrollmentService.unenrollFromCourse(course.id).subscribe({
       next: (response) => {
         if (response.status === 'SUCCESS') {
-          // Remove course from the list
           const updatedCourses = this.enrolledCourses().filter((c) => c.id !== course.id);
           this.enrolledCourses.set(updatedCourses);
-
           this.showUnenrollDialog.set(false);
-          this.selectedCourse.set(null);
-
-          // Refresh dashboard data
+          this.selectedCourseForUnenroll.set(null);
           this.loadDashboardData();
         }
         this.isUnenrolling.set(false);
       },
       error: (err) => {
         console.error('Error unenrolling:', err);
-        alert('Failed to unenroll from course. Please try again.');
         this.isUnenrolling.set(false);
       },
     });

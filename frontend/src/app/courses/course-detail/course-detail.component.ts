@@ -6,6 +6,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
 import { ToastService } from '../../core/services/toast.service';
 import { EnrollmentService } from '../../core/services/enrollment.service';
+import { ConfirmationDialogComponent } from '../../shared/components/confirmation-dialog/confirmation-dialog.component';
 
 interface Lesson {
   id: number;
@@ -19,7 +20,7 @@ interface Lesson {
 @Component({
   selector: 'app-course-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule, LoadingSpinnerComponent],
+  imports: [CommonModule, RouterModule, LoadingSpinnerComponent, ConfirmationDialogComponent],
   templateUrl: './course-detail.component.html',
   styleUrls: ['./course-detail.component.scss'],
 })
@@ -168,17 +169,14 @@ export class CourseDetailComponent implements OnInit {
     // this.router.navigate(['/dashboard/courses', courseId, 'lessons', firstLesson.id]);
   }
 
-  confirmUnenroll() {
-    const course = this.course();
-    if (!course) return;
+  //showUnenrollDialog = signal(false);
 
-    if (
-      confirm(
-        `Are you sure you want to unenroll from "${course.title}"? Your progress will be saved.`
-      )
-    ) {
-      this.unenrollFromCourse();
-    }
+  confirmUnenroll() {
+    this.showUnenrollDialog.set(true);
+  }
+
+  cancelUnenroll() {
+    this.showUnenrollDialog.set(false);
   }
 
   unenrollFromCourse() {
@@ -190,6 +188,7 @@ export class CourseDetailComponent implements OnInit {
       next: (response) => {
         if (response.status === 'SUCCESS') {
           this.toastService.success('Successfully unenrolled from course');
+          this.showUnenrollDialog.set(false);
           this.router.navigate(['/dashboard/courses']);
         }
         this.isUnenrolling.set(false);

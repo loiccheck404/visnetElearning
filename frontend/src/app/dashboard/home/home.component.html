@@ -112,7 +112,7 @@
             <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
             <line x1="12" y1="2" x2="12" y2="12"></line>
           </svg>
-          <span>Logout</span>
+          <span></span>
         </button>
         }
       </nav>
@@ -146,7 +146,6 @@
             <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
             <line x1="12" y1="2" x2="12" y2="12"></line>
           </svg>
-          Logout
         </button>
 
         <!-- User Dropdown Menu -->
@@ -585,4 +584,18 @@
     </div>
   </div>
   }
+  <app-confirmation-dialog
+    [isOpen]="showUnenrollDialog"
+    [title]="'Unenroll from Course?'"
+    [message]="'Are you sure you want to unenroll from ' + selectedCourseForUnenroll()?.title + '?'"
+    [subMessage]="'Your progress will be saved, but you\'ll need to re-enroll to continue.'"
+    [confirmText]="'Yes, Unenroll'"
+    [cancelText]="'Cancel'"
+    [loadingText]="'Unenrolling...'"
+    [type]="'danger'"
+    [isLoading]="isUnenrolling"
+    (confirm)="unenrollFromCourse()"
+    (cancel)="cancelUnenroll()"
+  >
+  </app-confirmation-dialog>
 </div>
