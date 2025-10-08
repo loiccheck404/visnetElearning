@@ -22,6 +22,16 @@
   align-items: center;
   justify-content: space-between;
   gap: 2rem;
+
+  @media (max-width: 768px) {
+    padding: 1rem;
+    gap: 1rem;
+
+    // Push user menu to the right
+    .user-menu {
+      margin-left: auto;
+    }
+  }
 }
 
 .logo h2 {
@@ -617,20 +627,78 @@
 }
 
 @media (max-width: 768px) {
-  .header-content {
-    gap: 1rem;
-  }
+  &.mobile-open {
+    display: flex;
+    position: fixed;
+    top: 73px;
+    left: 0;
+    right: 0;
+    background: var(--card-bg);
+    border-bottom: 1px solid var(--border-color);
+    flex-direction: column;
+    padding: 0;
+    gap: 0;
+    box-shadow: var(--shadow-lg);
+    animation: slideDown 0.3s ease-out;
+    z-index: 999;
 
-  .courses-grid {
-    grid-template-columns: 1fr;
-  }
+    a {
+      width: 100%;
+      justify-content: flex-start;
+      padding: 1rem 1.5rem;
+      border-radius: 0;
+      border-bottom: 1px solid var(--border-color);
+      gap: 1rem;
 
-  .welcome-content h1 {
-    font-size: 1.5rem;
-  }
+      svg {
+        width: 22px;
+        height: 22px;
+      }
 
-  .stats-grid {
-    grid-template-columns: 1fr;
+      span {
+        font-size: 1rem;
+      }
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      &.active {
+        background: var(--primary);
+        color: white;
+
+        &::after {
+          display: none;
+        }
+      }
+    }
+
+    // Logout button in mobile menu
+    .mobile-logout {
+      width: 100%;
+      padding: 1rem 1.5rem;
+      background: transparent;
+      border: none;
+      color: var(--error);
+      text-align: left;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      font-size: 1rem;
+      font-weight: 500;
+      transition: all 0.2s;
+      border-top: 1px solid var(--border-color);
+
+      svg {
+        width: 22px;
+        height: 22px;
+      }
+
+      &:hover {
+        background: var(--error-light);
+      }
+    }
   }
 }
 
@@ -1017,9 +1085,9 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  background: rgb(251, 253, 251);
-  color: #fb0505;
-  border: 1px solid rgba(252, 129, 129, 0.3);
+  background: var(--error-light);
+  color: var(--error);
+  border: 1px solid var(--error);
   border-radius: 0.5rem;
   cursor: pointer;
   font-size: 0.9rem;
@@ -1027,7 +1095,11 @@
   transition: all 0.2s;
 
   &:hover {
-    background: rgba(252, 129, 129, 0.25);
-    border-color: rgba(252, 129, 129, 0.5);
+    background: var(--error);
+    color: white;
+  }
+
+  @media (max-width: 768px) {
+    display: none; // Hide on mobile
   }
 }
