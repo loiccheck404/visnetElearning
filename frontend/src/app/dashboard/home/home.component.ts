@@ -77,11 +77,16 @@ export class HomeComponent implements OnInit {
 
   // Close dropdowns when clicking outside
   @HostListener('document:click', ['$event'])
-  onDocumentClick(event: MouseEvent) {
-    this.showCourseMenu.set(null);
-    this.showUserDropdown.set(false);
+onDocumentClick(event: MouseEvent) {
+  const target = event.target as HTMLElement;
+  
+  // Don't close if clicking on the hamburger button or inside the menu
+  if (!target.closest('.mobile-menu-toggle') && !target.closest('.nav-links')) {
     this.showMobileMenu.set(false);
   }
+  
+  this.showCourseMenu.set(null);
+}
 
   ngOnInit() {
     this.loadUserData();
@@ -231,9 +236,9 @@ export class HomeComponent implements OnInit {
     return 'Good Evening';
   }
 
-  toggleMobileMenu() {
+  toggleMobileMenu(event: Event) {
+    event.stopPropagation();
     this.showMobileMenu.update((show) => !show);
-    this.showUserDropdown.set(false);
   }
 
   toggleUserDropdown() {
