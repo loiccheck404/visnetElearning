@@ -1,25 +1,33 @@
 <div class="courses-page">
+  <!-- Header with Back Button -->
   <div class="courses-header">
-    <h1>Explore Courses</h1>
-    <p>Discover your next learning adventure</p>
+    <div class="header-content">
+      <button class="back-btn" (click)="goBack()">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+        Back to Dashboard
+      </button>
+      <div>
+        <h1>Explore Courses</h1>
+        <p>Discover your next learning adventure</p>
+      </div>
+    </div>
   </div>
 
   <div class="courses-container">
-    <!-- Filters Sidebar -->
-
-    <div class="back-navigation">
-    <button class="back-btn" (click)="goBack()">
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="19" y1="12" x2="5" y2="12"></line>
-        <polyline points="12 19 5 12 12 5"></polyline>
-      </svg>
-      Back to Dashboard
-    </button>
-  </div>
-  
-    <aside class="filters-sidebar">
-      <div class="filter-section">
-        <h3>Search</h3>
+    <main class="courses-main">
+      <!-- Search and Quick Filters -->
+      <div class="search-filters-bar">
         <div class="search-box">
           <input
             type="text"
@@ -42,69 +50,42 @@
             </svg>
           </button>
         </div>
-      </div>
 
-      <div class="filter-section">
-        <h3>Category</h3>
-        <ul class="filter-list">
-          <li>
-            <button [class.active]="!filters.category" (click)="onCategoryFilter(null)">
-              All Categories
-            </button>
-          </li>
-          @for (category of categories(); track category.id) {
-          <li>
-            <button
-              [class.active]="filters.category === category.id"
-              (click)="onCategoryFilter(category.id)"
+        <div class="quick-filters">
+          <select [(ngModel)]="selectedCategory" (change)="onCategoryChange()">
+            <option [value]="null">All Categories</option>
+            @for (category of categories(); track category.id) {
+            <option [value]="category.id">{{ category.name }}</option>
+            }
+          </select>
+
+          <select [(ngModel)]="selectedLevel" (change)="onLevelChange()">
+            <option [value]="null">All Levels</option>
+            <option value="beginner">Beginner</option>
+            <option value="intermediate">Intermediate</option>
+            <option value="advanced">Advanced</option>
+          </select>
+
+          @if (hasActiveFilters()) {
+          <button class="clear-btn" (click)="clearFilters()">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
             >
-              {{ category.name }}
-            </button>
-          </li>
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+            Clear Filters
+          </button>
           }
-        </ul>
+        </div>
       </div>
 
-      <div class="filter-section">
-        <h3>Level</h3>
-        <ul class="filter-list">
-          <li>
-            <button [class.active]="!filters.level" (click)="onLevelFilter(null)">
-              All Levels
-            </button>
-          </li>
-          <li>
-            <button
-              [class.active]="filters.level === 'beginner'"
-              (click)="onLevelFilter('beginner')"
-            >
-              Beginner
-            </button>
-          </li>
-          <li>
-            <button
-              [class.active]="filters.level === 'intermediate'"
-              (click)="onLevelFilter('intermediate')"
-            >
-              Intermediate
-            </button>
-          </li>
-          <li>
-            <button
-              [class.active]="filters.level === 'advanced'"
-              (click)="onLevelFilter('advanced')"
-            >
-              Advanced
-            </button>
-          </li>
-        </ul>
-      </div>
-
-      <button class="clear-filters-btn" (click)="clearFilters()">Clear All Filters</button>
-    </aside>
-
-    <!-- Courses Grid -->
-    <main class="courses-main">
       @if (isLoading()) {
       <app-loading-spinner [size]="60" message="Loading courses..."></app-loading-spinner>
       } @else { @if (courses().length === 0) {
@@ -127,7 +108,7 @@
       } @else {
       <div class="courses-grid">
         @for (course of courses(); track course.id) {
-        <div class="course-card" [routerLink]="['/dashboard/courses', course.id]">
+        <div class="course-card" (click)="viewCourseDetails(course.id)">
           <div class="course-thumbnail">
             @if (course.thumbnail_url) {
             <img [src]="course.thumbnail_url" [alt]="course.title" />
@@ -148,41 +129,37 @@
             </div>
             }
             <span class="course-level">{{ course.level }}</span>
+            @if (course.is_featured) {
+            <span class="featured-badge">Featured</span>
+            }
           </div>
 
           <div class="course-content">
-            <div class="course-meta">
-              <span class="category">{{ course.category_name }}</span>
-              @if (course.is_featured) {
-              <span class="featured-badge">Featured</span>
-              }
-            </div>
-
+            <span class="category-badge">{{ course.category_name }}</span>
             <h3>{{ course.title }}</h3>
             <p class="course-description">{{ course.short_description }}</p>
 
-            <div class="course-instructor">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                <circle cx="12" cy="7" r="4"></circle>
-              </svg>
-              {{ course.instructor_name }}
-            </div>
-
-            <div class="course-footer">
+            <div class="course-meta">
+              <div class="meta-item">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                {{ course.instructor_name }}
+              </div>
               <div class="rating">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
+                  width="14"
+                  height="14"
                   viewBox="0 0 24 24"
                   fill="currentColor"
                 >
@@ -190,17 +167,17 @@
                     points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
                   ></polygon>
                 </svg>
-                <span>{{ course.rating || 0 }}</span>
-                <span class="rating-count">({{ course.rating_count }})</span>
+                {{ course.rating || 0 }}
               </div>
+            </div>
 
-              <div class="price">
-                @if (course.price > 0) {
-                <span>${{ course.price }}</span>
-                } @else {
-                <span class="free">Free</span>
-                }
-              </div>
+            <div class="course-footer">
+              @if (course.price > 0) {
+              <span class="price">${{ course.price }}</span>
+              } @else {
+              <span class="price free">Free</span>
+              }
+              <span class="enrollment-count">{{ course.enrollment_count }} students</span>
             </div>
           </div>
         </div>
@@ -213,15 +190,13 @@
         <button [disabled]="filters.page === 1" (click)="onPageChange(filters.page! - 1)">
           Previous
         </button>
-
         <div class="page-numbers">
-          @for (page of [].constructor(totalPages()); track $index) {
-          <button [class.active]="filters.page === $index + 1" (click)="onPageChange($index + 1)">
-            {{ $index + 1 }}
+          @for (page of getPageNumbers(); track $index) {
+          <button [class.active]="filters.page === page" (click)="onPageChange(page)">
+            {{ page }}
           </button>
           }
         </div>
-
         <button
           [disabled]="filters.page === totalPages()"
           (click)="onPageChange(filters.page! + 1)"

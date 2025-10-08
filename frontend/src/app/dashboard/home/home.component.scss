@@ -990,3 +990,7 @@
     border-color: rgba(252, 129, 129, 0.5);
   }
 }
+
+&.activity-unenrolled {
+  background: linear-gradient(135deg, #fc8181 0%, #f56565 100%);
+}

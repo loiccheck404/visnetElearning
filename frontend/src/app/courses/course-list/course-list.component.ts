@@ -102,4 +102,43 @@ export class CourseListComponent implements OnInit {
   viewCourseDetails(courseId: number) {
     this.router.navigate(['/dashboard/courses', courseId]);
   }
+
+  selectedCategory: number | null = null;
+  selectedLevel: string | null = null;
+
+  onCategoryChange() {
+    this.filters.category = this.selectedCategory || undefined;
+    this.filters.page = 1;
+    this.loadCourses();
+  }
+
+  onLevelChange() {
+    this.filters.level = this.selectedLevel || undefined;
+    this.filters.page = 1;
+    this.loadCourses();
+  }
+
+  hasActiveFilters(): boolean {
+    return !!(this.filters.category || this.filters.level || this.searchTerm);
+  }
+
+  getPageNumbers(): number[] {
+    const total = this.totalPages();
+    const current = this.filters.page || 1;
+    const pages: number[] = [];
+
+    // Show max 5 page numbers
+    let start = Math.max(1, current - 2);
+    let end = Math.min(total, start + 4);
+
+    if (end - start < 4) {
+      start = Math.max(1, end - 4);
+    }
+
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+
+    return pages;
+  }
 }

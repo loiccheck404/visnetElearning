@@ -117,6 +117,13 @@ const unenrollFromCourse = async (req, res) => {
       [courseId]
     );
 
+    // Log unenroll activity**
+    await db.query(
+      `INSERT INTO student_activities (student_id, course_id, activity_type, created_at)
+       VALUES ($1, $2, 'course_unenrolled', CURRENT_TIMESTAMP)`,
+      [studentId, courseId]
+    );
+
     res.json({
       status: "SUCCESS",
       message: "Successfully unenrolled from course",

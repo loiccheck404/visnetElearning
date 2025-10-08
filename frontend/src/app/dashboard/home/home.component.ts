@@ -21,7 +21,7 @@ interface EnrolledCourse {
 }
 
 interface Activity {
-  type: 'completed' | 'started' | 'quiz';
+  type: 'completed' | 'started' | 'quiz' | 'unenrolled';
   course: string;
   date: string;
   timestamp: Date;
@@ -177,11 +177,13 @@ export class HomeComponent implements OnInit {
     this.recentActivity.set(activities);
   }
 
-  mapActivityType(activityType: string): 'completed' | 'started' | 'quiz' {
+  mapActivityType(activityType: string): 'completed' | 'started' | 'quiz' | 'unenrolled' {
     if (activityType === 'lesson_completed' || activityType === 'course_completed') {
       return 'completed';
     } else if (activityType === 'quiz_completed' || activityType === 'quiz_started') {
       return 'quiz';
+    } else if (activityType === 'course_unenrolled') {
+      return 'unenrolled';
     }
     return 'started';
   }

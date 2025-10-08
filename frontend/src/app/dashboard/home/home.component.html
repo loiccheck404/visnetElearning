@@ -486,6 +486,19 @@
               <path d="M9 11l3 3L22 4"></path>
               <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
             </svg>
+            } @if (activity.type === 'unenrolled') {
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
             }
           </div>
           <div class="activity-details">
@@ -496,6 +509,8 @@
               <strong>Started</strong> {{ activity.course }}
               } @if (activity.type === 'quiz') {
               <strong>Completed quiz</strong> in {{ activity.course }}
+              } @if (activity.type === 'unenrolled') {
+              <strong>Unenrolled</strong> from {{ activity.course }}
               }
             </p>
             <span class="activity-time">{{ activity.date }}</span>
