@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { ProgressService } from '../../core/services/progress.service';
@@ -10,7 +10,7 @@ import { AuthService } from '../../core/services/auth.service';
   standalone: true,
   imports: [CommonModule, RouterModule, ThemeToggleComponent],
   templateUrl: './progress.component.html',
-  styleUrl: './progress.component.scss'
+  styleUrl: './progress.component.scss',
 })
 export class ProgressComponent implements OnInit {
   currentUser = signal<any>(null);
@@ -21,8 +21,10 @@ export class ProgressComponent implements OnInit {
     completedCourses: 0,
     inProgressCourses: 0,
     averageProgress: 0,
-    totalTimeSpent: 0
+    totalTimeSpent: 0,
   });
+  showMobileMenu = signal(false);
+  showUserDropdown = signal(false);
 
   constructor(
     private progressService: ProgressService,
@@ -30,13 +32,24 @@ export class ProgressComponent implements OnInit {
     private router: Router
   ) {}
 
+  // Close dropdowns when clicking outside
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+
+    // Don't close if clicking on the hamburger button or inside the menu
+    if (!target.closest('.mobile-menu-toggle') && !target.closest('.nav-links')) {
+      this.showMobileMenu.set(false);
+    }
+  }
+
   ngOnInit() {
-  // Add a small delay to ensure proper initialization
-  setTimeout(() => {
-    this.loadUserData();
-    this.loadProgress();
-  }, 0);
-}
+    // Add a small delay to ensure proper initialization
+    setTimeout(() => {
+      this.loadUserData();
+      this.loadProgress();
+    }, 0);
+  }
 
   loadUserData() {
     const user = this.authService.getCurrentUser();
@@ -57,24 +70,25 @@ export class ProgressComponent implements OnInit {
       error: (error) => {
         console.error('Error loading progress:', error);
         this.loading.set(false);
-      }
+      },
     });
   }
 
   calculateStats(courses: any[]) {
     const totalCourses = courses.length;
-    const completedCourses = courses.filter(c => c.progress >= 100).length;
-    const inProgressCourses = courses.filter(c => c.progress > 0 && c.progress < 100).length;
-    const averageProgress = totalCourses > 0 
-      ? Math.round(courses.reduce((sum, c) => sum + (c.progress || 0), 0) / totalCourses)
-      : 0;
+    const completedCourses = courses.filter((c) => c.progress >= 100).length;
+    const inProgressCourses = courses.filter((c) => c.progress > 0 && c.progress < 100).length;
+    const averageProgress =
+      totalCourses > 0
+        ? Math.round(courses.reduce((sum, c) => sum + (c.progress || 0), 0) / totalCourses)
+        : 0;
 
     this.stats.set({
       totalCourses,
       completedCourses,
       inProgressCourses,
       averageProgress,
-      totalTimeSpent: 0 // Calculate from lesson progress if needed
+      totalTimeSpent: 0, // Calculate from lesson progress if needed
     });
   }
 
@@ -111,7 +125,23 @@ export class ProgressComponent implements OnInit {
     return date.toLocaleDateString();
   }
 
+  toggleMobileMenu(event: Event) {
+    event.stopPropagation();
+    this.showMobileMenu.update((show) => !show);
+  }
+
+  toggleUserDropdown() {
+    this.showUserDropdown.update((show) => !show);
+    this.showMobileMenu.set(false);
+  }
+
+  closeUserDropdown() {
+    this.showUserDropdown.set(false);
+  }
+
   onLogout() {
+    this.showMobileMenu.set(false);
+    this.showUserDropdown.set(false);
     this.authService.logout();
     this.router.navigate(['/auth/login']);
   }
