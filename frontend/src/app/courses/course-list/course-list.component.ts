@@ -1,15 +1,18 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, computed, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CourseService, Course, Category, CourseFilters } from '../../core/services/course.service';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
 import { Location } from '@angular/common';
+import { AuthService, User } from '../../core/services/auth.service';
+import { ThemeToggleComponent } from '../../shared/components/theme-toggle/theme-toggle.component';
+import { EnrollmentService } from '../../core/services/enrollment.service';
 
 @Component({
   selector: 'app-course-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, LoadingSpinnerComponent],
+  imports: [CommonModule, RouterModule, FormsModule, LoadingSpinnerComponent, ThemeToggleComponent],
   templateUrl: './course-list.component.html',
   styleUrls: ['./course-list.component.scss'],
 })
@@ -17,6 +20,22 @@ export class CourseListComponent implements OnInit {
   courses = signal<Course[]>([]);
   categories = signal<Category[]>([]);
   isLoading = signal(true);
+
+  currentUser = signal<User | null>(null);
+  showMobileMenu = signal(false);
+  showUserDropdown = signal(false);
+  enrolledCourseIds = signal<Set<number>>(new Set());
+
+  // Computed properties to separate enrolled and available courses
+  enrolledCourses = computed(() => {
+    const enrolled = this.enrolledCourseIds();
+    return this.courses().filter((course) => enrolled.has(course.id));
+  });
+
+  availableCourses = computed(() => {
+    const enrolled = this.enrolledCourseIds();
+    return this.courses().filter((course) => !enrolled.has(course.id));
+  });
 
   filters: CourseFilters = {
     page: 1,
@@ -29,16 +48,49 @@ export class CourseListComponent implements OnInit {
   constructor(
     private courseService: CourseService,
     private router: Router,
-    private location: Location // Add this
+    private location: Location,
+    private enrollmentService: EnrollmentService,
+    private authService: AuthService
   ) {}
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+
+    if (!target.closest('.mobile-menu-toggle') && !target.closest('.nav-links')) {
+      this.showMobileMenu.set(false);
+    }
+
+    if (!target.closest('.user-info') && !target.closest('.user-dropdown')) {
+      this.showUserDropdown.set(false);
+    }
+  }
 
   goBack() {
     this.router.navigate(['/dashboard/home']);
   }
 
   ngOnInit() {
+    this.loadUserData();
     this.loadCategories();
+    this.loadEnrollments();
     this.loadCourses();
+  }
+
+  loadUserData() {
+    const user = this.authService.currentUserValue;
+    if (user) {
+      this.currentUser.set(user);
+    }
+  }
+
+  loadEnrollments() {
+    this.enrollmentService.getMyEnrollments().subscribe({
+      next: (enrolledIds: Set<number>) => {
+        this.enrolledCourseIds.set(enrolledIds);
+      },
+      error: (error) => console.error('Failed to load enrollments:', error),
+    });
   }
 
   loadCategories() {
@@ -140,5 +192,30 @@ export class CourseListComponent implements OnInit {
     }
 
     return pages;
+  }
+
+  toggleMobileMenu(event: Event) {
+    event.stopPropagation();
+    this.showMobileMenu.update((show) => !show);
+  }
+
+  toggleUserDropdown() {
+    this.showUserDropdown.update((show) => !show);
+    this.showMobileMenu.set(false);
+  }
+
+  closeUserDropdown() {
+    this.showUserDropdown.set(false);
+  }
+
+  continueCourse(courseId: number) {
+    this.router.navigate(['/dashboard/courses', courseId]);
+  }
+
+  onLogout() {
+    this.showMobileMenu.set(false);
+    this.showUserDropdown.set(false);
+    this.authService.logout();
+    this.router.navigate(['/auth/login']);
   }
 }

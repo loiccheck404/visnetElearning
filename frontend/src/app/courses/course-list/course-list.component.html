@@ -1,210 +1,533 @@
 <div class="courses-page">
   <!-- Header with Back Button -->
-  <div class="courses-header">
-    <div class="header-content">
-      <button class="back-btn" (click)="goBack()">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-        >
-          <line x1="19" y1="12" x2="5" y2="12"></line>
-          <polyline points="12 19 5 12 12 5"></polyline>
-        </svg>
-        Back to Dashboard
-      </button>
-      <div>
-        <h1>Explore Courses</h1>
-        <p>Discover your next learning adventure</p>
-      </div>
-    </div>
-  </div>
-
-  <div class="courses-container">
-    <main class="courses-main">
-      <!-- Search and Quick Filters -->
-      <div class="search-filters-bar">
-        <div class="search-box">
-          <input
-            type="text"
-            [(ngModel)]="searchTerm"
-            (keyup.enter)="onSearch()"
-            placeholder="Search courses..."
-          />
-          <button (click)="onSearch()">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <circle cx="11" cy="11" r="8"></circle>
-              <path d="m21 21-4.35-4.35"></path>
-            </svg>
-          </button>
+  <div class="dashboard-container">
+    <!-- Header -->
+    <header class="dashboard-header">
+      <div class="header-content">
+        <div class="logo">
+          <h2>VISNET</h2>
         </div>
 
-        <div class="quick-filters">
-          <select [(ngModel)]="selectedCategory" (change)="onCategoryChange()">
-            <option [value]="null">All Categories</option>
-            @for (category of categories(); track category.id) {
-            <option [value]="category.id">{{ category.name }}</option>
-            }
-          </select>
+        <!-- Mobile Menu Toggle -->
+        <button class="mobile-menu-toggle" (click)="toggleMobileMenu($event)">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
 
-          <select [(ngModel)]="selectedLevel" (change)="onLevelChange()">
-            <option [value]="null">All Levels</option>
-            <option value="beginner">Beginner</option>
-            <option value="intermediate">Intermediate</option>
-            <option value="advanced">Advanced</option>
-          </select>
-
-          @if (hasActiveFilters()) {
-          <button class="clear-btn" (click)="clearFilters()">
+        <!-- Navigation with Icons -->
+        <nav class="nav-links" [class.mobile-open]="showMobileMenu()">
+          <a routerLink="/dashboard/home" routerLinkActive="active">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
+              width="20"
+              height="20"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
               stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
             >
-              <line x1="18" y1="6" x2="6" y2="18"></line>
-              <line x1="6" y1="6" x2="18" y2="18"></line>
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+              <polyline points="9 22 9 12 15 12 15 22"></polyline>
             </svg>
-            Clear Filters
+            <span>Home</span>
+          </a>
+          <a routerLink="/dashboard/courses" routerLinkActive="active">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+              <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+            </svg>
+            <span>Courses</span>
+          </a>
+          <a routerLink="/dashboard/progress" routerLinkActive="active">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+            </svg>
+            <span>Progress</span>
+          </a>
+          <a routerLink="/dashboard/profile" routerLinkActive="active">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            <span>Profile</span>
+          </a>
+
+          <!-- Mobile-only logout button -->
+          @if (showMobileMenu()) {
+          <button class="mobile-logout" (click)="onLogout()">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="22"
+              height="22"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
+              <line x1="12" y1="2" x2="12" y2="12"></line>
+            </svg>
+            <span>Logout</span>
           </button>
           }
-        </div>
-      </div>
+        </nav>
 
-      @if (isLoading()) {
-      <app-loading-spinner [size]="60" message="Loading courses..."></app-loading-spinner>
-      } @else { @if (courses().length === 0) {
-      <div class="no-courses">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="64"
-          height="64"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-        >
-          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
-          <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
-        </svg>
-        <h2>No courses found</h2>
-        <p>Try adjusting your filters</p>
-      </div>
-      } @else {
-      <div class="courses-grid">
-        @for (course of courses(); track course.id) {
-        <div class="course-card" (click)="viewCourseDetails(course.id)">
-          <div class="course-thumbnail">
-            @if (course.thumbnail_url) {
-            <img [src]="course.thumbnail_url" [alt]="course.title" />
-            } @else {
-            <div class="placeholder-thumbnail">
+        <div class="user-menu">
+          @if (currentUser()) {
+          <app-theme-toggle></app-theme-toggle>
+          <div class="user-info" (click)="toggleUserDropdown()">
+            <div class="user-avatar">
+              {{ currentUser()!.firstName.charAt(0) }}{{ currentUser()!.lastName.charAt(0) }}
+            </div>
+            <div class="user-details">
+              <span class="user-name"
+                >{{ currentUser()!.firstName }} {{ currentUser()!.lastName }}</span
+              >
+              <span class="user-role">{{ currentUser()!.role }}</span>
+            </div>
+          </div>
+          <button class="logout-btn" (click)="onLogout()">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
+              <line x1="12" y1="2" x2="12" y2="12"></line>
+            </svg>
+          </button>
+
+          <!-- User Dropdown Menu -->
+          @if (showUserDropdown()) {
+          <div class="user-dropdown" (click)="$event.stopPropagation()">
+            <div class="dropdown-header">
+              <div class="dropdown-user-name">
+                {{ currentUser()!.firstName }} {{ currentUser()!.lastName }}
+              </div>
+              <div class="dropdown-user-role">{{ currentUser()!.role }}</div>
+            </div>
+            <button
+              class="dropdown-item"
+              routerLink="/dashboard/profile"
+              (click)="closeUserDropdown()"
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                width="48"
-                height="48"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+              View Profile
+            </button>
+            <button
+              class="dropdown-item"
+              routerLink="/dashboard/courses"
+              (click)="closeUserDropdown()"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+              </svg>
+              My Courses
+            </button>
+            <button class="dropdown-item logout" (click)="onLogout()">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16 17 21 12 16 7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+              </svg>
+              Logout
+            </button>
+          </div>
+          } }
+        </div>
+      </div>
+    </header>
+
+    <div class="courses-container">
+      <main class="courses-main">
+        <!-- Search and Quick Filters -->
+        <!-- Search and Filters Section -->
+        <section class="page-header">
+          <h1>Explore Courses</h1>
+          <p>Discover your next learning adventure</p>
+        </section>
+
+        <!-- Search and Quick Filters -->
+        <div class="search-filters-bar">
+          <div class="search-box">
+            <input
+              type="text"
+              [(ngModel)]="searchTerm"
+              (keyup.enter)="onSearch()"
+              placeholder="Search courses..."
+            />
+            <button (click)="onSearch()">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                height="18"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
                 stroke-width="2"
               >
-                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
-                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="m21 21-4.35-4.35"></path>
               </svg>
-            </div>
-            }
-            <span class="course-level">{{ course.level }}</span>
-            @if (course.is_featured) {
-            <span class="featured-badge">Featured</span>
-            }
+            </button>
           </div>
 
-          <div class="course-content">
-            <span class="category-badge">{{ course.category_name }}</span>
-            <h3>{{ course.title }}</h3>
-            <p class="course-description">{{ course.short_description }}</p>
+          <div class="quick-filters">
+            <select [(ngModel)]="selectedCategory" (change)="onCategoryChange()">
+              <option [value]="null">All Categories</option>
+              @for (category of categories(); track category.id) {
+              <option [value]="category.id">{{ category.name }}</option>
+              }
+            </select>
 
-            <div class="course-meta">
-              <div class="meta-item">
+            <select [(ngModel)]="selectedLevel" (change)="onLevelChange()">
+              <option [value]="null">All Levels</option>
+              <option value="beginner">Beginner</option>
+              <option value="intermediate">Intermediate</option>
+              <option value="advanced">Advanced</option>
+            </select>
+
+            @if (hasActiveFilters()) {
+            <button class="clear-btn" (click)="clearFilters()">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+              Clear Filters
+            </button>
+            }
+          </div>
+        </div>
+
+        @if (isLoading()) {
+        <app-loading-spinner [size]="60" message="Loading courses..."></app-loading-spinner>
+        } @else {
+
+        <!-- Enrolled Courses Section -->
+        @if (enrolledCourses().length > 0) {
+        <section class="courses-section">
+          <div class="section-header">
+            <h2>My Enrolled Courses</h2>
+            <span class="course-count">{{ enrolledCourses().length }} course(s)</span>
+          </div>
+
+          <div class="courses-grid">
+            @for (course of enrolledCourses(); track course.id) {
+            <div class="course-card enrolled" (click)="viewCourseDetails(course.id)">
+              <div class="enrolled-badge">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  width="14"
-                  height="14"
+                  width="16"
+                  height="16"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
                   stroke-width="2"
                 >
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                  <circle cx="12" cy="7" r="4"></circle>
+                  <polyline points="20 6 9 17 4 12"></polyline>
                 </svg>
-                {{ course.instructor_name }}
+                Enrolled
               </div>
-              <div class="rating">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                >
-                  <polygon
-                    points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
-                  ></polygon>
-                </svg>
-                {{ course.rating || 0 }}
+              <div class="course-thumbnail">
+                @if (course.thumbnail_url) {
+                <img [src]="course.thumbnail_url" [alt]="course.title" />
+                } @else {
+                <div class="placeholder-thumbnail">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="48"
+                    height="48"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                  </svg>
+                </div>
+                }
+                <span class="course-level">{{ course.level }}</span>
               </div>
-            </div>
 
-            <div class="course-footer">
-              @if (course.price > 0) {
-              <span class="price">${{ course.price }}</span>
-              } @else {
-              <span class="price free">Free</span>
-              }
-              <span class="enrollment-count">{{ course.enrollment_count }} students</span>
+              <div class="course-content">
+                <span class="category-badge">{{ course.category_name }}</span>
+                <h3>{{ course.title }}</h3>
+                <p class="course-description">{{ course.short_description }}</p>
+
+                <div class="course-meta">
+                  <div class="meta-item">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                      <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    {{ course.instructor_name }}
+                  </div>
+                  <div class="rating">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                    >
+                      <polygon
+                        points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+                      ></polygon>
+                    </svg>
+                    {{ course.rating || 0 }}
+                  </div>
+                </div>
+
+                <div class="progress-bar">
+                  <div class="progress-fill" [style.width.%]="course.progress || 0"></div>
+                </div>
+                <div class="course-footer">
+                  <span class="progress-text">{{ course.progress || 0 }}% Complete</span>
+                  <button
+                    class="continue-btn"
+                    (click)="continueCourse(course.id); $event.stopPropagation()"
+                  >
+                    Continue
+                  </button>
+                </div>
+              </div>
             </div>
+            }
           </div>
+        </section>
+        }
+
+        <!-- Available Courses Section -->
+        @if (availableCourses().length > 0) {
+        <section class="courses-section">
+          <div class="section-header">
+            <h2>Available Courses</h2>
+            <span class="course-count">{{ availableCourses().length }} course(s)</span>
+          </div>
+
+          <div class="courses-grid">
+            @for (course of availableCourses(); track course.id) {
+            <div class="course-card" (click)="viewCourseDetails(course.id)">
+              <div class="course-thumbnail">
+                @if (course.thumbnail_url) {
+                <img [src]="course.thumbnail_url" [alt]="course.title" />
+                } @else {
+                <div class="placeholder-thumbnail">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="48"
+                    height="48"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                  </svg>
+                </div>
+                }
+                <span class="course-level">{{ course.level }}</span>
+                @if (course.is_featured) {
+                <span class="featured-badge">Featured</span>
+                }
+              </div>
+
+              <div class="course-content">
+                <span class="category-badge">{{ course.category_name }}</span>
+                <h3>{{ course.title }}</h3>
+                <p class="course-description">{{ course.short_description }}</p>
+
+                <div class="course-meta">
+                  <div class="meta-item">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                      <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    {{ course.instructor_name }}
+                  </div>
+                  <div class="rating">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                    >
+                      <polygon
+                        points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+                      ></polygon>
+                    </svg>
+                    {{ course.rating || 0 }}
+                  </div>
+                </div>
+
+                <div class="course-footer">
+                  @if (course.price > 0) {
+                  <span class="price">${{ course.price }}</span>
+                  } @else {
+                  <span class="price free">Free</span>
+                  }
+                  <span class="enrollment-count">{{ course.enrollment_count }} students</span>
+                </div>
+              </div>
+            </div>
+            }
+          </div>
+        </section>
+        } @if (courses().length === 0) {
+        <div class="empty-state">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="64"
+            height="64"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+          </svg>
+          <h3>No courses found</h3>
+          <p>Try adjusting your filters</p>
         </div>
         }
-      </div>
 
-      <!-- Pagination -->
-      @if (totalPages() > 1) {
-      <div class="pagination">
-        <button [disabled]="filters.page === 1" (click)="onPageChange(filters.page! - 1)">
-          Previous
-        </button>
-        <div class="page-numbers">
-          @for (page of getPageNumbers(); track $index) {
-          <button [class.active]="filters.page === page" (click)="onPageChange(page)">
-            {{ page }}
+        <!-- Pagination -->
+        @if (totalPages() > 1) {
+        <div class="pagination">
+          <button [disabled]="filters.page === 1" (click)="onPageChange(filters.page! - 1)">
+            Previous
           </button>
-          }
+          <div class="page-numbers">
+            @for (page of getPageNumbers(); track $index) {
+            <button [class.active]="filters.page === page" (click)="onPageChange(page)">
+              {{ page }}
+            </button>
+            }
+          </div>
+          <button
+            [disabled]="filters.page === totalPages()"
+            (click)="onPageChange(filters.page! + 1)"
+          >
+            Next
+          </button>
         </div>
-        <button
-          [disabled]="filters.page === totalPages()"
-          (click)="onPageChange(filters.page! + 1)"
-        >
-          Next
-        </button>
-      </div>
-      } } }
-    </main>
+        } }
+      </main>
+    </div>
   </div>
 </div>

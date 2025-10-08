@@ -106,7 +106,8 @@ export class HomeComponent implements OnInit {
     this.isLoading.set(true);
 
     forkJoin({
-      enrollments: this.enrollmentService.getMyEnrollments().pipe(
+      enrollments: this.enrollmentService.getMyEnrolledCourses().pipe(
+        // Changed method name
         catchError((err) => {
           console.error('Error loading enrollments:', err);
           return of({ status: 'ERROR', data: { courses: [] } });
