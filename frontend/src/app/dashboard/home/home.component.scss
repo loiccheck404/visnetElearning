@@ -27,9 +27,13 @@
     padding: 1rem;
     gap: 1rem;
 
-    // Push user menu to the right
+    .logo {
+      flex: 0 0 auto;
+    }
+
     .user-menu {
       margin-left: auto;
+      gap: 0.75rem;
     }
   }
 }
@@ -55,9 +59,10 @@
   padding: 0.5rem;
   border-radius: 0.5rem;
   transition: all 0.2s;
+  order: -1; // Place it before nav
 
   &:hover {
-    background: var(--hover-bg);
+    background: var(--bg-hover);
   }
 
   @media (max-width: 768px) {
@@ -627,78 +632,20 @@
 }
 
 @media (max-width: 768px) {
-  &.mobile-open {
-    display: flex;
-    position: fixed;
-    top: 73px;
-    left: 0;
-    right: 0;
-    background: var(--card-bg);
-    border-bottom: 1px solid var(--border-color);
-    flex-direction: column;
-    padding: 0;
-    gap: 0;
-    box-shadow: var(--shadow-lg);
-    animation: slideDown 0.3s ease-out;
-    z-index: 999;
+  .header-content {
+    gap: 1rem;
+  }
 
-    a {
-      width: 100%;
-      justify-content: flex-start;
-      padding: 1rem 1.5rem;
-      border-radius: 0;
-      border-bottom: 1px solid var(--border-color);
-      gap: 1rem;
+  .courses-grid {
+    grid-template-columns: 1fr;
+  }
 
-      svg {
-        width: 22px;
-        height: 22px;
-      }
+  .welcome-content h1 {
+    font-size: 1.5rem;
+  }
 
-      span {
-        font-size: 1rem;
-      }
-
-      &:last-child {
-        border-bottom: none;
-      }
-
-      &.active {
-        background: var(--primary);
-        color: white;
-
-        &::after {
-          display: none;
-        }
-      }
-    }
-
-    // Logout button in mobile menu
-    .mobile-logout {
-      width: 100%;
-      padding: 1rem 1.5rem;
-      background: transparent;
-      border: none;
-      color: var(--error);
-      text-align: left;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      font-size: 1rem;
-      font-weight: 500;
-      transition: all 0.2s;
-      border-top: 1px solid var(--border-color);
-
-      svg {
-        width: 22px;
-        height: 22px;
-      }
-
-      &:hover {
-        background: var(--error-light);
-      }
-    }
+  .stats-grid {
+    grid-template-columns: 1fr;
   }
 }
 
