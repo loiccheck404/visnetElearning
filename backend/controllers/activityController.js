@@ -141,9 +141,50 @@ const getActivityStats = async (req, res) => {
   }
 };
 
+// Get instructor activities (enrollments, questions, completions in their courses)
+const getInstructorActivities = async (req, res) => {
+  try {
+    const instructorId = req.user.id;
+    const { limit = 20 } = req.query;
+
+    const query = `
+      SELECT 
+        sa.id,
+        sa.activity_type,
+        sa.created_at,
+        c.title as course_title,
+        c.id as course_id,
+        u.first_name || ' ' || u.last_name as student_name,
+        u.id as student_id
+      FROM student_activities sa
+      JOIN courses c ON sa.course_id = c.id
+      JOIN users u ON sa.student_id = u.id
+      WHERE c.instructor_id = $1
+      ORDER BY sa.created_at DESC
+      LIMIT $2
+    `;
+
+    const result = await db.query(query, [instructorId, limit]);
+
+    res.json({
+      status: "SUCCESS",
+      data: {
+        activities: result.rows,
+      },
+    });
+  } catch (error) {
+    console.error("Get instructor activities error:", error);
+    res.status(500).json({
+      status: "ERROR",
+      message: "Failed to fetch activities",
+    });
+  }
+};
+
 module.exports = {
   logActivity,
   getStudentActivities,
   getCourseActivities,
   getActivityStats,
+  getInstructorActivities
 };

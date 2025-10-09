@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const activityController = require("../controllers/activityController");
-const { authenticate } = require("../middleware/auth");
+const { authenticate, requireRole } = require("../middleware/auth");
 
 // All routes require authentication
 router.use(authenticate);
@@ -14,5 +14,12 @@ router.get("/courses/:courseId", activityController.getCourseActivities);
 
 // Get activity statistics
 router.get("/stats", activityController.getActivityStats);
+
+router.get(
+  "/instructor/my-activities",
+  authenticate,
+  requireRole(["instructor", "admin"]),
+  activityController.getInstructorActivities
+);
 
 module.exports = router;

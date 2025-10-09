@@ -1,7 +1,7 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { CourseService } from '../../core/services/course.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ThemeToggleComponent } from '../../shared/components/theme-toggle/theme-toggle.component';
@@ -21,19 +21,31 @@ export class CourseCreateComponent implements OnInit {
   loading = signal<boolean>(false);
   currentStep = signal<number>(1);
   totalSteps = 3;
+  isEditMode = signal<boolean>(false);
+  editingCourseId = signal<number | null>(null);
 
   constructor(
     private fb: FormBuilder,
     private courseService: CourseService,
     private authService: AuthService,
     private router: Router,
-    private toastService: ToastService
+    private toastService: ToastService,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit() {
     this.loadUserData();
     this.loadCategories();
     this.initializeForm();
+
+    // Check if we're in edit mode
+    this.route.queryParams.subscribe((params) => {
+      if (params['courseId']) {
+        this.isEditMode.set(true);
+        this.editingCourseId.set(Number(params['courseId']));
+        this.loadCourseForEdit(Number(params['courseId']));
+      }
+    });
   }
 
   loadUserData() {
@@ -65,6 +77,35 @@ export class CourseCreateComponent implements OnInit {
     });
   }
 
+  loadCourseForEdit(courseId: number) {
+    this.loading.set(true);
+    this.courseService.getCourseById(courseId).subscribe({
+      next: (response) => {
+        if (response.status === 'SUCCESS') {
+          const course = response.data.course;
+
+          // Patch the form with course data
+          this.courseForm.patchValue({
+            title: course.title,
+            short_description: course.short_description,
+            description: course.description,
+            category_id: course.category_id,
+            level: course.level,
+            language: course.language,
+            price: course.price,
+            thumbnail_url: course.thumbnail_url || '',
+          });
+        }
+        this.loading.set(false);
+      },
+      error: (error) => {
+        console.error('Error loading course:', error);
+        this.toastService.error('Failed to load course data');
+        this.loading.set(false);
+      },
+    });
+  }
+
   nextStep() {
     if (this.currentStep() < this.totalSteps) {
       this.currentStep.update((step) => step + 1);
@@ -78,10 +119,30 @@ export class CourseCreateComponent implements OnInit {
   }
 
   onSubmit() {
-    if (this.courseForm.valid) {
-      this.loading.set(true);
-      console.log('Submitting course:', this.courseForm.value); // Debug log
-      this.courseService.createCourse(this.courseForm.value).subscribe({
+  if (this.courseForm.valid) {
+    this.loading.set(true);
+    
+    const courseData = this.courseForm.value;
+    
+    if (this.isEditMode() && this.editingCourseId()) {
+      // Update existing course
+      this.courseService.updateCourse(this.editingCourseId()!, courseData).subscribe({
+        next: (response) => {
+          if (response.status === 'SUCCESS') {
+            this.toastService.success('Course updated successfully!');
+            this.router.navigate(['/dashboard/instructor']);
+          }
+          this.loading.set(false);
+        },
+        error: (error) => {
+          console.error('Error updating course:', error);
+          this.toastService.error('Failed to update course. Please try again.');
+          this.loading.set(false);
+        },
+      });
+    } else {
+      // Create new course
+      this.courseService.createCourse(courseData).subscribe({
         next: (response) => {
           if (response.status === 'SUCCESS') {
             this.toastService.success('Course created successfully!');
@@ -95,13 +156,12 @@ export class CourseCreateComponent implements OnInit {
           this.loading.set(false);
         },
       });
-    } else {
-      console.log('Form is invalid:', this.courseForm.errors); // Debug log
-      console.log('Form values:', this.courseForm.value); // Debug log
-      this.markFormGroupTouched(this.courseForm);
-      this.toastService.warning('Please fill in all required fields correctly');
     }
+  } else {
+    this.markFormGroupTouched(this.courseForm);
+    this.toastService.warning('Please fill in all required fields correctly');
   }
+}
 
   markFormGroupTouched(formGroup: FormGroup) {
     Object.keys(formGroup.controls).forEach((key) => {

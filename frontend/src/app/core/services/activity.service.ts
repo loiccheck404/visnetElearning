@@ -48,4 +48,9 @@ export class ActivityService {
     const params = new HttpParams().set('period', period.toString());
     return this.http.get(`${this.apiUrl}/stats`, { params });
   }
+
+  getInstructorActivities(limit: number = 20): Observable<any> {
+    const params = new HttpParams().set('limit', limit.toString());
+    return this.http.get<any>(`${this.apiUrl}/instructor/my-activities`, { params });
+  }
 }
