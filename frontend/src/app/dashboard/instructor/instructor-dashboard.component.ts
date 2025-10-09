@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed } from '@angular/core';
+import { Component, OnInit, signal, computed, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService, User } from '../../core/services/auth.service';
@@ -46,12 +46,30 @@ export class InstructorDashboardComponent implements OnInit {
     return this.myCourses().filter((c) => c.status === 'published').length;
   });
 
+  showMobileMenu = signal(false);
+  showUserDropdown = signal(false);
+
   constructor(
     private authService: AuthService,
     private router: Router,
     private courseService: CourseService,
     private activityService: ActivityService
   ) {}
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+
+    // Don't close if clicking on the hamburger button or inside the menu
+    if (!target.closest('.mobile-menu-toggle') && !target.closest('.nav-links')) {
+      this.showMobileMenu.set(false);
+    }
+
+    // Close user dropdown when clicking outside
+    if (!target.closest('.user-info') && !target.closest('.user-dropdown')) {
+      this.showUserDropdown.set(false);
+    }
+  }
 
   ngOnInit() {
     this.loadUserData();
@@ -159,6 +177,20 @@ export class InstructorDashboardComponent implements OnInit {
 
   getPublishedCourses(): number {
     return this.publishedCourses();
+  }
+
+  toggleMobileMenu(event: Event) {
+    event.stopPropagation();
+    this.showMobileMenu.update((show) => !show);
+  }
+
+  toggleUserDropdown() {
+    this.showUserDropdown.update((show) => !show);
+    this.showMobileMenu.set(false);
+  }
+
+  closeUserDropdown() {
+    this.showUserDropdown.set(false);
   }
 
   onLogout() {
