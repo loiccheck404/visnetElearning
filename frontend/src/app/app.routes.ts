@@ -80,9 +80,11 @@ export const routes: Routes = [
       {
         path: 'instructor/courses',
         loadComponent: () =>
-          import('./courses/course-list/course-list.component').then((m) => m.CourseListComponent), // Changed this
-        canActivate: [roleGuard],
-        data: { roles: ['instructor'] },
+          import('./courses/instructor-courses/instructor-courses.component').then(
+            (m) => m.InstructorCoursesComponent
+          ),
+        canActivate: [authGuard, roleGuard],
+        data: { roles: ['instructor', 'admin'] },
       },
       {
         path: 'instructor/courses/:id',
