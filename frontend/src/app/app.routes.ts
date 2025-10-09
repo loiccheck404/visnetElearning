@@ -96,15 +96,6 @@ export const routes: Routes = [
         data: { roles: ['instructor'] },
       },
       {
-        path: 'instructor/students',
-        loadComponent: () =>
-          import('./dashboard/instructor/instructor-dashboard.component').then(
-            (m) => m.InstructorDashboardComponent
-          ),
-        canActivate: [roleGuard],
-        data: { roles: ['instructor'] },
-      },
-      {
         path: 'instructor/create-course',
         loadComponent: () =>
           import('./courses/course-create/course-create.component').then(
@@ -112,6 +103,15 @@ export const routes: Routes = [
           ),
         canActivate: [roleGuard],
         data: { roles: ['instructor'] },
+      },
+      {
+        path: 'instructor/students',
+        loadComponent: () =>
+          import('./dashboard/instructor-students/instructor-students.components').then(
+            (m) => m.InstructorStudentsComponent
+          ),
+        canActivate: [authGuard, roleGuard],
+        data: { roles: ['instructor', 'admin'] },
       },
 
       // Admin Dashboard
