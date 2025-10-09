@@ -10,6 +10,9 @@ router.use(requireRole(["instructor", "admin"]));
 // Get all students enrolled in instructor's courses
 router.get("/", studentController.getInstructorStudents);
 
+// Get student profile (overview across all courses)
+router.get("/profile/:studentId", studentController.getStudentProfile);
+
 // Get specific student details for a course
 router.get("/:studentId/course/:courseId", studentController.getStudentDetails);
 

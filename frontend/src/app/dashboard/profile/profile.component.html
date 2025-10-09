@@ -1,5 +1,6 @@
 <div class="profile-container">
-  <div class="profile-header">
+  <!-- Header with Back Button -->
+  <header class="profile-header">
     <button class="back-btn" [routerLink]="getDashboardLink()">
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -17,22 +18,89 @@
       </svg>
       Back to Dashboard
     </button>
-  </div>
+    <app-theme-toggle></app-theme-toggle>
+  </header>
 
   <div class="profile-content">
+    <!-- Profile Card -->
     <div class="profile-card">
+      <!-- Profile Banner & Avatar -->
       <div class="profile-banner">
-        <div class="profile-avatar-large">
-          {{ currentUser()?.firstName.charAt(0) }}{{ currentUser()?.lastName.charAt(0) }}
+        <div class="banner-gradient"></div>
+        <div class="profile-avatar-section">
+          <div class="profile-avatar-large">
+            @if (profilePictureUrl()) {
+            <img [src]="profilePictureUrl()" [alt]="currentUser()?.firstName" />
+            } @else {
+            <span class="avatar-initials">
+              {{ currentUser()?.firstName.charAt(0) }}{{ currentUser()?.lastName.charAt(0) }}
+            </span>
+            }
+            <button class="avatar-edit-btn" (click)="fileInput.click()" [disabled]="isUploading()">
+              @if (isUploading()) {
+              <span class="upload-spinner"></span>
+              } @else {
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"
+                ></path>
+                <circle cx="12" cy="13" r="4"></circle>
+              </svg>
+              }
+            </button>
+            <input
+              #fileInput
+              type="file"
+              accept="image/*"
+              (change)="onFileSelected($event)"
+              style="display: none"
+            />
+          </div>
         </div>
       </div>
 
-      <div class="profile-info">
-        <h1>{{ currentUser()?.firstName }} {{ currentUser()?.lastName }}</h1>
-        <p class="user-role">{{ currentUser()?.role }}</p>
-        <p class="user-email">{{ currentUser()?.email }}</p>
+      <!-- Profile Info & Stats -->
+      <div class="profile-info-section">
+        <div class="profile-main-info">
+          <h1>{{ currentUser()?.firstName }} {{ currentUser()?.lastName }}</h1>
+          <div class="profile-meta">
+            <span class="user-role">{{ currentUser()?.role }}</span>
+            @if (profileData()?.occupation) {
+            <span class="user-occupation">{{ profileData()?.occupation }}</span>
+            }
+          </div>
+          <p class="user-email">{{ currentUser()?.email }}</p>
+          @if (profileData()?.bio) {
+          <p class="user-bio">{{ profileData()?.bio }}</p>
+          }
+        </div>
+
+        <!-- Social Stats -->
+        <div class="social-stats">
+          <div class="stat-item">
+            <span class="stat-value">{{ profileData()?.followersCount || 0 }}</span>
+            <span class="stat-label">Followers</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-value">{{ profileData()?.followingCount || 0 }}</span>
+            <span class="stat-label">Following</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-value">{{ profileData()?.coursesEnrolled || 0 }}</span>
+            <span class="stat-label">Courses</span>
+          </div>
+        </div>
       </div>
 
+      <!-- Messages -->
       @if (successMessage()) {
       <div class="success-message">
         <svg
@@ -43,8 +111,6 @@
           fill="none"
           stroke="currentColor"
           stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
         >
           <polyline points="20 6 9 17 4 12"></polyline>
         </svg>
@@ -60,8 +126,6 @@
           fill="none"
           stroke="currentColor"
           stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
         >
           <circle cx="12" cy="12" r="10"></circle>
           <line x1="12" y1="8" x2="12" y2="12"></line>
@@ -71,10 +135,27 @@
       </div>
       }
 
+      <!-- Profile Form -->
       <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="profile-form">
+        <h2 class="form-section-title">Personal Information</h2>
+
         <div class="form-row">
           <div class="form-group">
-            <label for="firstName">First Name</label>
+            <label for="firstName">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+              First Name
+            </label>
             <input
               id="firstName"
               type="text"
@@ -88,7 +169,21 @@
           </div>
 
           <div class="form-group">
-            <label for="lastName">Last Name</label>
+            <label for="lastName">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+              Last Name
+            </label>
             <input
               id="lastName"
               type="text"
@@ -103,19 +198,52 @@
         </div>
 
         <div class="form-group">
-          <label for="email">Email</label>
+          <label for="email">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path
+                d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
+              ></path>
+              <polyline points="22,6 12,13 2,6"></polyline>
+            </svg>
+            Email
+          </label>
           <input id="email" type="email" formControlName="email" readonly class="readonly-field" />
           <span class="field-hint">Email cannot be changed</span>
         </div>
 
         <div class="form-group">
-          <label for="bio">Bio</label>
+          <label for="bio">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+              <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+            Bio
+          </label>
           <textarea
             id="bio"
             formControlName="bio"
             rows="4"
             [readonly]="!isEditing()"
-            placeholder="Tell us about yourself..."
+            placeholder="Tell the community about yourself, your interests, and learning goals..."
             [class.invalid]="isFieldInvalid('bio')"
           ></textarea>
           @if (isFieldInvalid('bio')) {
@@ -123,9 +251,108 @@
           }
         </div>
 
+        <h2 class="form-section-title">Professional Details</h2>
+
         <div class="form-row">
           <div class="form-group">
-            <label for="phone">Phone</label>
+            <label for="occupation">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+              </svg>
+              Occupation
+            </label>
+            <input
+              id="occupation"
+              type="text"
+              formControlName="occupation"
+              [readonly]="!isEditing()"
+              placeholder="e.g., Software Engineer, Teacher, Student"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="education">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
+                <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
+              </svg>
+              Education Level
+            </label>
+            <select id="education" formControlName="education" [disabled]="!isEditing()">
+              <option value="">Select education level</option>
+              <option value="high-school">High School</option>
+              <option value="bachelors">Bachelor's Degree</option>
+              <option value="masters">Master's Degree</option>
+              <option value="phd">PhD</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="skills">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <polygon
+                points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+              ></polygon>
+            </svg>
+            Skills & Interests
+          </label>
+          <input
+            id="skills"
+            type="text"
+            formControlName="skills"
+            [readonly]="!isEditing()"
+            placeholder="e.g., Programming, Design, Marketing"
+          />
+          <span class="field-hint">Comma-separated list of your skills and interests</span>
+        </div>
+
+        <h2 class="form-section-title">Contact Information</h2>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="phone">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"
+                ></path>
+              </svg>
+              Phone
+            </label>
             <input
               id="phone"
               type="tel"
@@ -136,7 +363,23 @@
           </div>
 
           <div class="form-group">
-            <label for="dateOfBirth">Date of Birth</label>
+            <label for="dateOfBirth">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+              </svg>
+              Date of Birth
+            </label>
             <input
               id="dateOfBirth"
               type="date"
@@ -146,6 +389,120 @@
           </div>
         </div>
 
+        <div class="form-row">
+          <div class="form-group">
+            <label for="location">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                <circle cx="12" cy="10" r="3"></circle>
+              </svg>
+              Location
+            </label>
+            <input
+              id="location"
+              type="text"
+              formControlName="location"
+              [readonly]="!isEditing()"
+              placeholder="City, Country"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="website">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="2" y1="12" x2="22" y2="12"></line>
+                <path
+                  d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"
+                ></path>
+              </svg>
+              Website/Portfolio
+            </label>
+            <input
+              id="website"
+              type="url"
+              formControlName="website"
+              [readonly]="!isEditing()"
+              placeholder="https://yourwebsite.com"
+            />
+          </div>
+        </div>
+
+        <h2 class="form-section-title">Social Links</h2>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="linkedin">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"
+                ></path>
+                <rect x="2" y="9" width="4" height="12"></rect>
+                <circle cx="4" cy="4" r="2"></circle>
+              </svg>
+              LinkedIn
+            </label>
+            <input
+              id="linkedin"
+              type="url"
+              formControlName="linkedin"
+              [readonly]="!isEditing()"
+              placeholder="https://linkedin.com/in/yourprofile"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="github">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"
+                ></path>
+              </svg>
+              GitHub
+            </label>
+            <input
+              id="github"
+              type="url"
+              formControlName="github"
+              [readonly]="!isEditing()"
+              placeholder="https://github.com/yourusername"
+            />
+          </div>
+        </div>
+
+        <!-- Form Actions -->
         <div class="form-actions">
           @if (!isEditing()) {
           <button type="button" class="btn-edit" (click)="toggleEdit()">
@@ -157,8 +514,6 @@
               fill="none"
               stroke="currentColor"
               stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
             >
               <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
               <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
@@ -170,7 +525,19 @@
           <button type="submit" class="btn-save" [disabled]="isSaving()">
             @if (isSaving()) {
             <span class="spinner"></span>
-            Saving... } @else { Save Changes }
+            Saving... } @else {
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            Save Changes }
           </button>
           }
         </div>

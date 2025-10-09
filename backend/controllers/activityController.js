@@ -141,7 +141,7 @@ const getActivityStats = async (req, res) => {
   }
 };
 
-// Get instructor activities (enrollments, questions, completions in their courses)
+// Get instructor activities (enrollments, questions, completions, unenrollments in their courses)
 const getInstructorActivities = async (req, res) => {
   try {
     const instructorId = req.user.id;
@@ -160,6 +160,15 @@ const getInstructorActivities = async (req, res) => {
       JOIN courses c ON sa.course_id = c.id
       JOIN users u ON sa.student_id = u.id
       WHERE c.instructor_id = $1
+        AND sa.activity_type IN (
+          'course_enrolled', 
+          'lesson_completed', 
+          'course_completed', 
+          'quiz_completed',
+          'course_unenrolled',
+          'quiz_started',
+          'lesson_started'
+        )
       ORDER BY sa.created_at DESC
       LIMIT $2
     `;
