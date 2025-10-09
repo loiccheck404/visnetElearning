@@ -6,6 +6,9 @@ import { AuthService } from '../../core/services/auth.service';
 import { CourseService } from '../../core/services/course.service';
 import { ThemeToggleComponent } from '../../shared/components/theme-toggle/theme-toggle.component';
 import { ToastService } from '../../core/services/toast.service';
+import { StudentService, InstructorStudent } from '../../core/services/student.service';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 interface Student {
   id: number;
@@ -74,6 +77,7 @@ export class InstructorStudentsComponent implements OnInit {
   constructor(
     private authService: AuthService,
     private courseService: CourseService,
+    private studentService: StudentService,
     private router: Router,
     private route: ActivatedRoute,
     private toastService: ToastService
@@ -126,6 +130,51 @@ export class InstructorStudentsComponent implements OnInit {
     }
   }
 
+  loadDashboardData() {
+    this.isLoading.set(true);
+
+    // Check if courseId is in query params
+    this.route.queryParams.subscribe((params) => {
+      if (params['courseId']) {
+        this.selectedCourseId.set(Number(params['courseId']));
+      }
+
+      forkJoin({
+        courses: this.courseService.getInstructorCourses().pipe(
+          catchError((err) => {
+            console.error('Error loading courses:', err);
+            return of({ status: 'ERROR', data: { courses: [] } });
+          })
+        ),
+        students: this.studentService
+          .getInstructorStudents(this.selectedCourseId() || undefined)
+          .pipe(
+            catchError((err) => {
+              console.error('Error loading students:', err);
+              return of({ status: 'ERROR', data: { students: [] } });
+            })
+          ),
+      }).subscribe({
+        next: (results) => {
+          if (results.courses.status === 'SUCCESS') {
+            this.courses.set(results.courses.data.courses);
+          }
+
+          if (results.students.status === 'SUCCESS') {
+            this.students.set(results.students.data.students);
+          }
+
+          this.isLoading.set(false);
+        },
+        error: (err) => {
+          console.error('Error loading dashboard data:', err);
+          this.toastService.error('Failed to load students');
+          this.isLoading.set(false);
+        },
+      });
+    });
+  }
+
   loadCourses() {
     this.courseService.getInstructorCourses().subscribe({
       next: (response) => {
@@ -141,43 +190,19 @@ export class InstructorStudentsComponent implements OnInit {
 
   loadStudents() {
     this.isLoading.set(true);
-
-    // For now, we'll use mock data. You'll need to create a backend endpoint
-    // that returns students enrolled in instructor's courses
-    setTimeout(() => {
-      const mockStudents: CourseEnrollment[] = [
-        {
-          student_id: 1,
-          student_name: 'John Doe',
-          student_email: 'john@example.com',
-          course_title: 'Sharp',
-          enrolled_at: '2025-09-15T10:30:00Z',
-          progress: 75,
-          last_accessed_at: '2025-10-08T14:20:00Z',
-        },
-        {
-          student_id: 2,
-          student_name: 'Jane Smith',
-          student_email: 'jane@example.com',
-          course_title: 'Kokis',
-          enrolled_at: '2025-09-20T09:15:00Z',
-          progress: 45,
-          last_accessed_at: '2025-10-09T11:45:00Z',
-        },
-        {
-          student_id: 3,
-          student_name: 'Mike Johnson',
-          student_email: 'mike@example.com',
-          course_title: 'Memes',
-          enrolled_at: '2025-09-25T16:00:00Z',
-          progress: 90,
-          last_accessed_at: '2025-10-09T09:30:00Z',
-        },
-      ];
-
-      this.students.set(mockStudents);
-      this.isLoading.set(false);
-    }, 500);
+    this.studentService.getInstructorStudents(this.selectedCourseId() || undefined).subscribe({
+      next: (response) => {
+        if (response.status === 'SUCCESS') {
+          this.students.set(response.data.students);
+        }
+        this.isLoading.set(false);
+      },
+      error: (err) => {
+        console.error('Error loading students:', err);
+        this.toastService.error('Failed to load students');
+        this.isLoading.set(false);
+      },
+    });
   }
 
   onCourseFilterChange(event: Event) {
