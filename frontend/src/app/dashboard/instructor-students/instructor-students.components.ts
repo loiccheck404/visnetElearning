@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed } from '@angular/core';
+import { Component, OnInit, signal, computed, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -42,6 +42,8 @@ export class InstructorStudentsComponent implements OnInit {
   isLoading = signal(true);
   selectedCourseId = signal<number | null>(null);
   searchQuery = signal('');
+  showMobileMenu = signal(false);
+  showUserDropdown = signal(false);
 
   // Filtered students based on search
   filteredStudents = computed(() => {
@@ -76,6 +78,33 @@ export class InstructorStudentsComponent implements OnInit {
     private route: ActivatedRoute,
     private toastService: ToastService
   ) {}
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+
+    if (!target.closest('.mobile-menu-toggle') && !target.closest('.nav-links')) {
+      this.showMobileMenu.set(false);
+    }
+
+    if (!target.closest('.user-info') && !target.closest('.user-dropdown')) {
+      this.showUserDropdown.set(false);
+    }
+  }
+
+  toggleMobileMenu(event: Event) {
+    event.stopPropagation();
+    this.showMobileMenu.update((show) => !show);
+  }
+
+  toggleUserDropdown() {
+    this.showUserDropdown.update((show) => !show);
+    this.showMobileMenu.set(false);
+  }
+
+  closeUserDropdown() {
+    this.showUserDropdown.set(false);
+  }
 
   ngOnInit() {
     this.loadUserData();

@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { CourseService } from '../../core/services/course.service';
@@ -36,12 +36,42 @@ export class InstructorCoursesComponent implements OnInit {
   // Filtered courses based on status
   filteredCourses = signal<InstructorCourse[]>([]);
 
+  showMobileMenu = signal(false);
+  showUserDropdown = signal(false);
+
   constructor(
     private courseService: CourseService,
     private authService: AuthService,
     private router: Router,
     private toastService: ToastService
   ) {}
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+
+    if (!target.closest('.mobile-menu-toggle') && !target.closest('.nav-links')) {
+      this.showMobileMenu.set(false);
+    }
+
+    if (!target.closest('.user-info') && !target.closest('.user-dropdown')) {
+      this.showUserDropdown.set(false);
+    }
+  }
+
+  toggleMobileMenu(event: Event) {
+    event.stopPropagation();
+    this.showMobileMenu.update((show) => !show);
+  }
+
+  toggleUserDropdown() {
+    this.showUserDropdown.update((show) => !show);
+    this.showMobileMenu.set(false);
+  }
+
+  closeUserDropdown() {
+    this.showUserDropdown.set(false);
+  }
 
   ngOnInit() {
     this.loadUserData();
