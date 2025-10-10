@@ -190,10 +190,48 @@ const getInstructorActivities = async (req, res) => {
   }
 };
 
+// Upload profile picture
+const uploadProfilePicture = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        status: "ERROR",
+        message: "No file uploaded",
+      });
+    }
+
+    const userId = req.user.id;
+    const profilePictureUrl = `/uploads/profiles/${req.file.filename}`;
+
+    // Update user's avatar_url in database
+    const result = await db.query(
+      `UPDATE users SET avatar_url = $1, updated_at = CURRENT_TIMESTAMP
+       WHERE id = $2 
+       RETURNING avatar_url`,
+      [profilePictureUrl, userId]
+    );
+
+    res.json({
+      status: "SUCCESS",
+      message: "Profile picture uploaded successfully",
+      data: {
+        profilePictureUrl: result.rows[0].avatar_url,
+      },
+    });
+  } catch (error) {
+    console.error("Upload profile picture error:", error);
+    res.status(500).json({
+      status: "ERROR",
+      message: "Failed to upload profile picture",
+    });
+  }
+};
+
 module.exports = {
   logActivity,
   getStudentActivities,
   getCourseActivities,
   getActivityStats,
-  getInstructorActivities
+  getInstructorActivities,
+  uploadProfilePicture,
 };

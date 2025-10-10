@@ -2,8 +2,39 @@ const express = require("express");
 const { body } = require("express-validator");
 const authController = require("../controllers/authController");
 const { authenticateToken } = require("../middleware/auth");
+const multer = require("multer");
+const path = require("path");
 
 const router = express.Router();
+
+// Configure multer for profile picture uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads/profiles/");
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, "profile-" + uniqueSuffix + path.extname(file.originalname));
+  },
+});
+
+const upload = multer({
+  storage: storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = /jpeg|jpg|png|gif|webp/;
+    const extname = allowedTypes.test(
+      path.extname(file.originalname).toLowerCase()
+    );
+    const mimetype = allowedTypes.test(file.mimetype);
+
+    if (mimetype && extname) {
+      return cb(null, true);
+    } else {
+      cb(new Error("Only image files are allowed"));
+    }
+  },
+});
 
 // Validation rules
 const registerValidation = [
@@ -54,9 +85,7 @@ const profileUpdateValidation = [
     .optional()
     .trim()
     .custom((value) => {
-      // Allow empty or valid phone format
       if (!value || value === "") return true;
-      // Simple regex for international phone numbers
       if (/^\+?[0-9\s\-()]{7,20}$/.test(value)) return true;
       throw new Error("Invalid phone number format");
     }),
@@ -80,6 +109,32 @@ router.put(
   authenticateToken,
   profileUpdateValidation,
   authController.updateProfile
+);
+
+// Profile picture upload route
+router.post(
+  "/profile/picture",
+  authenticateToken,
+  upload.single("profilePicture"),
+  (req, res) => {
+    // Inline handler since uploadProfilePicture might not be exported yet
+    if (!req.file) {
+      return res.status(400).json({
+        status: "ERROR",
+        message: "No file uploaded",
+      });
+    }
+
+    const profilePictureUrl = `/uploads/profiles/${req.file.filename}`;
+
+    res.json({
+      status: "SUCCESS",
+      message: "Profile picture uploaded successfully",
+      data: {
+        profilePictureUrl: profilePictureUrl,
+      },
+    });
+  }
 );
 
 module.exports = router;

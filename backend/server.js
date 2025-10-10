@@ -12,6 +12,7 @@ const PORT = process.env.PORT || 3000;
 const courseRoutes = require("./routes/courses");
 const activityRoutes = require("./routes/activities");
 const studentRoutes = require("./routes/students");
+const path = require("path");
 
 // Basic middleware
 app.use(helmet());
@@ -48,6 +49,9 @@ app.use("/api/activities", activityRoutes);
 app.use("/api/progress", progressRoutes);
 
 app.use("/api/enrollments", enrollmentRoutes);
+
+// Serve uploaded files statically
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Database test route
 app.get("/api/db-test", async (req, res) => {

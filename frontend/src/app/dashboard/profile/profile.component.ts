@@ -221,14 +221,52 @@ export class ProfileComponent implements OnInit {
     const phone = this.profileForm.get('phone')?.value?.trim() || '';
     const dateOfBirth = this.profileForm.get('dateOfBirth')?.value || '';
 
-    // Simple validation
+    // Detailed validation with specific field errors
+    const errors: { field: string; message: string }[] = [];
+
     if (!firstName || firstName.length < 2) {
-      this.errorMessage.set('First name must be at least 2 characters');
-      return;
+      errors.push({ field: 'firstName', message: 'First name must be at least 2 characters' });
+      this.profileForm.get('firstName')?.setErrors({ invalid: true });
+      this.profileForm.get('firstName')?.markAsTouched();
+    } else {
+      this.profileForm.get('firstName')?.setErrors(null);
     }
 
     if (!lastName || lastName.length < 2) {
-      this.errorMessage.set('Last name must be at least 2 characters');
+      errors.push({ field: 'lastName', message: 'Last name must be at least 2 characters' });
+      this.profileForm.get('lastName')?.setErrors({ invalid: true });
+      this.profileForm.get('lastName')?.markAsTouched();
+    } else {
+      this.profileForm.get('lastName')?.setErrors(null);
+    }
+
+    if (bio && bio.length > 500) {
+      errors.push({ field: 'bio', message: 'Bio cannot exceed 500 characters' });
+      this.profileForm.get('bio')?.setErrors({ invalid: true });
+      this.profileForm.get('bio')?.markAsTouched();
+    } else {
+      this.profileForm.get('bio')?.setErrors(null);
+    }
+
+    if (phone && phone.length > 0) {
+      // Simple phone validation - at least 7 digits
+      const phoneRegex = /^\+?[0-9\s\-()]{7,20}$/;
+      if (!phoneRegex.test(phone)) {
+        errors.push({ field: 'phone', message: 'Please enter a valid phone number' });
+        this.profileForm.get('phone')?.setErrors({ invalid: true });
+        this.profileForm.get('phone')?.markAsTouched();
+      } else {
+        this.profileForm.get('phone')?.setErrors(null);
+      }
+    } else {
+      this.profileForm.get('phone')?.setErrors(null);
+    }
+
+    // If there are errors, show them
+    if (errors.length > 0) {
+      const errorMessage = errors.map((e) => e.message).join('. ');
+      this.errorMessage.set(errorMessage);
+      this.toastService.error(errorMessage);
       return;
     }
 
@@ -283,7 +321,9 @@ export class ProfileComponent implements OnInit {
           if (error.error?.message) {
             errorMsg = error.error.message;
           } else if (error.error?.errors) {
-            errorMsg = error.error.errors.map((e: any) => e.msg).join(', ');
+            // Handle validation errors from backend
+            const backendErrors = error.error.errors.map((e: any) => e.msg).join('. ');
+            errorMsg = backendErrors;
           }
 
           this.errorMessage.set(errorMsg);
@@ -313,28 +353,21 @@ export class ProfileComponent implements OnInit {
   getFieldError(fieldName: string): string {
     const field = this.profileForm.get(fieldName);
 
-    if (!field) return '';
+    if (!field || !field.errors || !field.touched) return '';
 
-    if (field.hasError('required')) {
-      return `${this.getFieldLabel(fieldName)} is required`;
-    }
-    if (field.hasError('email')) {
-      return 'Please enter a valid email address';
-    }
-    if (field.hasError('minlength')) {
-      const minLength = field.errors?.['minlength'].requiredLength;
-      return `${this.getFieldLabel(fieldName)} must be at least ${minLength} characters`;
-    }
-    if (field.hasError('maxlength')) {
-      const maxLength = field.errors?.['maxlength'].requiredLength;
-      return `${this.getFieldLabel(fieldName)} cannot exceed ${maxLength} characters`;
-    }
-    if (field.hasError('pattern')) {
-      if (fieldName === 'phone') {
-        return 'Please enter a valid phone number (e.g., +1234567890)';
-      }
-      if (fieldName === 'website' || fieldName === 'linkedin' || fieldName === 'github') {
-        return 'Please enter a valid URL starting with http:// or https://';
+    if (field.errors['invalid']) {
+      // Return custom error messages based on field
+      switch (fieldName) {
+        case 'firstName':
+          return 'First name must be at least 2 characters';
+        case 'lastName':
+          return 'Last name must be at least 2 characters';
+        case 'bio':
+          return 'Bio cannot exceed 500 characters';
+        case 'phone':
+          return 'Please enter a valid phone number';
+        default:
+          return 'This field is invalid';
       }
     }
 
@@ -362,6 +395,6 @@ export class ProfileComponent implements OnInit {
 
   isFieldInvalid(fieldName: string): boolean {
     const field = this.profileForm.get(fieldName);
-    return !!(field && field.invalid && (field.dirty || field.touched));
+    return !!(field && field.errors && field.touched);
   }
 }
