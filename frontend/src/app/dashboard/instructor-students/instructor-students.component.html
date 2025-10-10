@@ -388,8 +388,7 @@
         </thead>
         <tbody>
           @for (student of filteredStudents(); track student.student_id + student.course_title) {
-          <tr (click)="viewStudentProfile(student.student_id)" 
-    [class.unenrolled-row]="isStudentUnenrolled(student)">
+          <tr (click)="viewStudentProfile(student.student_id)">
             <td>
               <div class="student-info">
                 <div class="student-avatar">
@@ -403,13 +402,8 @@
               </div>
             </td>
             <td>
-  <div style="display: flex; align-items: center; gap: 0.5rem;">
-    <span class="course-badge">{{ student.course_title }}</span>
-    @if (student.is_unenrolled) {
-    <span class="unenrolled-badge">Unenrolled</span>
-    }
-  </div>
-</td>
+              <span class="course-badge">{{ student.course_title }}</span>
+            </td>
             <td>
               <span class="date-text">{{ formatDate(student.enrolled_at) }}</span>
             </td>
