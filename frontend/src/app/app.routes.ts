@@ -4,7 +4,11 @@ import { roleGuard } from './core/role.guard';
 
 export const routes: Routes = [
   // Default redirect to login
-  { path: '', redirectTo: '/auth/login', pathMatch: 'full' },
+  { 
+  path: '', 
+  redirectTo: '/dashboard/home', 
+  pathMatch: 'full' 
+},
 
   // Auth routes (public)
   {

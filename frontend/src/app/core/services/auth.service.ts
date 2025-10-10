@@ -105,31 +105,41 @@ export class AuthService {
     const token = localStorage.getItem('auth_token');
     const userStr = localStorage.getItem('current_user');
 
-    if (token && userStr && !this.isTokenExpired()) {
+    if (token && userStr) {
       try {
-        const user = JSON.parse(userStr);
+        // Set token first to check expiration
         this.tokenSubject.next(token);
-        this.currentUserSubject.next(user);
-      } catch {
+
+        // Check if token is expired
+        if (!this.isTokenExpired()) {
+          const user = JSON.parse(userStr);
+          this.currentUserSubject.next(user);
+        } else {
+          // Token expired, clean up
+          this.logout();
+        }
+      } catch (error) {
+        console.error('Error loading stored auth:', error);
         this.logout();
       }
-    } else {
-      this.logout();
     }
   }
 
   private isTokenExpired(): boolean {
-    const token = this.tokenValue;
-    if (!token) return true;
+  const token = this.tokenValue;
+  if (!token) return true;
 
-    try {
-      const decoded: any = jwtDecode(token);
-      const currentTime = Date.now() / 1000;
-      return decoded.exp < currentTime;
-    } catch {
-      return true;
-    }
+  try {
+    const decoded: any = jwtDecode(token);
+    if (!decoded || !decoded.exp) return true;
+    
+    const currentTime = Math.floor(Date.now() / 1000);
+    return decoded.exp < currentTime;
+  } catch (error) {
+    console.error('Error decoding token:', error);
+    return true;
   }
+}
 
   private handleError(error: any) {
     let errorMessage = 'An error occurred';

@@ -25,22 +25,34 @@ export class LoginComponent implements OnInit {
     });
   }
 
-  onSubmit(): void {
-    if (this.loginForm.invalid) return;
+ onSubmit(): void {
+  if (this.loginForm.invalid) return;
 
-    this.loading = true;
-    this.error = '';
+  this.loading = true;
+  this.error = '';
 
-    this.authService.login(this.loginForm.value).subscribe({
-      next: () => {
-        this.router.navigate(['/dashboard']);
-      },
-      error: (error) => {
-        this.error = error;
-        this.loading = false;
-      },
-    });
-  }
+  this.authService.login(this.loginForm.value).subscribe({
+    next: (response) => {
+      const user = response.data.user;
+      
+      // Route based on user role
+      let dashboardRoute = '/dashboard/home';
+      
+      if (user.role === 'admin') {
+        dashboardRoute = '/dashboard/admin';
+      } else if (user.role === 'instructor') {
+        dashboardRoute = '/dashboard/instructor';
+      }
+      
+      this.router.navigate([dashboardRoute]);
+      this.loading = false;
+    },
+    error: (error) => {
+      this.error = error;
+      this.loading = false;
+    },
+  });
+}
 
   goToRegister(): void {
     this.router.navigate(['/auth/register']);

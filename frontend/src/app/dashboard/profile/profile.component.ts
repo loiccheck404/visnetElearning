@@ -54,17 +54,17 @@ export class ProfileComponent implements OnInit {
     this.profileForm = this.fb.group({
       firstName: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]],
       lastName: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]],
-      email: [{ value: '', disabled: true }],
+      email: ['', [Validators.required, Validators.email]], // Made editable with email validation
       bio: ['', [Validators.maxLength(500)]],
-      phone: ['', [Validators.pattern(/^\+?[1-9]\d{1,14}$/)]],
+      phone: [''], // Removed pattern validator - make it optional
       dateOfBirth: [''],
       occupation: ['', [Validators.maxLength(100)]],
       education: [''],
       skills: ['', [Validators.maxLength(200)]],
       location: ['', [Validators.maxLength(100)]],
-      website: ['', [Validators.pattern(/^https?:\/\/.+/)]],
-      linkedin: ['', [Validators.pattern(/^https?:\/\/.+/)]],
-      github: ['', [Validators.pattern(/^https?:\/\/.+/)]],
+      website: [''], // Removed pattern validator - validate only when filled
+      linkedin: [''], // Removed pattern validator
+      github: [''], // Removed pattern validator
     });
   }
 
@@ -190,7 +190,10 @@ export class ProfileComponent implements OnInit {
   }
 
   toggleEdit() {
+    const wasEditing = this.isEditing();
     this.isEditing.set(!this.isEditing());
+
+    // Clear ALL messages when toggling edit mode
     this.errorMessage.set('');
     this.successMessage.set('');
 
@@ -201,30 +204,90 @@ export class ProfileComponent implements OnInit {
   }
 
   onSubmit() {
-    if (this.profileForm.invalid) {
-      Object.keys(this.profileForm.controls).forEach((key) => {
-        this.profileForm.get(key)?.markAsTouched();
-      });
+    // Clear messages first
+    this.errorMessage.set('');
+    this.successMessage.set('');
+
+    // Clear any previous validation errors for optional fields
+    ['phone', 'website', 'linkedin', 'github'].forEach((field) => {
+      const control = this.profileForm.get(field);
+      if (control?.value === '' || control?.value === null) {
+        control.setErrors(null);
+      }
+    });
+
+    // Validate URLs only if they're filled in
+    const urlFields = ['website', 'linkedin', 'github'];
+    const urlPattern = /^https?:\/\/.+\..+/;
+
+    let hasValidationErrors = false;
+
+    urlFields.forEach((field) => {
+      const control = this.profileForm.get(field);
+      const value = control?.value?.trim();
+
+      if (value && value.length > 0) {
+        if (!urlPattern.test(value)) {
+          control?.setErrors({ pattern: true });
+          control?.markAsTouched();
+          hasValidationErrors = true;
+        } else {
+          // Clear pattern error if URL is valid
+          if (control?.hasError('pattern')) {
+            control.setErrors(null);
+          }
+        }
+      }
+    });
+
+    // Validate phone only if filled
+    const phoneControl = this.profileForm.get('phone');
+    const phone = phoneControl?.value?.trim();
+    const phonePattern = /^\+?[1-9]\d{1,14}$/;
+
+    if (phone && phone.length > 0) {
+      if (!phonePattern.test(phone)) {
+        phoneControl?.setErrors({ pattern: true });
+        phoneControl?.markAsTouched();
+        hasValidationErrors = true;
+      } else {
+        if (phoneControl?.hasError('pattern')) {
+          phoneControl.setErrors(null);
+        }
+      }
+    }
+
+    // Mark required fields as touched to show errors
+    ['firstName', 'lastName', 'email'].forEach((field) => {
+      const control = this.profileForm.get(field);
+      if (control?.invalid) {
+        control.markAsTouched();
+        hasValidationErrors = true;
+      }
+    });
+
+    if (this.profileForm.invalid || hasValidationErrors) {
+      this.errorMessage.set('Please fix the validation errors before submitting.');
+      // Don't use toast here, only the inline message
       return;
     }
 
     this.isSaving.set(true);
-    this.errorMessage.set('');
-    this.successMessage.set('');
 
     const updateData = {
-      firstName: this.profileForm.get('firstName')?.value,
-      lastName: this.profileForm.get('lastName')?.value,
-      bio: this.profileForm.get('bio')?.value,
-      phone: this.profileForm.get('phone')?.value,
-      dateOfBirth: this.profileForm.get('dateOfBirth')?.value,
-      occupation: this.profileForm.get('occupation')?.value,
-      education: this.profileForm.get('education')?.value,
-      skills: this.profileForm.get('skills')?.value,
-      location: this.profileForm.get('location')?.value,
-      website: this.profileForm.get('website')?.value,
-      linkedin: this.profileForm.get('linkedin')?.value,
-      github: this.profileForm.get('github')?.value,
+      firstName: this.profileForm.get('firstName')?.value?.trim(),
+      lastName: this.profileForm.get('lastName')?.value?.trim(),
+      email: this.profileForm.get('email')?.value?.trim(),
+      bio: this.profileForm.get('bio')?.value?.trim() || '',
+      phone: this.profileForm.get('phone')?.value?.trim() || '',
+      dateOfBirth: this.profileForm.get('dateOfBirth')?.value || '',
+      occupation: this.profileForm.get('occupation')?.value?.trim() || '',
+      education: this.profileForm.get('education')?.value || '',
+      skills: this.profileForm.get('skills')?.value?.trim() || '',
+      location: this.profileForm.get('location')?.value?.trim() || '',
+      website: this.profileForm.get('website')?.value?.trim() || '',
+      linkedin: this.profileForm.get('linkedin')?.value?.trim() || '',
+      github: this.profileForm.get('github')?.value?.trim() || '',
     };
 
     this.http
@@ -236,15 +299,15 @@ export class ProfileComponent implements OnInit {
       .subscribe({
         next: (response: any) => {
           this.isSaving.set(false);
-          this.toastService.success('Profile updated successfully!');
           this.successMessage.set('Profile updated successfully!');
           this.isEditing.set(false);
 
-          // Update stored user data
+          // Update stored user data with new email too
           const updatedUser = {
             ...this.currentUser()!,
             firstName: updateData.firstName,
             lastName: updateData.lastName,
+            email: updateData.email,
           };
           this.currentUser.set(updatedUser);
           localStorage.setItem('current_user', JSON.stringify(updatedUser));
@@ -255,16 +318,17 @@ export class ProfileComponent implements OnInit {
             ...updateData,
           }));
 
-          setTimeout(() => this.successMessage.set(''), 3000);
+          // Show toast notification
+          this.toastService.success('Profile updated successfully!');
+
+          // Clear success message after 5 seconds
+          setTimeout(() => this.successMessage.set(''), 5000);
         },
         error: (error) => {
           this.isSaving.set(false);
-          this.errorMessage.set(
-            error.error?.message || 'Failed to update profile. Please try again.'
-          );
-          this.toastService.error(
-            error.error?.message || 'Failed to update profile. Please try again.'
-          );
+          const errorMsg = error.error?.message || 'Failed to update profile. Please try again.';
+          this.errorMessage.set(errorMsg);
+          this.toastService.error(errorMsg);
         },
       });
   }
@@ -284,23 +348,28 @@ export class ProfileComponent implements OnInit {
   getFieldError(fieldName: string): string {
     const field = this.profileForm.get(fieldName);
 
-    if (field?.hasError('required')) {
+    if (!field) return '';
+
+    if (field.hasError('required')) {
       return `${this.getFieldLabel(fieldName)} is required`;
     }
-    if (field?.hasError('minlength')) {
+    if (field.hasError('email')) {
+      return 'Please enter a valid email address';
+    }
+    if (field.hasError('minlength')) {
       const minLength = field.errors?.['minlength'].requiredLength;
       return `${this.getFieldLabel(fieldName)} must be at least ${minLength} characters`;
     }
-    if (field?.hasError('maxlength')) {
+    if (field.hasError('maxlength')) {
       const maxLength = field.errors?.['maxlength'].requiredLength;
       return `${this.getFieldLabel(fieldName)} cannot exceed ${maxLength} characters`;
     }
-    if (field?.hasError('pattern')) {
+    if (field.hasError('pattern')) {
       if (fieldName === 'phone') {
-        return 'Please enter a valid phone number';
+        return 'Please enter a valid phone number (e.g., +1234567890)';
       }
       if (fieldName === 'website' || fieldName === 'linkedin' || fieldName === 'github') {
-        return 'Please enter a valid URL (e.g., https://example.com)';
+        return 'Please enter a valid URL starting with http:// or https://';
       }
     }
 
@@ -311,6 +380,7 @@ export class ProfileComponent implements OnInit {
     const labels: { [key: string]: string } = {
       firstName: 'First name',
       lastName: 'Last name',
+      email: 'Email', // Add this
       bio: 'Bio',
       phone: 'Phone',
       dateOfBirth: 'Date of birth',
