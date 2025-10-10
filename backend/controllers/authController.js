@@ -174,7 +174,8 @@ const getProfile = async (req, res) => {
       status: "SUCCESS",
       message: "Profile retrieved successfully",
       data: {
-        user: {
+        profile: {
+          // ← Change 'user' to 'profile'
           id: user.id,
           email: user.email,
           firstName: user.first_name,
@@ -203,6 +204,7 @@ const updateProfile = async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      console.log("Validation errors:", errors.array());
       return res.status(400).json({
         status: "ERROR",
         message: "Validation errors",
@@ -213,13 +215,18 @@ const updateProfile = async (req, res) => {
     const userId = req.user.id;
     const { firstName, lastName, bio, phone, dateOfBirth } = req.body;
 
+    // Convert empty strings to null for database
+    const cleanBio = bio?.trim() || null;
+    const cleanPhone = phone?.trim() || null;
+    const cleanDateOfBirth = dateOfBirth || null;
+
     const result = await db.query(
       `UPDATE users SET 
        first_name = $1, last_name = $2, bio = $3, 
        phone = $4, date_of_birth = $5, updated_at = CURRENT_TIMESTAMP
        WHERE id = $6 
        RETURNING id, email, first_name, last_name, role, bio, phone, date_of_birth`,
-      [firstName, lastName, bio, phone, dateOfBirth, userId]
+      [firstName, lastName, cleanBio, cleanPhone, cleanDateOfBirth, userId]
     );
 
     const user = result.rows[0];
@@ -245,6 +252,7 @@ const updateProfile = async (req, res) => {
     res.status(500).json({
       status: "ERROR",
       message: "Failed to update profile",
+      error: error.message, // Add error details
     });
   }
 };

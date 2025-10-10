@@ -53,13 +53,20 @@ const profileUpdateValidation = [
   body("phone")
     .optional()
     .trim()
-    .isMobilePhone()
-    .withMessage("Valid phone number required"),
+    .custom((value) => {
+      // Allow empty or valid phone format
+      if (!value || value === "") return true;
+      // Simple regex for international phone numbers
+      if (/^\+?[0-9\s\-()]{7,20}$/.test(value)) return true;
+      throw new Error("Invalid phone number format");
+    }),
   body("dateOfBirth")
     .optional()
-    .isISO8601()
-    .toDate()
-    .withMessage("Valid date of birth required"),
+    .custom((value) => {
+      if (!value || value === "") return true;
+      if (new Date(value).toString() !== "Invalid Date") return true;
+      throw new Error("Invalid date format");
+    }),
 ];
 
 // Public routes

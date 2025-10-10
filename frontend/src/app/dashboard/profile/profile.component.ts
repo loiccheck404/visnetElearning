@@ -210,119 +210,41 @@ export class ProfileComponent implements OnInit {
   }
 
   onSubmit() {
-    console.log('Form submitted'); // Debug log
-    console.log('Form valid:', this.profileForm.valid); // Debug log
-    console.log('Form errors:', this.profileForm.errors); // Debug log
-
-    // Clear messages first
+    // Clear messages
     this.errorMessage.set('');
     this.successMessage.set('');
 
-    // Get all form values and trim them
-    const formValues = {
-      firstName: this.profileForm.get('firstName')?.value?.trim() || '',
-      lastName: this.profileForm.get('lastName')?.value?.trim() || '',
-      email: this.profileForm.get('email')?.value?.trim() || '',
-      bio: this.profileForm.get('bio')?.value?.trim() || '',
-      phone: this.profileForm.get('phone')?.value?.trim() || '',
-      dateOfBirth: this.profileForm.get('dateOfBirth')?.value || '',
-      occupation: this.profileForm.get('occupation')?.value?.trim() || '',
-      education: this.profileForm.get('education')?.value || '',
-      skills: this.profileForm.get('skills')?.value?.trim() || '',
-      location: this.profileForm.get('location')?.value?.trim() || '',
-      website: this.profileForm.get('website')?.value?.trim() || '',
-      linkedin: this.profileForm.get('linkedin')?.value?.trim() || '',
-      github: this.profileForm.get('github')?.value?.trim() || '',
-    };
+    // Get form values
+    const firstName = this.profileForm.get('firstName')?.value?.trim() || '';
+    const lastName = this.profileForm.get('lastName')?.value?.trim() || '';
+    const bio = this.profileForm.get('bio')?.value?.trim() || '';
+    const phone = this.profileForm.get('phone')?.value?.trim() || '';
+    const dateOfBirth = this.profileForm.get('dateOfBirth')?.value || '';
 
-    // Validate required fields manually
-    let validationErrors: string[] = [];
-
-    if (!formValues.firstName || formValues.firstName.length < 2) {
-      validationErrors.push('First name must be at least 2 characters');
-      this.profileForm.get('firstName')?.setErrors({ required: true });
-      this.profileForm.get('firstName')?.markAsTouched();
-    }
-
-    if (!formValues.lastName || formValues.lastName.length < 2) {
-      validationErrors.push('Last name must be at least 2 characters');
-      this.profileForm.get('lastName')?.setErrors({ required: true });
-      this.profileForm.get('lastName')?.markAsTouched();
-    }
-
-    if (!formValues.email || !this.isValidEmail(formValues.email)) {
-      validationErrors.push('Please enter a valid email address');
-      this.profileForm.get('email')?.setErrors({ email: true });
-      this.profileForm.get('email')?.markAsTouched();
-    }
-
-    // Validate optional phone if provided
-    if (formValues.phone && formValues.phone.length > 0) {
-      const phonePattern = /^\+?[1-9]\d{1,14}$/;
-      if (!phonePattern.test(formValues.phone)) {
-        validationErrors.push('Please enter a valid phone number (e.g., +1234567890)');
-        this.profileForm.get('phone')?.setErrors({ pattern: true });
-        this.profileForm.get('phone')?.markAsTouched();
-      } else {
-        this.profileForm.get('phone')?.setErrors(null);
-      }
-    } else {
-      // Clear phone errors if empty
-      this.profileForm.get('phone')?.setErrors(null);
-    }
-
-    // Validate optional URLs if provided
-    const urlPattern = /^https?:\/\/.+\..+/;
-    const urlFields = [
-      { name: 'website', value: formValues.website, label: 'Website' },
-      { name: 'linkedin', value: formValues.linkedin, label: 'LinkedIn' },
-      { name: 'github', value: formValues.github, label: 'GitHub' },
-    ];
-
-    urlFields.forEach((field) => {
-      const control = this.profileForm.get(field.name);
-      if (field.value && field.value.length > 0) {
-        if (!urlPattern.test(field.value)) {
-          validationErrors.push(`${field.label} must be a valid URL (e.g., https://example.com)`);
-          control?.setErrors({ pattern: true });
-          control?.markAsTouched();
-        } else {
-          control?.setErrors(null);
-        }
-      } else {
-        // Clear errors if empty
-        control?.setErrors(null);
-      }
-    });
-
-    // Check for validation errors
-    if (validationErrors.length > 0) {
-      console.log('Validation errors found:', validationErrors); // Debug log
-      this.errorMessage.set('Please fix the validation errors before submitting.');
+    // Simple validation
+    if (!firstName || firstName.length < 2) {
+      this.errorMessage.set('First name must be at least 2 characters');
       return;
     }
 
-    // All validation passed, proceed with submission
-    console.log('Validation passed, submitting...'); // Debug log
-    this.isSaving.set(true);
+    if (!lastName || lastName.length < 2) {
+      this.errorMessage.set('Last name must be at least 2 characters');
+      return;
+    }
 
-    const updateData = {
-      firstName: formValues.firstName,
-      lastName: formValues.lastName,
-      email: formValues.email,
-      bio: formValues.bio,
-      phone: formValues.phone,
-      dateOfBirth: formValues.dateOfBirth,
-      occupation: formValues.occupation,
-      education: formValues.education,
-      skills: formValues.skills,
-      location: formValues.location,
-      website: formValues.website,
-      linkedin: formValues.linkedin,
-      github: formValues.github,
+    // Prepare data - ONLY send what backend accepts
+    const updateData: any = {
+      firstName,
+      lastName,
     };
 
-    console.log('Sending update data:', JSON.stringify(updateData, null, 2));
+    // Add optional fields only if they have values
+    if (bio) updateData.bio = bio;
+    if (phone) updateData.phone = phone;
+    if (dateOfBirth) updateData.dateOfBirth = dateOfBirth;
+
+    console.log('Submitting:', updateData);
+    this.isSaving.set(true);
 
     this.http
       .put(`${environment.apiUrl}/auth/profile`, updateData, {
@@ -332,54 +254,37 @@ export class ProfileComponent implements OnInit {
       })
       .subscribe({
         next: (response: any) => {
-          console.log('Profile updated successfully:', response); // Debug log
+          console.log('Success:', response);
           this.isSaving.set(false);
-          this.successMessage.set('Profile updated successfully!');
           this.isEditing.set(false);
 
-          // Update stored user data
+          // Update local user data
           const updatedUser = {
             ...this.currentUser()!,
             firstName: updateData.firstName,
             lastName: updateData.lastName,
-            email: updateData.email,
           };
           this.currentUser.set(updatedUser);
           localStorage.setItem('current_user', JSON.stringify(updatedUser));
 
-          // Update profile data
-          this.profileData.update((data) => ({
-            ...data,
-            ...updateData,
-          }));
-
-          // Show toast notification
+          this.successMessage.set('Profile updated successfully!');
           this.toastService.success('Profile updated successfully!');
 
-          // Clear success message after 5 seconds
+          // Reload profile to get updated data
+          this.loadUserProfile();
+
           setTimeout(() => this.successMessage.set(''), 5000);
         },
         error: (error) => {
-          console.error('Profile update error:', error); // Debug log
-          console.error('Error status:', error.status); // Add this
-          console.error('Error response:', error.error); // Add this
-
+          console.error('Error:', error);
           this.isSaving.set(false);
 
-          // Get the actual error message from backend
-          let errorMsg = 'Failed to update profile. Please try again.';
-
-          if (error.error) {
-            if (typeof error.error === 'string') {
-              errorMsg = error.error;
-            } else if (error.error.message) {
-              errorMsg = error.error.message;
-            } else if (error.error.error) {
-              errorMsg = error.error.error;
-            }
+          let errorMsg = 'Failed to update profile';
+          if (error.error?.message) {
+            errorMsg = error.error.message;
+          } else if (error.error?.errors) {
+            errorMsg = error.error.errors.map((e: any) => e.msg).join(', ');
           }
-
-          console.error('Parsed error message:', errorMsg); // Add this
 
           this.errorMessage.set(errorMsg);
           this.toastService.error(errorMsg);
