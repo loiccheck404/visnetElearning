@@ -388,7 +388,8 @@
         </thead>
         <tbody>
           @for (student of filteredStudents(); track student.student_id + student.course_title) {
-          <tr (click)="viewStudentProfile(student.student_id)">
+          <tr (click)="viewStudentProfile(student.student_id)" 
+    [class.unenrolled-row]="isStudentUnenrolled(student)">
             <td>
               <div class="student-info">
                 <div class="student-avatar">

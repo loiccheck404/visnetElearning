@@ -29,6 +29,7 @@ interface CourseEnrollment {
   progress: number;
   last_accessed_at: string;
   course_title: string;
+  is_unenrolled: boolean; // ADD THIS LINE
 }
 
 @Component({
@@ -51,9 +52,11 @@ export class InstructorStudentsComponent implements OnInit {
   // Filtered students based on search
   filteredStudents = computed(() => {
     const query = this.searchQuery().toLowerCase();
-    if (!query) return this.students();
+    const allStudents = this.students(); // Don't filter out unenrolled students
 
-    return this.students().filter(
+    if (!query) return allStudents;
+
+    return allStudents.filter(
       (student) =>
         student.student_name.toLowerCase().includes(query) ||
         student.student_email.toLowerCase().includes(query) ||
@@ -63,15 +66,18 @@ export class InstructorStudentsComponent implements OnInit {
 
   // Statistics
   totalStudents = computed(() => {
-    const uniqueStudents = new Set(this.students().map((s) => s.student_id));
+    // Only count students who are NOT unenrolled
+    const activeStudents = this.students().filter((s) => !s.is_unenrolled);
+    const uniqueStudents = new Set(activeStudents.map((s) => s.student_id));
     return uniqueStudents.size;
   });
 
   averageProgress = computed(() => {
-    const students = this.students();
-    if (students.length === 0) return 0;
-    const total = students.reduce((sum, student) => sum + (student.progress || 0), 0);
-    return Math.round(total / students.length);
+    // Only calculate progress for active (not unenrolled) students
+    const activeStudents = this.students().filter((s) => !s.is_unenrolled);
+    if (activeStudents.length === 0) return 0;
+    const total = activeStudents.reduce((sum, student) => sum + (student.progress || 0), 0);
+    return Math.round(total / activeStudents.length);
   });
 
   constructor(
@@ -192,8 +198,12 @@ export class InstructorStudentsComponent implements OnInit {
     this.isLoading.set(true);
     this.studentService.getInstructorStudents(this.selectedCourseId() || undefined).subscribe({
       next: (response) => {
+        console.log('Student Response:', response); // ADD THIS LINE TO DEBUG
         if (response.status === 'SUCCESS') {
-          this.students.set(response.data.students);
+          // Check if the data structure matches what you expect
+          const students = response.data.students;
+          console.log('Mapped Students:', students); // ADD THIS TOO
+          this.students.set(students);
         }
         this.isLoading.set(false);
       },
@@ -218,7 +228,7 @@ export class InstructorStudentsComponent implements OnInit {
   }
 
   viewStudentProfile(studentId: number) {
-    this.router.navigate(['./dashboard/student-profile/', studentId]);
+    this.router.navigate(['/dashboard/instructor/students/profile', studentId]);
   }
 
   sendMessage(student: CourseEnrollment, event: Event) {
@@ -250,6 +260,10 @@ export class InstructorStudentsComponent implements OnInit {
   formatDate(dateString: string): string {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+  }
+
+  isStudentUnenrolled(student: CourseEnrollment): boolean {
+    return student.is_unenrolled ?? false;
   }
 
   onLogout() {

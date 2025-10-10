@@ -4,11 +4,11 @@ import { roleGuard } from './core/role.guard';
 
 export const routes: Routes = [
   // Default redirect to login
-  { 
-  path: '', 
-  redirectTo: '/dashboard/home', 
-  pathMatch: 'full' 
-},
+  {
+    path: '',
+    redirectTo: '/dashboard/home',
+    pathMatch: 'full',
+  },
 
   // Auth routes (public)
   {
@@ -113,6 +113,15 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./dashboard/instructor-students/instructor-students.components').then(
             (m) => m.InstructorStudentsComponent
+          ),
+        canActivate: [authGuard, roleGuard],
+        data: { roles: ['instructor', 'admin'] },
+      },
+      {
+        path: 'instructor/students/profile/:id',
+        loadComponent: () =>
+          import('./dashboard/student-profile/student-profile.component').then(
+            (m) => m.StudentProfileComponent
           ),
         canActivate: [authGuard, roleGuard],
         data: { roles: ['instructor', 'admin'] },

@@ -684,3 +684,29 @@
     overflow-x: auto;
   }
 }
+
+.students-table tbody tr.unenrolled-row {
+  opacity: 0.55;
+  background: var(--hover-bg);
+
+  td {
+    color: var(--text-secondary);
+  }
+
+  .student-name {
+    color: var(--text-secondary);
+  }
+
+  .student-avatar {
+    opacity: 0.6;
+  }
+
+  .progress-fill {
+    opacity: 0.5;
+  }
+
+  &:hover {
+    background: var(--border-color);
+    opacity: 0.65;
+  }
+}
