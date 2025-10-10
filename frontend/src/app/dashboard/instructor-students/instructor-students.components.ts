@@ -218,7 +218,7 @@ export class InstructorStudentsComponent implements OnInit {
   }
 
   viewStudentProfile(studentId: number) {
-    this.toastService.info('Student profile view coming soon!');
+    this.router.navigate(['./dashboard/student-profile/', studentId]);
   }
 
   sendMessage(student: CourseEnrollment, event: Event) {

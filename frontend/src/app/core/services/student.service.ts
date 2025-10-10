@@ -45,4 +45,8 @@ export class StudentService {
   getStudentDetails(studentId: number, courseId: number): Observable<any> {
     return this.http.get(`${this.apiUrl}/${studentId}/course/${courseId}`);
   }
+
+  getStudentProfile(studentId: number): Observable<any> {
+    return this.http.get(`${this.apiUrl}/profile/${studentId}`);
+  }
 }
