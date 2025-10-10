@@ -143,12 +143,13 @@ export class InstructorDashboardComponent implements OnInit {
     return 25;
   }
 
-  mapActivityType(activityType: string): 'enrollment' | 'question' | 'completion' {
-    if (activityType === 'course_enrolled') return 'enrollment';
-    if (activityType === 'course_completed' || activityType === 'lesson_completed')
-      return 'completion';
-    return 'question';
-  }
+  mapActivityType(activityType: string): 'enrollment' | 'question' | 'completion' | 'unenrolled' {
+  if (activityType === 'course_enrolled') return 'enrollment';
+  if (activityType === 'course_completed' || activityType === 'lesson_completed') return 'completion';
+  if (activityType === 'course_unenrolled') return 'unenrolled';
+  if (activityType === 'quiz_completed' || activityType === 'quiz_started') return 'question';
+  return 'question'; // default fallback
+}
 
   getRelativeTime(timestamp: string): string {
     const now = new Date();

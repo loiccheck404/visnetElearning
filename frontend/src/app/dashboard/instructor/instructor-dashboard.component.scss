@@ -636,6 +636,10 @@
     background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
   }
 
+  &.activity-unenrolled {
+    background: linear-gradient(135deg, #fc8181 0%, #f56565 100%);
+  }
+
   &.activity-question {
     background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
   }

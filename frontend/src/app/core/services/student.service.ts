@@ -15,6 +15,8 @@ export interface InstructorStudent {
   enrolled_at: string;
   progress: number;
   last_accessed_at: string;
+  completed_at?: string;
+  is_unenrolled: boolean; // Add this
 }
 
 export interface StudentResponse {
