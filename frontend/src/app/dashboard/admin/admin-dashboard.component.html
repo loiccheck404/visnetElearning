@@ -1,415 +1,645 @@
-<div class="dashboard-container">
-  <!-- Header -->
-  <header class="dashboard-header">
-    <div class="header-content">
-      <div class="logo">
-        <h2>VISNET</h2>
+<div class="admin-container">
+  <!-- Sidebar -->
+  <aside class="sidebar" [class.collapsed]="sidebarCollapsed()" [class.mobile-open]="showMobileSidebar()">
+    <div class="sidebar-header">
+      <div class="logo" [class.collapsed]="sidebarCollapsed()">
+        <h2>{{ sidebarCollapsed() ? 'V' : 'VISNET' }}</h2>
       </div>
+      <button class="collapse-btn desktop-only" (click)="toggleSidebar()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+    </div>
 
-      <!-- Mobile Menu Toggle -->
-      <button class="mobile-menu-toggle" (click)="toggleMobileMenu($event)">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
+    <nav class="sidebar-nav">
+      <button class="nav-item" [class.active]="activeSection() === 'dashboard'" (click)="setActiveSection('dashboard')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="7" height="7"></rect>
+          <rect x="14" y="3" width="7" height="7"></rect>
+          <rect x="14" y="14" width="7" height="7"></rect>
+          <rect x="3" y="14" width="7" height="7"></rect>
+        </svg>
+        <span>Dashboard</span>
+      </button>
+
+      <button class="nav-item" [class.active]="activeSection() === 'users'" (click)="setActiveSection('users')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+          <circle cx="9" cy="7" r="4"></circle>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+        </svg>
+        <span>Users Management</span>
+      </button>
+
+      <button class="nav-item" [class.active]="activeSection() === 'courses'" (click)="setActiveSection('courses')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+          <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+        </svg>
+        <span>Courses Management</span>
+      </button>
+
+      <button class="nav-item" [class.active]="activeSection() === 'analytics'" (click)="setActiveSection('analytics')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+        </svg>
+        <span>Analytics</span>
+      </button>
+
+      <button class="nav-item" [class.active]="activeSection() === 'audit'" (click)="setActiveSection('audit')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+          <polyline points="10 9 9 9 8 9"></polyline>
+        </svg>
+        <span>Audit Logs</span>
+      </button>
+
+      <button class="nav-item" [class.active]="activeSection() === 'settings'" (click)="setActiveSection('settings')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M12 1v6m0 6v6m0-13a2 2 0 0 0-2 2h4a2 2 0 0 0-2-2zm0 18a2 2 0 0 1-2-2h4a2 2 0 0 1-2 2z"></path>
+          <path d="M17 7a5 5 0 0 0-10 0M7 17a5 5 0 0 0 10 0"></path>
+        </svg>
+        <span>Settings</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="nav-item logout" (click)="onLogout()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+          <polyline points="16 17 21 12 16 7"></polyline>
+          <line x1="21" y1="12" x2="9" y2="12"></line>
+        </svg>
+        <span>Logout</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Overlay for mobile -->
+  @if (showMobileSidebar()) {
+  <div class="sidebar-overlay" (click)="toggleMobileSidebar()"></div>
+  }
+
+  <!-- Main Content -->
+  <main class="main-content" [class.sidebar-collapsed]="sidebarCollapsed()">
+    <!-- Top Header -->
+    <header class="top-header">
+      <button class="mobile-menu-toggle" (click)="toggleMobileSidebar()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <line x1="3" y1="12" x2="21" y2="12"></line>
           <line x1="3" y1="6" x2="21" y2="6"></line>
           <line x1="3" y1="18" x2="21" y2="18"></line>
         </svg>
       </button>
 
-      <nav class="nav-links" [class.mobile-open]="showMobileMenu()">
-        <a routerLink="/dashboard/instructor" routerLinkActive="active">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-            <polyline points="9 22 9 12 15 12 15 22"></polyline>
-          </svg>
-          <span>Home</span>
-        </a>
-        <a routerLink="/dashboard/instructor/courses" routerLinkActive="active">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
-            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
-          </svg>
-          <span>Courses</span>
-        </a>
-        <a routerLink="/dashboard/instructor/students">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-            <circle cx="9" cy="7" r="4"></circle>
-            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-          </svg>
-          <span>Users</span>
-        </a>
-        <a routerLink="/dashboard/profile">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-            <circle cx="12" cy="7" r="4"></circle>
-          </svg>
-          <span>Profile</span>
-        </a>
+      <div class="header-left">
+        <h1>{{ activeSection() === 'dashboard' ? 'Dashboard' : 
+             activeSection() === 'users' ? 'Users Management' :
+             activeSection() === 'courses' ? 'Courses Management' :
+             activeSection() === 'analytics' ? 'Analytics' :
+             activeSection() === 'audit' ? 'Audit Logs' : 'Settings' }}</h1>
+      </div>
 
-        <!-- Mobile-only logout button -->
-        @if (showMobileMenu()) {
-        <button class="mobile-logout" (click)="onLogout()">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="22"
-            height="22"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
-            <line x1="12" y1="2" x2="12" y2="12"></line>
-          </svg>
-          <span>Logout</span>
-        </button>
-        }
-      </nav>
-
-      <div class="user-menu">
-        @if (currentUser()) {
+      <div class="header-right">
         <app-theme-toggle></app-theme-toggle>
-        <div class="user-info" (click)="toggleUserDropdown()">
-          <div class="user-avatar">
-            {{ currentUser()!.firstName?.charAt(0) || ''
-            }}{{ currentUser()!.lastName?.charAt(0) || '' }}
-          </div>
-          <div class="user-details">
-            <span class="user-name"
-              >{{ currentUser()!.firstName }} {{ currentUser()!.lastName }}</span
-            >
-            <span class="user-role">{{ currentUser()!.role }}</span>
-          </div>
-        </div>
-        <button class="logout-btn" (click)="onLogout()">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
-            <line x1="12" y1="2" x2="12" y2="12"></line>
-          </svg>
-        </button>
-
-        <!-- User Dropdown Menu -->
-        @if (showUserDropdown()) {
-        <div class="user-dropdown" (click)="$event.stopPropagation()">
-          <div class="dropdown-header">
-            <div class="dropdown-user-name">
-              {{ currentUser()!.firstName }} {{ currentUser()!.lastName }}
+        
+        @if (currentUser()) {
+        <div class="user-menu">
+          <div class="user-info" (click)="toggleUserDropdown()">
+            <div class="user-avatar">
+              {{ currentUser()!.firstName?.charAt(0) || '' }}{{ currentUser()!.lastName?.charAt(0) || '' }}
             </div>
-            <div class="dropdown-user-role">{{ currentUser()!.role }}</div>
-          </div>
-          <button
-            class="dropdown-item"
-            routerLink="/dashboard/profile"
-            (click)="closeUserDropdown()"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-              <circle cx="12" cy="7" r="4"></circle>
-            </svg>
-            View Profile
-          </button>
-          <button
-            class="dropdown-item"
-            routerLink="/dashboard/instructor/courses"
-            (click)="closeUserDropdown()"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
-              <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
-            </svg>
-            My Courses
-          </button>
-          <button class="dropdown-item logout" (click)="onLogout()">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-              <polyline points="16 17 21 12 16 7"></polyline>
-              <line x1="21" y1="12" x2="9" y2="12"></line>
-            </svg>
-            Logout
-          </button>
-        </div>
-        } }
-      </div>
-    </div>
-  </header>
-
-  <main class="dashboard-main">
-    <section class="welcome-section">
-      <h1>{{ getGreeting() }}, {{ currentUser()?.firstName }}!</h1>
-      <p>Platform Overview and Management</p>
-    </section>
-
-    <section class="stats-section">
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div
-            class="stat-icon"
-            style="background: linear-gradient(135deg, #8b7dff 0%, #b794f6 100%)"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="28"
-              height="28"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-              <circle cx="9" cy="7" r="4"></circle>
-              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-            </svg>
-          </div>
-          <div class="stat-info">
-            <h3>{{ platformStats().totalUsers }}</h3>
-            <p>Total Users</p>
-            <button class="stat-action" (click)="manageUsers()">Manage</button>
-          </div>
-        </div>
-
-        <div class="stat-card">
-          <div
-            class="stat-icon"
-            style="background: linear-gradient(135deg, #48bb78 0%, #38a169 100%)"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="28"
-              height="28"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
-              <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
-            </svg>
-          </div>
-          <div class="stat-info">
-            <h3>{{ platformStats().totalCourses }}</h3>
-            <p>Total Courses</p>
-            <button class="stat-action" (click)="manageCourses()">Manage</button>
-          </div>
-        </div>
-
-        <div class="stat-card">
-          <div
-            class="stat-icon"
-            style="background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%)"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="28"
-              height="28"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
-              <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
-            </svg>
-          </div>
-          <div class="stat-info">
-            <h3>{{ platformStats().totalInstructors }}</h3>
-            <p>Instructors</p>
-          </div>
-        </div>
-
-        <div class="stat-card">
-          <div
-            class="stat-icon"
-            style="background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%)"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="28"
-              height="28"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-              <circle cx="12" cy="7" r="4"></circle>
-            </svg>
-          </div>
-          <div class="stat-info">
-            <h3>{{ platformStats().totalStudents }}</h3>
-            <p>Students</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <div class="two-column-layout">
-      <div class="left-column">
-        <section class="card-section">
-          <div class="section-header">
-            <h2>Pending Approvals</h2>
-            <span class="badge">{{ pendingCourses().length }}</span>
-          </div>
-          <div class="pending-list">
-            @for (course of pendingCourses(); track course.id) {
-            <div class="pending-item">
-              <div class="pending-info">
-                <h4>{{ course.title }}</h4>
-                <p>By {{ course.instructor }}</p>
-                <span class="time-ago">{{ course.submittedDate }}</span>
-              </div>
-              <div class="pending-actions">
-                <button class="btn-approve" (click)="approveCourse(course.id)">Approve</button>
-                <button class="btn-reject" (click)="rejectCourse(course.id)">Reject</button>
-              </div>
+            <div class="user-details">
+              <span class="user-name">{{ currentUser()!.firstName }} {{ currentUser()!.lastName }}</span>
+              <span class="user-role">{{ currentUser()!.role }}</span>
             </div>
-            }
           </div>
-        </section>
 
-        <section class="card-section">
-          <h2>Recent Users</h2>
-          <div class="users-list">
-            @for (user of recentUsers(); track user.id) {
-            <div class="user-item">
-              <div class="user-avatar-small">{{ user.name.charAt(0) }}</div>
-              <div class="user-item-info">
-                <h4>{{ user.name }}</h4>
-                <p>{{ user.email }}</p>
-                <div class="user-meta">
-                  <span class="role-badge" [class]="'role-' + user.role">{{ user.role }}</span>
-                  <span class="join-date">{{ user.joinedDate }}</span>
+          @if (showUserDropdown()) {
+          <div class="user-dropdown">
+            <div class="dropdown-header">
+              <div class="dropdown-user-name">{{ currentUser()!.firstName }} {{ currentUser()!.lastName }}</div>
+              <div class="dropdown-user-role">{{ currentUser()!.role }}</div>
+            </div>
+            <button class="dropdown-item" (click)="setActiveSection('settings'); showUserDropdown.set(false)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M12 1v6m0 6v6"></path>
+              </svg>
+              Settings
+            </button>
+            <button class="dropdown-item logout" (click)="onLogout()">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16 17 21 12 16 7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+              </svg>
+              Logout
+            </button>
+          </div>
+          }
+        </div>
+        }
+      </div>
+    </header>
+
+    <!-- Content Area -->
+    <div class="content-wrapper">
+      <!-- Dashboard Section -->
+      @if (activeSection() === 'dashboard') {
+      <section class="section-content">
+        <div class="welcome-banner">
+          <h2>{{ getGreeting() }}, {{ currentUser()?.firstName }}!</h2>
+          <p>Here's what's happening with your platform today</p>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #8b7dff 0%, #b794f6 100%)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+            </div>
+            <div class="stat-info">
+              <h3>{{ platformStats().totalUsers }}</h3>
+              <p>Total Users</p>
+              <span class="stat-change positive">+12% this month</span>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #48bb78 0%, #38a169 100%)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+              </svg>
+            </div>
+            <div class="stat-info">
+              <h3>{{ platformStats().totalCourses }}</h3>
+              <p>Total Courses</p>
+              <span class="stat-change positive">+8% this month</span>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+              </svg>
+            </div>
+            <div class="stat-info">
+              <h3>{{ platformStats().totalInstructors }}</h3>
+              <p>Instructors</p>
+              <span class="stat-change positive">+3 this week</span>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+            </div>
+            <div class="stat-info">
+              <h3>{{ platformStats().totalStudents }}</h3>
+              <p>Students</p>
+              <span class="stat-change positive">+15% this month</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="dashboard-grid">
+          <div class="card">
+            <div class="card-header">
+              <h3>Recent Activity</h3>
+              <button class="btn-text" (click)="setActiveSection('audit')">View All</button>
+            </div>
+            <div class="activity-list">
+              @for (activity of recentActivity().slice(0, 5); track activity.id) {
+              <div class="activity-item">
+                <div class="activity-icon" [class]="'icon-' + activity.type">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                  </svg>
+                </div>
+                <div class="activity-content">
+                  <p class="activity-action">{{ activity.action }}</p>
+                  <div class="activity-meta">
+                    <span class="activity-user">{{ activity.user }}</span>
+                    <span class="activity-time">{{ activity.time }}</span>
+                  </div>
                 </div>
               </div>
-              <button class="btn-view" (click)="viewUser(user.id)">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                >
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                  <circle cx="12" cy="12" r="3"></circle>
-                </svg>
-              </button>
+              }
             </div>
-            }
           </div>
-        </section>
-      </div>
 
-      <div class="right-column">
-        <section class="card-section">
-          <h2>Recent Activity</h2>
-          <div class="activity-list">
-            @for (activity of recentActivity(); track $index) {
-            <div class="activity-item">
-              <div class="activity-icon" [class]="'activity-' + activity.type"></div>
-              <div class="activity-details">
-                <p>{{ activity.action }}</p>
-                <span class="activity-time">{{ activity.time }}</span>
+          <div class="card">
+            <div class="card-header">
+              <h3>Quick Stats</h3>
+            </div>
+            <div class="quick-stats">
+              <div class="quick-stat-item">
+                <span class="label">Active Courses</span>
+                <span class="value">{{ platformStats().totalCourses }}</span>
+              </div>
+              <div class="quick-stat-item">
+                <span class="label">Pending Approvals</span>
+                <span class="value warning">6</span>
+              </div>
+              <div class="quick-stat-item">
+                <span class="label">Total Enrollments</span>
+                <span class="value">1,247</span>
+              </div>
+              <div class="quick-stat-item">
+                <span class="label">Completion Rate</span>
+                <span class="value success">78%</span>
               </div>
             </div>
-            }
           </div>
-        </section>
-      </div>
+        </div>
+      </section>
+      }
+
+      <!-- Users Management Section -->
+      @if (activeSection() === 'users') {
+      <section class="section-content">
+        <div class="table-controls">
+          <div class="search-box">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <path d="m21 21-4.35-4.35"></path>
+            </svg>
+            <input type="text" placeholder="Search by name or email..." [value]="userSearchQuery()" (input)="onUserSearchChange($any($event.target).value)" />
+          </div>
+
+          <div class="filters">
+            <select [value]="userRoleFilter()" (change)="onUserRoleFilterChange($any($event.target).value)">
+              <option value="all">All Roles</option>
+              <option value="student">Student</option>
+              <option value="instructor">Instructor</option>
+            </select>
+
+            <select [value]="userStatusFilter()" (change)="onUserStatusFilterChange($any($event.target).value)">
+              <option value="all">All Status</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th (click)="sortUsers('name')" class="sortable">
+                  Name
+                  @if (userSortBy() === 'name') {
+                  <span class="sort-icon">{{ userSortOrder() === 'asc' ? '↑' : '↓' }}</span>
+                  }
+                </th>
+                <th (click)="sortUsers('email')" class="sortable">
+                  Email
+                  @if (userSortBy() === 'email') {
+                  <span class="sort-icon">{{ userSortOrder() === 'asc' ? '↑' : '↓' }}</span>
+                  }
+                </th>
+                <th (click)="sortUsers('role')" class="sortable">
+                  Role
+                  @if (userSortBy() === 'role') {
+                  <span class="sort-icon">{{ userSortOrder() === 'asc' ? '↑' : '↓' }}</span>
+                  }
+                </th>
+                <th>Status</th>
+                <th (click)="sortUsers('joinedDate')" class="sortable">
+                  Joined
+                  @if (userSortBy() === 'joinedDate') {
+                  <span class="sort-icon">{{ userSortOrder() === 'asc' ? '↑' : '↓' }}</span>
+                  }
+                </th>
+                <th class="actions-col">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (user of filteredUsers(); track user.id) {
+              <tr>
+                <td>
+                  <div class="user-cell">
+                    <div class="user-avatar-small">{{ user.name.charAt(0) }}</div>
+                    <span>{{ user.name }}</span>
+                  </div>
+                </td>
+                <td>{{ user.email }}</td>
+                <td><span class="badge" [class]="'badge-' + user.role">{{ user.role }}</span></td>
+                <td><span class="status-badge" [class]="'status-' + user.status">{{ user.status }}</span></td>
+                <td>{{ user.joinedDate }}</td>
+                <td class="actions-col">
+                  <button class="btn-icon" title="View" (click)="viewUser(user.id)">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                  </button>
+                  <button class="btn-icon" title="Edit" (click)="editUser(user.id)">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                  </button>
+                  <button class="btn-icon danger" title="Delete" (click)="deleteUser(user.id)">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="3 6 5 6 21 6"></polyline>
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                  </button>
+                </td>
+              </tr>
+              } @empty {
+              <tr>
+                <td colspan="6" class="empty-state">No users found</td>
+              </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </section>
+      }
+
+      <!-- Courses Management Section -->
+      @if (activeSection() === 'courses') {
+      <section class="section-content">
+        <div class="table-controls">
+          <div class="search-box">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <path d="m21 21-4.35-4.35"></path>
+            </svg>
+            <input type="text" placeholder="Search courses..." [value]="courseSearchQuery()" (input)="onCourseSearchChange($any($event.target).value)" />
+          </div>
+
+          <div class="filters">
+            <select [value]="courseStatusFilter()" (change)="onCourseStatusFilterChange($any($event.target).value)">
+              <option value="all">All Status</option>
+              <option value="active">Active</option>
+              <option value="pending">Pending</option>
+              <option value="draft">Draft</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th (click)="sortCourses('title')" class="sortable">
+                  Title
+                  @if (courseSortBy() === 'title') {
+                  <span class="sort-icon">{{ courseSortOrder() === 'asc' ? '↑' : '↓' }}</span>
+                  }
+                </th>
+                <th (click)="sortCourses('instructor')" class="sortable">
+                  Instructor
+                  @if (courseSortBy() === 'instructor') {
+                  <span class="sort-icon">{{ courseSortOrder() === 'asc' ? '↑' : '↓' }}</span>
+                  }
+                </th>
+                <th>Status</th>
+                <th (click)="sortCourses('students')" class="sortable">
+                  Students
+                  @if (courseSortBy() === 'students') {
+                  <span class="sort-icon">{{ courseSortOrder() === 'asc' ? '↑' : '↓' }}</span>
+                  }
+                </th>
+                <th (click)="sortCourses('createdDate')" class="sortable">
+                  Created
+                  @if (courseSortBy() === 'createdDate') {
+                  <span class="sort-icon">{{ courseSortOrder() === 'asc' ? '↑' : '↓' }}</span>
+                  }
+                </th>
+                <th class="actions-col">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (course of filteredCourses(); track course.id) {
+              <tr>
+                <td><strong>{{ course.title }}</strong></td>
+                <td>{{ course.instructor }}</td>
+                <td><span class="status-badge" [class]="'status-' + course.status">{{ course.status }}</span></td>
+                <td>{{ course.students }}</td>
+                <td>{{ course.createdDate }}</td>
+                <td class="actions-col">
+                  <button class="btn-icon" title="View" (click)="viewCourse(course.id)">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                  </button>
+                  @if (course.status === 'pending') {
+                  <button class="btn-icon success" title="Approve" (click)="approveCourse(course.id)">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                  </button>
+                  }
+                  <button class="btn-icon" title="Edit" (click)="editCourse(course.id)">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                  </button>
+                  <button class="btn-icon danger" title="Delete" (click)="deleteCourse(course.id)">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="3 6 5 6 21 6"></polyline>
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                  </button>
+                </td>
+              </tr>
+              } @empty {
+              <tr>
+                <td colspan="6" class="empty-state">No courses found</td>
+              </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </section>
+      }
+
+      <!-- Analytics Section -->
+      @if (activeSection() === 'analytics') {
+      <section class="section-content">
+        <div class="analytics-grid">
+          <div class="card chart-card">
+            <div class="card-header">
+              <h3>User Growth</h3>
+            </div>
+            <div class="chart-placeholder">
+              <canvas id="userGrowthChart"></canvas>
+              <div class="chart-info">
+                <p>User registration trends over the last 6 months</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="card chart-card">
+            <div class="card-header">
+              <h3>Course Distribution</h3>
+            </div>
+            <div class="chart-placeholder">
+              <canvas id="courseStatsChart"></canvas>
+              <div class="chart-info">
+                <p>Breakdown of courses by status</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="card chart-card full-width">
+            <div class="card-header">
+              <h3>Enrollment Trends</h3>
+            </div>
+            <div class="chart-placeholder">
+              <canvas id="enrollmentChart"></canvas>
+              <div class="chart-info">
+                <p>Weekly enrollment statistics</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="analytics-summary">
+          <div class="summary-card">
+            <h4>Platform Performance</h4>
+            <div class="summary-metrics">
+              <div class="metric">
+                <span class="metric-label">Average Course Rating</span>
+                <span class="metric-value">4.7 / 5.0</span>
+              </div>
+              <div class="metric">
+                <span class="metric-label">Course Completion Rate</span>
+                <span class="metric-value">78%</span>
+              </div>
+              <div class="metric">
+                <span class="metric-label">User Satisfaction</span>
+                <span class="metric-value">92%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      }
+
+      <!-- Audit Logs Section -->
+      @if (activeSection() === 'audit') {
+      <section class="section-content">
+        <div class="card">
+          <div class="card-header">
+            <h3>System Audit Logs</h3>
+            <span class="badge-info">Last 30 days</span>
+          </div>
+
+          <div class="table-container">
+            <table class="data-table audit-table">
+              <thead>
+                <tr>
+                  <th>Timestamp</th>
+                  <th>Action</th>
+                  <th>User</th>
+                  <th>Details</th>
+                  <th>IP Address</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (log of auditLogs(); track log.id) {
+                <tr>
+                  <td>{{ log.timestamp }}</td>
+                  <td><span class="action-badge">{{ log.action }}</span></td>
+                  <td>{{ log.user }}</td>
+                  <td>{{ log.details }}</td>
+                  <td><code>{{ log.ipAddress }}</code></td>
+                </tr>
+                } @empty {
+                <tr>
+                  <td colspan="5" class="empty-state">No audit logs available</td>
+                </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+      }
+
+      <!-- Settings Section -->
+      @if (activeSection() === 'settings') {
+      <section class="section-content">
+        <div class="settings-grid">
+          <div class="card">
+            <div class="card-header">
+              <h3>Profile Settings</h3>
+            </div>
+            <div class="settings-form">
+              <div class="form-group">
+                <label>First Name</label>
+                <input type="text" [value]="currentUser()?.firstName" readonly />
+              </div>
+              <div class="form-group">
+                <label>Last Name</label>
+                <input type="text" [value]="currentUser()?.lastName" readonly />
+              </div>
+              <div class="form-group">
+                <label>Email</label>
+                <input type="email" [value]="currentUser()?.email" readonly />
+              </div>
+              <div class="form-group">
+                <label>Role</label>
+                <input type="text" [value]="currentUser()?.role" readonly />
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <h3>Platform Settings</h3>
+            </div>
+            <div class="settings-form">
+              <div class="form-group">
+                <label>Platform Name</label>
+                <input type="text" value="VISNET" />
+              </div>
+              <div class="form-group">
+                <label>Support Email</label>
+                <input type="email" value="support@visnet.com" />
+              </div>
+              <div class="form-group checkbox-group">
+                <input type="checkbox" id="autoApprove" />
+                <label for="autoApprove">Auto-approve new courses</label>
+              </div>
+              <div class="form-group checkbox-group">
+                <input type="checkbox" id="emailNotifications" checked />
+                <label for="emailNotifications">Enable email notifications</label>
+              </div>
+              <button class="btn-primary">Save Settings</button>
+            </div>
+          </div>
+        </div>
+      </section>
+      }
     </div>
   </main>
 </div>

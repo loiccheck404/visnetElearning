@@ -21,6 +21,7 @@
 
   // Brand Colors
   --primary: #667eea;
+  --primary-color: #667eea;
   --primary-dark: #5a67d8;
   --primary-light: #7f9cf5;
   --secondary: #764ba2;
@@ -39,6 +40,10 @@
   --info-light: #bee3f8;
   --info-dark: #2c5282;
 
+  // Danger/Error
+  --danger-color: #f56565;
+  --danger-bg: rgba(245, 101, 101, 0.1);
+
   // Shadows
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.15);
@@ -49,11 +54,21 @@
   --card-bg: #ffffff;
   --card-border: #e2e8f0;
 
+  // Dropdown
+  --dropdown-bg: #ffffff;
+
   // Input
   --input-bg: #ffffff;
   --input-border: #e2e8f0;
   --input-focus-border: #667eea;
   --input-disabled-bg: #edf2f7;
+
+  // Active Tab
+  --active-tab-bg: rgba(102, 126, 234, 0.1);
+  --active-tab-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+
+  // Progress
+  --progress-bg: #e2e8f0;
 }
 
 // Dark Theme Variables
@@ -78,6 +93,7 @@
 
   // Brand Colors (slightly lighter for dark mode)
   --primary: #7f9cf5;
+  --primary-color: #7f9cf5;
   --primary-dark: #667eea;
   --primary-light: #a3bffa;
   --secondary: #9f7aea;
@@ -96,6 +112,10 @@
   --info-light: #3182ce;
   --info-dark: #bee3f8;
 
+  // Danger/Error
+  --danger-color: #fc8181;
+  --danger-bg: rgba(252, 129, 129, 0.1);
+
   // Shadows (darker for dark mode)
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
@@ -106,11 +126,21 @@
   --card-bg: #2d3748;
   --card-border: #4a5568;
 
+  // Dropdown
+  --dropdown-bg: #2d3748;
+
   // Input
   --input-bg: #2d3748;
   --input-border: #4a5568;
   --input-focus-border: #7f9cf5;
   --input-disabled-bg: #1a202c;
+
+  // Active Tab
+  --active-tab-bg: rgba(127, 156, 245, 0.1);
+  --active-tab-shadow: 0 0 0 3px rgba(127, 156, 245, 0.1);
+
+  // Progress
+  --progress-bg: #4a5568;
 }
 
 // Smooth transitions for theme changes
