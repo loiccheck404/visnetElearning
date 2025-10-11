@@ -7,6 +7,7 @@ import { CourseService } from '../../core/services/course.service';
 import { ActivityService } from '../../core/services/activity.service';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { StudentService } from '../../core/services/student.service';
 
 interface InstructorCourse {
   id: number;
@@ -32,6 +33,7 @@ interface InstructorActivity {
   styleUrls: ['./instructor-dashboard.component.scss'],
 })
 export class InstructorDashboardComponent implements OnInit {
+  uniqueStudentCount = signal(0); // ADD THIS
   currentUser = signal<User | null>(null);
   myCourses = signal<InstructorCourse[]>([]);
   recentActivity = signal<any[]>([]);
@@ -39,7 +41,7 @@ export class InstructorDashboardComponent implements OnInit {
 
   // Computed values
   totalStudents = computed(() => {
-    return this.myCourses().reduce((sum, course) => sum + (Number(course.student_count) || 0), 0);
+    return this.uniqueStudentCount();
   });
 
   publishedCourses = computed(() => {
@@ -53,7 +55,8 @@ export class InstructorDashboardComponent implements OnInit {
     private authService: AuthService,
     private router: Router,
     private courseService: CourseService,
-    private activityService: ActivityService
+    private activityService: ActivityService,
+    private studentService: StudentService
   ) {}
 
   @HostListener('document:click', ['$event'])
@@ -99,6 +102,13 @@ export class InstructorDashboardComponent implements OnInit {
           return of({ status: 'ERROR', data: { activities: [] } });
         })
       ),
+      students: this.studentService.getInstructorStudents().pipe(
+        // ADD THIS
+        catchError((err) => {
+          console.error('Error loading students:', err);
+          return of({ status: 'ERROR', data: { students: [] } });
+        })
+      ),
     }).subscribe({
       next: (results) => {
         // Load courses
@@ -126,6 +136,29 @@ export class InstructorDashboardComponent implements OnInit {
           this.recentActivity.set(activities);
         }
 
+        // ADD THIS: Calculate unique students
+        // ADD THIS: Calculate unique students
+        if (results.students.status === 'SUCCESS') {
+          console.log('Dashboard - Raw students data:', results.students.data.students);
+
+          if (results.students.data.students.length > 0) {
+            console.log('Dashboard - First student:', results.students.data.students[0]);
+            console.log(
+              'Dashboard - First student keys:',
+              Object.keys(results.students.data.students[0])
+            );
+          }
+
+          const allEnrollments = results.students.data.students;
+          console.log('Dashboard - Total enrollments:', allEnrollments.length);
+
+          const uniqueStudentIds = new Set(allEnrollments.map((s: any) => s.student_id));
+          console.log('Dashboard - Unique student IDs:', Array.from(uniqueStudentIds));
+          console.log('Dashboard - Unique count:', uniqueStudentIds.size);
+
+          this.uniqueStudentCount.set(uniqueStudentIds.size);
+          console.log('Dashboard - uniqueStudentCount signal set to:', this.uniqueStudentCount());
+        }
         this.isLoading.set(false);
       },
       error: (err) => {
@@ -144,12 +177,13 @@ export class InstructorDashboardComponent implements OnInit {
   }
 
   mapActivityType(activityType: string): 'enrollment' | 'question' | 'completion' | 'unenrolled' {
-  if (activityType === 'course_enrolled') return 'enrollment';
-  if (activityType === 'course_completed' || activityType === 'lesson_completed') return 'completion';
-  if (activityType === 'course_unenrolled') return 'unenrolled';
-  if (activityType === 'quiz_completed' || activityType === 'quiz_started') return 'question';
-  return 'question'; // default fallback
-}
+    if (activityType === 'course_enrolled') return 'enrollment';
+    if (activityType === 'course_completed' || activityType === 'lesson_completed')
+      return 'completion';
+    if (activityType === 'course_unenrolled') return 'unenrolled';
+    if (activityType === 'quiz_completed' || activityType === 'quiz_started') return 'question';
+    return 'question'; // default fallback
+  }
 
   getRelativeTime(timestamp: string): string {
     const now = new Date();

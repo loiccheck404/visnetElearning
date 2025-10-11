@@ -66,22 +66,27 @@ export class InstructorStudentsComponent implements OnInit {
 
   // Statistics
   totalStudents = computed(() => {
-    const enrolledStudents = this.students().filter((s) => !s.is_unenrolled);
-    // If a course is selected, count students in that course only
+    // COUNT ALL STUDENTS (don't filter by is_unenrolled)
+    const allEnrollments = this.students();
+    console.log('Students page - all students:', allEnrollments);
+
+    // If a course is selected, count enrollments in that course
     // Otherwise count unique students across all courses
     if (this.selectedCourseId()) {
-      return enrolledStudents.length; // Direct count for specific course
+      return allEnrollments.length;
     }
-    const uniqueStudents = new Set(enrolledStudents.map((s) => s.student_id));
-    return uniqueStudents.size; // Unique count across all courses
+    const uniqueStudents = new Set(allEnrollments.map((s) => s.student_id));
+    console.log('Students page - unique IDs:', Array.from(uniqueStudents));
+    console.log('Students page - unique count:', uniqueStudents.size);
+    return uniqueStudents.size;
   });
 
   averageProgress = computed(() => {
-    // Only calculate progress for active (not unenrolled) students
-    const activeStudents = this.students().filter((s) => !s.is_unenrolled);
-    if (activeStudents.length === 0) return 0;
-    const total = activeStudents.reduce((sum, student) => sum + (student.progress || 0), 0);
-    return Math.round(total / activeStudents.length);
+    // Calculate progress for all students
+    const allStudents = this.students();
+    if (allStudents.length === 0) return 0;
+    const total = allStudents.reduce((sum, student) => sum + (student.progress || 0), 0);
+    return Math.round(total / allStudents.length);
   });
 
   constructor(
@@ -283,5 +288,9 @@ export class InstructorStudentsComponent implements OnInit {
   onLogout() {
     this.authService.logout();
     this.router.navigate(['/auth/login']);
+  }
+
+  goBackToDashboard() {
+    this.router.navigate(['/dashboard/instructor']);
   }
 }

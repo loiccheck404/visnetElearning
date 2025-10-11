@@ -202,4 +202,8 @@ export class InstructorCoursesComponent implements OnInit {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
   }
+
+  goBackToDashboard() {
+  this.router.navigate(['/dashboard/instructor']);
+}
 }

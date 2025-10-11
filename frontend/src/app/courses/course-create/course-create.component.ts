@@ -130,7 +130,7 @@ export class CourseCreateComponent implements OnInit {
         next: (response) => {
           if (response.status === 'SUCCESS') {
             this.toastService.success('Course updated successfully!');
-            this.router.navigate(['/dashboard/instructor']);
+            this.router.navigate(['/dashboard/instructor/courses']); // Change this line
           }
           this.loading.set(false);
         },
@@ -141,7 +141,7 @@ export class CourseCreateComponent implements OnInit {
         },
       });
     } else {
-      // Create new course
+      // Create new course - stays the same
       this.courseService.createCourse(courseData).subscribe({
         next: (response) => {
           if (response.status === 'SUCCESS') {
@@ -187,6 +187,14 @@ export class CourseCreateComponent implements OnInit {
     }
     return '';
   }
+
+  goBack() {
+  if (this.isEditMode()) {
+    this.router.navigate(['/dashboard/instructor/courses']);
+  } else {
+    this.router.navigate(['/dashboard/instructor']);
+  }
+}
 
   onLogout() {
     this.authService.logout();

@@ -291,12 +291,12 @@ import { CommonModule } from '@angular/common';
   ],
 })
 export class ConfirmationDialogComponent {
-  // Change these from signal inputs to regular inputs
-  isOpen = signal(false);
-
   @Input() set openDialog(value: boolean) {
     this.isOpen.set(value);
   }
+
+  @Input() isOpen = signal(false);
+  @Input() isLoading = signal(false);
 
   @Input() title: string = 'Confirm Action';
   @Input() message: string = 'Are you sure you want to proceed?';
@@ -305,11 +305,6 @@ export class ConfirmationDialogComponent {
   @Input() cancelText: string = 'Cancel';
   @Input() loadingText: string = 'Processing...';
   @Input() type: 'warning' | 'danger' | 'info' = 'warning';
-
-  isLoading = signal(false);
-  @Input() set loading(value: boolean) {
-    this.isLoading.set(value);
-  }
 
   @Output() confirm = new EventEmitter<void>();
   @Output() cancel = new EventEmitter<void>();
