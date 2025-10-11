@@ -72,7 +72,6 @@ export class AdminDashboardComponent implements OnInit {
   currentUser = signal<User | null>(null);
   activeSection = signal<string>('dashboard');
   sidebarCollapsed = signal(false);
-  showMobileSidebar = signal(false);
   showUserDropdown = signal(false);
 
   // Stats
@@ -124,8 +123,9 @@ export class AdminDashboardComponent implements OnInit {
 
   @HostListener('window:resize', ['$event'])
   onResize(event: any) {
-    if (window.innerWidth > 1024) {
-      this.showMobileSidebar.set(false);
+    // Auto-collapse sidebar on desktop when resizing
+    if (window.innerWidth <= 1200 && window.innerWidth > 1024) {
+      this.sidebarCollapsed.set(true);
     }
   }
 
@@ -153,17 +153,10 @@ export class AdminDashboardComponent implements OnInit {
   // Navigation
   setActiveSection(section: string) {
     this.activeSection.set(section);
-    if (window.innerWidth <= 1024) {
-      this.showMobileSidebar.set(false);
-    }
   }
 
   toggleSidebar() {
     this.sidebarCollapsed.update((val) => !val);
-  }
-
-  toggleMobileSidebar() {
-    this.showMobileSidebar.update((val) => !val);
   }
 
   toggleUserDropdown() {

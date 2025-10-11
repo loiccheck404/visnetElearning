@@ -1,12 +1,20 @@
 <div class="admin-container">
   <!-- Sidebar -->
-  <aside class="sidebar" [class.collapsed]="sidebarCollapsed()" [class.mobile-open]="showMobileSidebar()">
+  <aside class="sidebar" [class.collapsed]="sidebarCollapsed()">
     <div class="sidebar-header">
       <div class="logo" [class.collapsed]="sidebarCollapsed()">
         <h2>{{ sidebarCollapsed() ? 'V' : 'VISNET' }}</h2>
       </div>
-      <button class="collapse-btn desktop-only" (click)="toggleSidebar()">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <button class="collapse-btn" (click)="toggleSidebar()">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
           <line x1="3" y1="12" x2="21" y2="12"></line>
           <line x1="3" y1="6" x2="21" y2="6"></line>
           <line x1="3" y1="18" x2="21" y2="18"></line>
@@ -15,8 +23,21 @@
     </div>
 
     <nav class="sidebar-nav">
-      <button class="nav-item" [class.active]="activeSection() === 'dashboard'" (click)="setActiveSection('dashboard')">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <button
+        class="nav-item"
+        [class.active]="activeSection() === 'dashboard'"
+        (click)="setActiveSection('dashboard')"
+        title="Dashboard"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
           <rect x="3" y="3" width="7" height="7"></rect>
           <rect x="14" y="3" width="7" height="7"></rect>
           <rect x="14" y="14" width="7" height="7"></rect>
@@ -25,8 +46,21 @@
         <span>Dashboard</span>
       </button>
 
-      <button class="nav-item" [class.active]="activeSection() === 'users'" (click)="setActiveSection('users')">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <button
+        class="nav-item"
+        [class.active]="activeSection() === 'users'"
+        (click)="setActiveSection('users')"
+        title="Users Management"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
           <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
           <circle cx="9" cy="7" r="4"></circle>
           <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
@@ -35,23 +69,62 @@
         <span>Users Management</span>
       </button>
 
-      <button class="nav-item" [class.active]="activeSection() === 'courses'" (click)="setActiveSection('courses')">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <button
+        class="nav-item"
+        [class.active]="activeSection() === 'courses'"
+        (click)="setActiveSection('courses')"
+        title="Courses Management"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
           <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
           <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
         </svg>
         <span>Courses Management</span>
       </button>
 
-      <button class="nav-item" [class.active]="activeSection() === 'analytics'" (click)="setActiveSection('analytics')">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <button
+        class="nav-item"
+        [class.active]="activeSection() === 'analytics'"
+        (click)="setActiveSection('analytics')"
+        title="Analytics"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
           <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
         </svg>
         <span>Analytics</span>
       </button>
 
-      <button class="nav-item" [class.active]="activeSection() === 'audit'" (click)="setActiveSection('audit')">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <button
+        class="nav-item"
+        [class.active]="activeSection() === 'audit'"
+        (click)="setActiveSection('audit')"
+        title="Audit Logs"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
           <polyline points="14 2 14 8 20 8"></polyline>
           <line x1="16" y1="13" x2="8" y2="13"></line>
@@ -61,10 +134,25 @@
         <span>Audit Logs</span>
       </button>
 
-      <button class="nav-item" [class.active]="activeSection() === 'settings'" (click)="setActiveSection('settings')">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <button
+        class="nav-item"
+        [class.active]="activeSection() === 'settings'"
+        (click)="setActiveSection('settings')"
+        title="Settings"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
           <circle cx="12" cy="12" r="3"></circle>
-          <path d="M12 1v6m0 6v6m0-13a2 2 0 0 0-2 2h4a2 2 0 0 0-2-2zm0 18a2 2 0 0 1-2-2h4a2 2 0 0 1-2 2z"></path>
+          <path
+            d="M12 1v6m0 6v6m0-13a2 2 0 0 0-2 2h4a2 2 0 0 0-2-2zm0 18a2 2 0 0 1-2-2h4a2 2 0 0 1-2 2z"
+          ></path>
           <path d="M17 7a5 5 0 0 0-10 0M7 17a5 5 0 0 0 10 0"></path>
         </svg>
         <span>Settings</span>
@@ -72,8 +160,16 @@
     </nav>
 
     <div class="sidebar-footer">
-      <button class="nav-item logout" (click)="onLogout()">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <button class="nav-item logout" (click)="onLogout()" title="Logout">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
           <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
           <polyline points="16 17 21 12 16 7"></polyline>
           <line x1="21" y1="12" x2="9" y2="12"></line>
@@ -83,42 +179,42 @@
     </div>
   </aside>
 
-  <!-- Overlay for mobile -->
-  @if (showMobileSidebar()) {
-  <div class="sidebar-overlay" (click)="toggleMobileSidebar()"></div>
-  }
-
   <!-- Main Content -->
   <main class="main-content" [class.sidebar-collapsed]="sidebarCollapsed()">
     <!-- Top Header -->
     <header class="top-header">
-      <button class="mobile-menu-toggle" (click)="toggleMobileSidebar()">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="3" y1="12" x2="21" y2="12"></line>
-          <line x1="3" y1="6" x2="21" y2="6"></line>
-          <line x1="3" y1="18" x2="21" y2="18"></line>
-        </svg>
-      </button>
-
       <div class="header-left">
-        <h1>{{ activeSection() === 'dashboard' ? 'Dashboard' : 
-             activeSection() === 'users' ? 'Users Management' :
-             activeSection() === 'courses' ? 'Courses Management' :
-             activeSection() === 'analytics' ? 'Analytics' :
-             activeSection() === 'audit' ? 'Audit Logs' : 'Settings' }}</h1>
+        <h1>
+          {{
+            activeSection() === 'dashboard'
+              ? 'Dashboard'
+              : activeSection() === 'users'
+              ? 'Users Management'
+              : activeSection() === 'courses'
+              ? 'Courses Management'
+              : activeSection() === 'analytics'
+              ? 'Analytics'
+              : activeSection() === 'audit'
+              ? 'Audit Logs'
+              : 'Settings'
+          }}
+        </h1>
       </div>
 
       <div class="header-right">
         <app-theme-toggle></app-theme-toggle>
-        
+
         @if (currentUser()) {
         <div class="user-menu">
           <div class="user-info" (click)="toggleUserDropdown()">
             <div class="user-avatar">
-              {{ currentUser()!.firstName?.charAt(0) || '' }}{{ currentUser()!.lastName?.charAt(0) || '' }}
+              {{ currentUser()!.firstName?.charAt(0) || ''
+              }}{{ currentUser()!.lastName?.charAt(0) || '' }}
             </div>
             <div class="user-details">
-              <span class="user-name">{{ currentUser()!.firstName }} {{ currentUser()!.lastName }}</span>
+              <span class="user-name"
+                >{{ currentUser()!.firstName }} {{ currentUser()!.lastName }}</span
+              >
               <span class="user-role">{{ currentUser()!.role }}</span>
             </div>
           </div>
@@ -126,18 +222,39 @@
           @if (showUserDropdown()) {
           <div class="user-dropdown">
             <div class="dropdown-header">
-              <div class="dropdown-user-name">{{ currentUser()!.firstName }} {{ currentUser()!.lastName }}</div>
+              <div class="dropdown-user-name">
+                {{ currentUser()!.firstName }} {{ currentUser()!.lastName }}
+              </div>
               <div class="dropdown-user-role">{{ currentUser()!.role }}</div>
             </div>
-            <button class="dropdown-item" (click)="setActiveSection('settings'); showUserDropdown.set(false)">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <button
+              class="dropdown-item"
+              (click)="setActiveSection('settings'); showUserDropdown.set(false)"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
                 <circle cx="12" cy="12" r="3"></circle>
                 <path d="M12 1v6m0 6v6"></path>
               </svg>
               Settings
             </button>
             <button class="dropdown-item logout" (click)="onLogout()">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
                 <polyline points="16 17 21 12 16 7"></polyline>
                 <line x1="21" y1="12" x2="9" y2="12"></line>
@@ -164,8 +281,19 @@
         <!-- Stats Grid -->
         <div class="stats-grid">
           <div class="stat-card">
-            <div class="stat-icon" style="background: linear-gradient(135deg, #8b7dff 0%, #b794f6 100%)">
-              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <div
+              class="stat-icon"
+              style="background: linear-gradient(135deg, #8b7dff 0%, #b794f6 100%)"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="28"
+                height="28"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
                 <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                 <circle cx="9" cy="7" r="4"></circle>
                 <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
@@ -180,8 +308,19 @@
           </div>
 
           <div class="stat-card">
-            <div class="stat-icon" style="background: linear-gradient(135deg, #48bb78 0%, #38a169 100%)">
-              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <div
+              class="stat-icon"
+              style="background: linear-gradient(135deg, #48bb78 0%, #38a169 100%)"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="28"
+                height="28"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
                 <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
                 <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
               </svg>
@@ -194,8 +333,19 @@
           </div>
 
           <div class="stat-card">
-            <div class="stat-icon" style="background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%)">
-              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <div
+              class="stat-icon"
+              style="background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%)"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="28"
+                height="28"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
                 <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
                 <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
               </svg>
@@ -208,8 +358,19 @@
           </div>
 
           <div class="stat-card">
-            <div class="stat-icon" style="background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%)">
-              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <div
+              class="stat-icon"
+              style="background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%)"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="28"
+                height="28"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                 <circle cx="12" cy="7" r="4"></circle>
               </svg>
@@ -233,7 +394,15 @@
               @for (activity of recentActivity().slice(0, 5); track activity.id) {
               <div class="activity-item">
                 <div class="activity-icon" [class]="'icon-' + activity.type">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
                     <circle cx="12" cy="12" r="10"></circle>
                   </svg>
                 </div>
@@ -281,21 +450,40 @@
       <section class="section-content">
         <div class="table-controls">
           <div class="search-box">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
               <circle cx="11" cy="11" r="8"></circle>
               <path d="m21 21-4.35-4.35"></path>
             </svg>
-            <input type="text" placeholder="Search by name or email..." [value]="userSearchQuery()" (input)="onUserSearchChange($any($event.target).value)" />
+            <input
+              type="text"
+              placeholder="Search by name or email..."
+              [value]="userSearchQuery()"
+              (input)="onUserSearchChange($any($event.target).value)"
+            />
           </div>
 
           <div class="filters">
-            <select [value]="userRoleFilter()" (change)="onUserRoleFilterChange($any($event.target).value)">
+            <select
+              [value]="userRoleFilter()"
+              (change)="onUserRoleFilterChange($any($event.target).value)"
+            >
               <option value="all">All Roles</option>
               <option value="student">Student</option>
               <option value="instructor">Instructor</option>
             </select>
 
-            <select [value]="userStatusFilter()" (change)="onUserStatusFilterChange($any($event.target).value)">
+            <select
+              [value]="userStatusFilter()"
+              (change)="onUserStatusFilterChange($any($event.target).value)"
+            >
               <option value="all">All Status</option>
               <option value="active">Active</option>
               <option value="inactive">Inactive</option>
@@ -308,27 +496,23 @@
             <thead>
               <tr>
                 <th (click)="sortUsers('name')" class="sortable">
-                  Name
-                  @if (userSortBy() === 'name') {
+                  Name @if (userSortBy() === 'name') {
                   <span class="sort-icon">{{ userSortOrder() === 'asc' ? '↑' : '↓' }}</span>
                   }
                 </th>
                 <th (click)="sortUsers('email')" class="sortable">
-                  Email
-                  @if (userSortBy() === 'email') {
+                  Email @if (userSortBy() === 'email') {
                   <span class="sort-icon">{{ userSortOrder() === 'asc' ? '↑' : '↓' }}</span>
                   }
                 </th>
                 <th (click)="sortUsers('role')" class="sortable">
-                  Role
-                  @if (userSortBy() === 'role') {
+                  Role @if (userSortBy() === 'role') {
                   <span class="sort-icon">{{ userSortOrder() === 'asc' ? '↑' : '↓' }}</span>
                   }
                 </th>
                 <th>Status</th>
                 <th (click)="sortUsers('joinedDate')" class="sortable">
-                  Joined
-                  @if (userSortBy() === 'joinedDate') {
+                  Joined @if (userSortBy() === 'joinedDate') {
                   <span class="sort-icon">{{ userSortOrder() === 'asc' ? '↑' : '↓' }}</span>
                   }
                 </th>
@@ -345,26 +529,58 @@
                   </div>
                 </td>
                 <td>{{ user.email }}</td>
-                <td><span class="badge" [class]="'badge-' + user.role">{{ user.role }}</span></td>
-                <td><span class="status-badge" [class]="'status-' + user.status">{{ user.status }}</span></td>
+                <td>
+                  <span class="badge" [class]="'badge-' + user.role">{{ user.role }}</span>
+                </td>
+                <td>
+                  <span class="status-badge" [class]="'status-' + user.status">{{
+                    user.status
+                  }}</span>
+                </td>
                 <td>{{ user.joinedDate }}</td>
                 <td class="actions-col">
                   <button class="btn-icon" title="View" (click)="viewUser(user.id)">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
                       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                       <circle cx="12" cy="12" r="3"></circle>
                     </svg>
                   </button>
                   <button class="btn-icon" title="Edit" (click)="editUser(user.id)">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
                       <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                       <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                     </svg>
                   </button>
                   <button class="btn-icon danger" title="Delete" (click)="deleteUser(user.id)">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
                       <polyline points="3 6 5 6 21 6"></polyline>
-                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                      <path
+                        d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                      ></path>
                     </svg>
                   </button>
                 </td>
@@ -385,15 +601,31 @@
       <section class="section-content">
         <div class="table-controls">
           <div class="search-box">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
               <circle cx="11" cy="11" r="8"></circle>
               <path d="m21 21-4.35-4.35"></path>
             </svg>
-            <input type="text" placeholder="Search courses..." [value]="courseSearchQuery()" (input)="onCourseSearchChange($any($event.target).value)" />
+            <input
+              type="text"
+              placeholder="Search courses..."
+              [value]="courseSearchQuery()"
+              (input)="onCourseSearchChange($any($event.target).value)"
+            />
           </div>
 
           <div class="filters">
-            <select [value]="courseStatusFilter()" (change)="onCourseStatusFilterChange($any($event.target).value)">
+            <select
+              [value]="courseStatusFilter()"
+              (change)="onCourseStatusFilterChange($any($event.target).value)"
+            >
               <option value="all">All Status</option>
               <option value="active">Active</option>
               <option value="pending">Pending</option>
@@ -407,27 +639,23 @@
             <thead>
               <tr>
                 <th (click)="sortCourses('title')" class="sortable">
-                  Title
-                  @if (courseSortBy() === 'title') {
+                  Title @if (courseSortBy() === 'title') {
                   <span class="sort-icon">{{ courseSortOrder() === 'asc' ? '↑' : '↓' }}</span>
                   }
                 </th>
                 <th (click)="sortCourses('instructor')" class="sortable">
-                  Instructor
-                  @if (courseSortBy() === 'instructor') {
+                  Instructor @if (courseSortBy() === 'instructor') {
                   <span class="sort-icon">{{ courseSortOrder() === 'asc' ? '↑' : '↓' }}</span>
                   }
                 </th>
                 <th>Status</th>
                 <th (click)="sortCourses('students')" class="sortable">
-                  Students
-                  @if (courseSortBy() === 'students') {
+                  Students @if (courseSortBy() === 'students') {
                   <span class="sort-icon">{{ courseSortOrder() === 'asc' ? '↑' : '↓' }}</span>
                   }
                 </th>
                 <th (click)="sortCourses('createdDate')" class="sortable">
-                  Created
-                  @if (courseSortBy() === 'createdDate') {
+                  Created @if (courseSortBy() === 'createdDate') {
                   <span class="sort-icon">{{ courseSortOrder() === 'asc' ? '↑' : '↓' }}</span>
                   }
                 </th>
@@ -437,35 +665,79 @@
             <tbody>
               @for (course of filteredCourses(); track course.id) {
               <tr>
-                <td><strong>{{ course.title }}</strong></td>
+                <td>
+                  <strong>{{ course.title }}</strong>
+                </td>
                 <td>{{ course.instructor }}</td>
-                <td><span class="status-badge" [class]="'status-' + course.status">{{ course.status }}</span></td>
+                <td>
+                  <span class="status-badge" [class]="'status-' + course.status">{{
+                    course.status
+                  }}</span>
+                </td>
                 <td>{{ course.students }}</td>
                 <td>{{ course.createdDate }}</td>
                 <td class="actions-col">
                   <button class="btn-icon" title="View" (click)="viewCourse(course.id)">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
                       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                       <circle cx="12" cy="12" r="3"></circle>
                     </svg>
                   </button>
                   @if (course.status === 'pending') {
-                  <button class="btn-icon success" title="Approve" (click)="approveCourse(course.id)">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <button
+                    class="btn-icon success"
+                    title="Approve"
+                    (click)="approveCourse(course.id)"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
                       <polyline points="20 6 9 17 4 12"></polyline>
                     </svg>
                   </button>
                   }
                   <button class="btn-icon" title="Edit" (click)="editCourse(course.id)">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
                       <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                       <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                     </svg>
                   </button>
                   <button class="btn-icon danger" title="Delete" (click)="deleteCourse(course.id)">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
                       <polyline points="3 6 5 6 21 6"></polyline>
-                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                      <path
+                        d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                      ></path>
                     </svg>
                   </button>
                 </td>
@@ -568,10 +840,14 @@
                 @for (log of auditLogs(); track log.id) {
                 <tr>
                   <td>{{ log.timestamp }}</td>
-                  <td><span class="action-badge">{{ log.action }}</span></td>
+                  <td>
+                    <span class="action-badge">{{ log.action }}</span>
+                  </td>
                   <td>{{ log.user }}</td>
                   <td>{{ log.details }}</td>
-                  <td><code>{{ log.ipAddress }}</code></td>
+                  <td>
+                    <code>{{ log.ipAddress }}</code>
+                  </td>
                 </tr>
                 } @empty {
                 <tr>
