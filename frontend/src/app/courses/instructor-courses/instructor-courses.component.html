@@ -454,6 +454,7 @@
 <!-- Delete Confirmation Dialog -->
 @if (showDeleteDialog()) {
 <app-confirmation-dialog
+  [openDialog]="showDeleteDialog()"
   [title]="'Delete Course'"
   [message]="
     'Are you sure you want to delete &quot;' +
@@ -462,8 +463,9 @@
   "
   [confirmText]="'Delete'"
   [cancelText]="'Cancel'"
-  [isProcessing]="isDeleting()"
-  (confirmed)="deleteCourse()"
-  (cancelled)="cancelDelete()"
+  [type]="'danger'"
+  [loading]="isDeleting()"
+  (confirm)="deleteCourse()"
+  (cancel)="cancelDelete()"
 ></app-confirmation-dialog>
 }
