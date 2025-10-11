@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService, User } from '../../core/services/auth.service';
 import { ThemeToggleComponent } from '../../shared/components/theme-toggle/theme-toggle.component';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 
 interface PlatformStats {
   totalUsers: number;
@@ -19,6 +21,19 @@ interface RecentUser {
   joinedDate: string;
 }
 
+interface PendingCourse {
+  id: number;
+  title: string;
+  instructor: string;
+  submittedDate: string;
+}
+
+interface Activity {
+  type: string;
+  action: string;
+  time: string;
+}
+
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
@@ -30,73 +45,22 @@ export class AdminDashboardComponent implements OnInit {
   currentUser = signal<User | null>(null);
 
   platformStats = signal<PlatformStats>({
-    totalUsers: 1247,
-    totalCourses: 89,
-    totalInstructors: 45,
-    totalStudents: 1202,
+    totalUsers: 0,
+    totalCourses: 0,
+    totalInstructors: 0,
+    totalStudents: 0,
   });
 
-  recentUsers = signal<RecentUser[]>([
-    {
-      id: 1,
-      name: 'John Doe',
-      email: 'john@example.com',
-      role: 'student',
-      joinedDate: '2 hours ago',
-    },
-    {
-      id: 2,
-      name: 'Jane Smith',
-      email: 'jane@example.com',
-      role: 'instructor',
-      joinedDate: '5 hours ago',
-    },
-    {
-      id: 3,
-      name: 'Mike Johnson',
-      email: 'mike@example.com',
-      role: 'student',
-      joinedDate: '1 day ago',
-    },
-    {
-      id: 4,
-      name: 'Sarah Williams',
-      email: 'sarah@example.com',
-      role: 'instructor',
-      joinedDate: '2 days ago',
-    },
-  ]);
-
-  pendingCourses = signal([
-    {
-      id: 1,
-      title: 'Machine Learning Basics',
-      instructor: 'Dr. Smith',
-      submittedDate: '1 day ago',
-    },
-    {
-      id: 2,
-      title: 'Web Design Fundamentals',
-      instructor: 'Jane Doe',
-      submittedDate: '3 days ago',
-    },
-  ]);
-
-  recentActivity = signal([
-    { type: 'user', action: 'New user registration', user: 'John Doe', time: '2 hours ago' },
-    { type: 'course', action: 'Course published', course: 'Angular Advanced', time: '5 hours ago' },
-    {
-      type: 'approval',
-      action: 'Course approved',
-      course: 'React Fundamentals',
-      time: '1 day ago',
-    },
-  ]);
+  recentUsers = signal<RecentUser[]>([]);
+  pendingCourses = signal<PendingCourse[]>([]);
+  recentActivity = signal<Activity[]>([]);
 
   showMobileMenu = signal(false);
   showUserDropdown = signal(false);
 
-  constructor(private authService: AuthService, private router: Router) {}
+  private apiUrl = `${environment.apiUrl}`;
+
+  constructor(private authService: AuthService, private router: Router, private http: HttpClient) {}
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent) {
@@ -127,6 +91,10 @@ export class AdminDashboardComponent implements OnInit {
 
   ngOnInit() {
     this.loadUserData();
+    this.loadPlatformStats();
+    this.loadPendingCourses();
+    this.loadRecentUsers();
+    this.loadRecentActivity();
   }
 
   loadUserData() {
@@ -134,6 +102,110 @@ export class AdminDashboardComponent implements OnInit {
     if (user) {
       this.currentUser.set(user);
     }
+  }
+
+  loadPlatformStats() {
+    this.http.get<any>(`${this.apiUrl}/admin/stats`).subscribe({
+      next: (response) => {
+        if (response.data) {
+          this.platformStats.set({
+            totalUsers: response.data.totalUsers || 0,
+            totalCourses: response.data.totalCourses || 0,
+            totalInstructors: response.data.totalInstructors || 0,
+            totalStudents: response.data.totalStudents || 0,
+          });
+        }
+      },
+      error: (err) => console.error('Error loading stats:', err),
+    });
+  }
+
+  loadPendingCourses() {
+    this.http.get<any>(`${this.apiUrl}/courses/pending`).subscribe({
+      next: (response) => {
+        if (response.data && Array.isArray(response.data)) {
+          this.pendingCourses.set(
+            response.data.map((course: any) => ({
+              id: course.id,
+              title: course.title,
+              instructor: `${course.instructor?.firstName || ''} ${
+                course.instructor?.lastName || ''
+              }`.trim(),
+              submittedDate: this.formatDate(course.createdAt),
+            }))
+          );
+        }
+      },
+      error: (err) => console.error('Error loading pending courses:', err),
+    });
+  }
+
+  loadRecentUsers() {
+    this.http.get<any>(`${this.apiUrl}/users?limit=4`).subscribe({
+      next: (response) => {
+        if (response.data && Array.isArray(response.data)) {
+          this.recentUsers.set(
+            response.data.map((user: any) => ({
+              id: user.id,
+              name: `${user.firstName} ${user.lastName}`,
+              email: user.email,
+              role: (user.role || 'student').toLowerCase(),
+              joinedDate: this.formatDate(user.createdAt),
+            }))
+          );
+        }
+      },
+      error: (err) => console.error('Error loading recent users:', err),
+    });
+  }
+
+  loadRecentActivity() {
+    this.http.get<any>(`${this.apiUrl}/admin/activities?limit=5`).subscribe({
+      next: (response) => {
+        if (response.data && Array.isArray(response.data)) {
+          this.recentActivity.set(
+            response.data.map((activity: any) => ({
+              type: activity.type || 'user',
+              action: activity.action || activity.description || 'Activity logged',
+              time: this.formatDate(activity.createdAt || activity.timestamp),
+            }))
+          );
+        }
+      },
+      error: (err) => console.error('Error loading recent activity:', err),
+    });
+  }
+
+  approveCourse(courseId: number) {
+    this.http.patch<any>(`${this.apiUrl}/courses/${courseId}/approve`, {}).subscribe({
+      next: () => {
+        console.log('Course approved:', courseId);
+        this.loadPendingCourses();
+      },
+      error: (err) => console.error('Error approving course:', err),
+    });
+  }
+
+  rejectCourse(courseId: number) {
+    this.http.patch<any>(`${this.apiUrl}/courses/${courseId}/reject`, {}).subscribe({
+      next: () => {
+        console.log('Course rejected:', courseId);
+        this.loadPendingCourses();
+      },
+      error: (err) => console.error('Error rejecting course:', err),
+    });
+  }
+
+  manageUsers() {
+    this.router.navigate(['/dashboard/admin/users']);
+  }
+
+  manageCourses() {
+    this.router.navigate(['/dashboard/admin/courses']);
+  }
+
+  viewUser(userId: number) {
+    this.router.navigate(['/dashboard/admin/users', userId]);
   }
 
   getGreeting(): string {
@@ -148,23 +220,19 @@ export class AdminDashboardComponent implements OnInit {
     this.router.navigate(['/auth/login']);
   }
 
-  manageUsers() {
-    console.log('Navigate to user management');
-  }
+  formatDate(dateString: string): string {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
 
-  manageCourses() {
-    console.log('Navigate to course management');
-  }
+    if (diffMins < 1) return 'just now';
+    if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
+    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+    if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
 
-  approveCourse(courseId: number) {
-    console.log('Approve course:', courseId);
-  }
-
-  rejectCourse(courseId: number) {
-    console.log('Reject course:', courseId);
-  }
-
-  viewUser(userId: number) {
-    console.log('View user:', userId);
+    return date.toLocaleDateString();
   }
 }

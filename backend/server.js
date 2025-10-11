@@ -13,6 +13,8 @@ const courseRoutes = require("./routes/courses");
 const activityRoutes = require("./routes/activities");
 const studentRoutes = require("./routes/students");
 const path = require("path");
+const userRoutes = require("./routes/users");
+const adminRoutes = require("./routes/admin");
 
 // Basic middleware
 app.use(helmet());
@@ -49,6 +51,9 @@ app.use("/api/activities", activityRoutes);
 app.use("/api/progress", progressRoutes);
 
 app.use("/api/enrollments", enrollmentRoutes);
+
+app.use("/api/users", userRoutes);
+app.use("/api/admin", adminRoutes);
 
 // Serve uploaded files statically
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
