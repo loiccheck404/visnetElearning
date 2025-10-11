@@ -229,12 +229,33 @@
   <!-- Main Content -->
   <main class="dashboard-main">
     <!-- Page Header -->
-    <div class="page-header">
-      <div class="header-left">
-        <h1>Students</h1>
-        <p>View and manage students enrolled in your courses</p>
-      </div>
-    </div>
+    <!-- Page Header with Back Button -->
+<div class="page-header">
+  <div class="header-left">
+    @if (selectedCourseId()) {
+    <button class="back-btn" (click)="goBackToCourses()">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <line x1="19" y1="12" x2="5" y2="12"></line>
+        <polyline points="12 19 5 12 12 5"></polyline>
+      </svg>
+      Back to Courses
+    </button>
+    <h1>{{ getSelectedCourseName() }}</h1>
+    <p>Enrolled students in this course</p>
+    } @else {
+    <h1>Students</h1>
+    <p>View and manage students enrolled in your courses</p>
+    }
+  </div>
+</div>
 
     <!-- Stats Cards -->
     <div class="stats-section">

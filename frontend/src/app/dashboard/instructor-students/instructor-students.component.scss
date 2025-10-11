@@ -710,3 +710,42 @@
     opacity: 0.65;
   }
 }
+
+.page-header {
+  margin-bottom: 2rem;
+
+  .header-left {
+    h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin: 0 0 0.5rem 0;
+    }
+
+    p {
+      color: var(--text-secondary);
+      margin: 0;
+    }
+  }
+
+  .back-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    padding: 0.5rem 1rem;
+    background: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text-primary);
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s;
+
+    &:hover {
+      background: var(--hover-bg);
+      border-color: var(--primary-color);
+      color: var(--primary-color);
+    }
+  }
+}

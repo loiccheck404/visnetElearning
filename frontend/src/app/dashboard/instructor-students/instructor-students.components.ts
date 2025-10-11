@@ -66,10 +66,14 @@ export class InstructorStudentsComponent implements OnInit {
 
   // Statistics
   totalStudents = computed(() => {
-    // Only count students who are NOT unenrolled
-    const activeStudents = this.students().filter((s) => !s.is_unenrolled);
-    const uniqueStudents = new Set(activeStudents.map((s) => s.student_id));
-    return uniqueStudents.size;
+    const enrolledStudents = this.students().filter((s) => !s.is_unenrolled);
+    // If a course is selected, count students in that course only
+    // Otherwise count unique students across all courses
+    if (this.selectedCourseId()) {
+      return enrolledStudents.length; // Direct count for specific course
+    }
+    const uniqueStudents = new Set(enrolledStudents.map((s) => s.student_id));
+    return uniqueStudents.size; // Unique count across all courses
   });
 
   averageProgress = computed(() => {
@@ -264,6 +268,16 @@ export class InstructorStudentsComponent implements OnInit {
 
   isStudentUnenrolled(student: CourseEnrollment): boolean {
     return student.is_unenrolled ?? false;
+  }
+
+  goBackToCourses() {
+    this.router.navigate(['/dashboard/instructor/courses']);
+  }
+
+  getSelectedCourseName(): string {
+    if (!this.selectedCourseId()) return 'Students';
+    const course = this.courses().find((c) => c.id === this.selectedCourseId());
+    return course ? course.title : 'Students';
   }
 
   onLogout() {
