@@ -9,7 +9,7 @@ router.get("/categories", courseController.getCategories);
 router.get("/", courseController.getAllCourses);
 router.get("/:id", courseController.getCourseById);
 
-// Instructor routes
+// Instructor routes (create course)
 router.post(
   "/",
   authenticateToken,
@@ -17,6 +17,7 @@ router.post(
   courseController.createCourse
 );
 
+// Get instructor's courses
 router.get(
   "/instructor/my-courses",
   authenticateToken,
@@ -24,47 +25,7 @@ router.get(
   courseController.getInstructorCourses
 );
 
-router.get("/:id", courseController.getCourseById);
-
-router.get("/pending", async (req, res) => {
-  try {
-    const courses = await Course.find({ status: "pending" })
-      .populate("instructor", "firstName lastName")
-      .sort({ createdAt: -1 });
-    res.json({ data: courses });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-
-// PATCH approve course
-router.patch("/:id/approve", async (req, res) => {
-  try {
-    const course = await Course.findByIdAndUpdate(
-      req.params.id,
-      { status: "approved" },
-      { new: true }
-    );
-    res.json({ data: course });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-
-// PATCH reject course
-router.patch("/:id/reject", async (req, res) => {
-  try {
-    const course = await Course.findByIdAndUpdate(
-      req.params.id,
-      { status: "rejected" },
-      { new: true }
-    );
-    res.json({ data: course });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-
+// Update course
 router.put(
   "/:id",
   authenticateToken,
@@ -72,6 +33,7 @@ router.put(
   courseController.updateCourse
 );
 
+// Publish course
 router.put(
   "/:id/publish",
   authenticateToken,
@@ -79,13 +41,88 @@ router.put(
   courseController.publishCourse
 );
 
+// Approve course (admin only)
+router.patch(
+  "/:id/approve",
+  authenticateToken,
+  requireRole(["admin"]),
+  async (req, res) => {
+    try {
+      const db = require("../config/database");
+      const { id } = req.params;
+
+      const result = await db.query(
+        `UPDATE courses SET status = 'published', updated_at = NOW() 
+         WHERE id = $1 RETURNING *`,
+        [id]
+      );
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({
+          status: "ERROR",
+          message: "Course not found",
+        });
+      }
+
+      res.json({
+        status: "SUCCESS",
+        message: "Course approved",
+        data: result.rows[0],
+      });
+    } catch (error) {
+      console.error("Error approving course:", error);
+      res.status(500).json({
+        status: "ERROR",
+        message: error.message,
+      });
+    }
+  }
+);
+
+// Reject course (admin only)
+router.patch(
+  "/:id/reject",
+  authenticateToken,
+  requireRole(["admin"]),
+  async (req, res) => {
+    try {
+      const db = require("../config/database");
+      const { id } = req.params;
+
+      const result = await db.query(
+        `UPDATE courses SET status = 'archived', updated_at = NOW() 
+         WHERE id = $1 RETURNING *`,
+        [id]
+      );
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({
+          status: "ERROR",
+          message: "Course not found",
+        });
+      }
+
+      res.json({
+        status: "SUCCESS",
+        message: "Course rejected",
+        data: result.rows[0],
+      });
+    } catch (error) {
+      console.error("Error rejecting course:", error);
+      res.status(500).json({
+        status: "ERROR",
+        message: error.message,
+      });
+    }
+  }
+);
+
+// Delete course
 router.delete(
   "/:id",
   authenticateToken,
   requireRole(["instructor", "admin"]),
   courseController.deleteCourse
 );
-
-// Add this route
 
 module.exports = router;

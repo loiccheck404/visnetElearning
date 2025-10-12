@@ -10,7 +10,7 @@ router.get("/", async (req, res) => {
     const role = req.query.role;
 
     let query =
-      "SELECT id, firstName, lastName, email, role, createdAt FROM users";
+      'SELECT id, first_name as "firstName", last_name as "lastName", email, role, is_active as "isActive", created_at as "createdAt", updated_at as "updatedAt" FROM users';
     let countQuery = "SELECT COUNT(*) as total FROM users";
     const params = [];
 
@@ -47,7 +47,7 @@ router.get("/", async (req, res) => {
 router.get("/:id", async (req, res) => {
   try {
     const result = await db.query(
-      "SELECT id, firstName, lastName, email, role, createdAt, updatedAt FROM users WHERE id = $1",
+      'SELECT id, first_name as "firstName", last_name as "lastName", email, role, is_active as "isActive", created_at as "createdAt", updated_at as "updatedAt" FROM users WHERE id = $1',
       [req.params.id]
     );
 
@@ -69,10 +69,10 @@ router.get("/stats/overview", async (req, res) => {
   try {
     const result = await db.query(`
       SELECT 
-        COUNT(*) as totalUsers,
-        SUM(CASE WHEN role = 'student' THEN 1 ELSE 0 END) as totalStudents,
-        SUM(CASE WHEN role = 'instructor' THEN 1 ELSE 0 END) as totalInstructors,
-        SUM(CASE WHEN role = 'admin' THEN 1 ELSE 0 END) as totalAdmins
+        COUNT(*) as "totalUsers",
+        SUM(CASE WHEN role = 'student' THEN 1 ELSE 0 END) as "totalStudents",
+        SUM(CASE WHEN role = 'instructor' THEN 1 ELSE 0 END) as "totalInstructors",
+        SUM(CASE WHEN role = 'admin' THEN 1 ELSE 0 END) as "totalAdmins"
       FROM users
     `);
 
@@ -80,6 +80,44 @@ router.get("/stats/overview", async (req, res) => {
   } catch (error) {
     console.error("Error fetching user stats:", error);
     res.status(500).json({ status: "ERROR", message: error.message });
+  }
+});
+
+// DELETE user (soft delete - set status to inactive)
+router.delete("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Check if user exists
+    const userExists = await db.query("SELECT id FROM users WHERE id = $1", [
+      id,
+    ]);
+
+    if (userExists.rows.length === 0) {
+      return res.status(404).json({
+        status: "ERROR",
+        message: "User not found",
+      });
+    }
+
+    // Soft delete - set is_active to false
+    const result = await db.query(
+      'UPDATE users SET is_active = false, updated_at = NOW() WHERE id = $1 RETURNING id, first_name as "firstName", last_name as "lastName", email, role',
+      [id]
+    );
+
+    res.json({
+      status: "SUCCESS",
+      message: "User deleted successfully",
+      data: result.rows[0],
+    });
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    res.status(500).json({
+      status: "ERROR",
+      message: "Failed to delete user",
+      error: error.message,
+    });
   }
 });
 
