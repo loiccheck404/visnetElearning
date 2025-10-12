@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, HostListener } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -6,6 +6,8 @@ import { AuthService, User } from '../../core/services/auth.service';
 import { ThemeToggleComponent } from '../../shared/components/theme-toggle/theme-toggle.component';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
+import { Subject } from 'rxjs';
+import { takeUntil, finalize } from 'rxjs/operators';
 
 interface PlatformStats {
   totalUsers: number;
@@ -50,17 +52,6 @@ interface AuditLog {
   ipAddress: string;
 }
 
-interface ChartData {
-  labels: string[];
-  datasets: {
-    label: string;
-    data: number[];
-    backgroundColor?: string | string[];
-    borderColor?: string;
-    borderWidth?: number;
-  }[];
-}
-
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
@@ -68,11 +59,23 @@ interface ChartData {
   templateUrl: './admin-dashboard.component.html',
   styleUrls: ['./admin-dashboard.component.scss'],
 })
-export class AdminDashboardComponent implements OnInit {
+export class AdminDashboardComponent implements OnInit, OnDestroy {
   currentUser = signal<User | null>(null);
   activeSection = signal<string>('dashboard');
   sidebarCollapsed = signal(false);
   showUserDropdown = signal(false);
+
+  // Loading states
+  isLoadingStats = signal(false);
+  isLoadingUsers = signal(false);
+  isLoadingCourses = signal(false);
+  isLoadingActivity = signal(false);
+  isLoadingAudit = signal(false);
+
+  // Error states
+  statsError = signal<string | null>(null);
+  usersError = signal<string | null>(null);
+  coursesError = signal<string | null>(null);
 
   // Stats
   platformStats = signal<PlatformStats>({
@@ -102,13 +105,8 @@ export class AdminDashboardComponent implements OnInit {
   // Activity & Audit
   recentActivity = signal<Activity[]>([]);
   auditLogs = signal<AuditLog[]>([]);
-  activityFilter = signal('all');
 
-  // Analytics
-  userGrowthData = signal<ChartData | null>(null);
-  courseStatsData = signal<ChartData | null>(null);
-  enrollmentTrendsData = signal<ChartData | null>(null);
-
+  private destroy$ = new Subject<void>();
   private apiUrl = `${environment.apiUrl}`;
 
   constructor(private authService: AuthService, private router: Router, private http: HttpClient) {}
@@ -123,7 +121,6 @@ export class AdminDashboardComponent implements OnInit {
 
   @HostListener('window:resize', ['$event'])
   onResize(event: any) {
-    // Auto-collapse sidebar on desktop when resizing
     if (window.innerWidth <= 1200 && window.innerWidth > 1024) {
       this.sidebarCollapsed.set(true);
     }
@@ -132,6 +129,11 @@ export class AdminDashboardComponent implements OnInit {
   ngOnInit() {
     this.loadUserData();
     this.loadAllData();
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   loadUserData() {
@@ -147,7 +149,6 @@ export class AdminDashboardComponent implements OnInit {
     this.loadCourses();
     this.loadRecentActivity();
     this.loadAuditLogs();
-    this.loadAnalyticsData();
   }
 
   // Navigation
@@ -163,24 +164,37 @@ export class AdminDashboardComponent implements OnInit {
     this.showUserDropdown.update((show) => !show);
   }
 
-  // Data Loading
+  // Platform Stats
   loadPlatformStats() {
-    this.http.get<any>(`${this.apiUrl}/admin/stats`).subscribe({
-      next: (response) => {
-        if (response.data) {
-          this.platformStats.set({
-            totalUsers: response.data.totalUsers || 0,
-            totalCourses: response.data.totalCourses || 0,
-            totalInstructors: response.data.totalInstructors || 0,
-            totalStudents: response.data.totalStudents || 0,
-          });
-        }
-      },
-      error: (err) => this.setMockPlatformStats(),
-    });
+    this.isLoadingStats.set(true);
+    this.statsError.set(null);
+
+    this.http
+      .get<any>(`${this.apiUrl}/admin/stats`)
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => this.isLoadingStats.set(false))
+      )
+      .subscribe({
+        next: (response) => {
+          if (response?.data) {
+            this.platformStats.set({
+              totalUsers: response.data.totalUsers || 0,
+              totalCourses: response.data.totalCourses || 0,
+              totalInstructors: response.data.totalInstructors || 0,
+              totalStudents: response.data.totalStudents || 0,
+            });
+          }
+        },
+        error: (err) => {
+          console.error('Error loading platform stats:', err);
+          this.statsError.set('Failed to load platform statistics');
+          this.setMockPlatformStats();
+        },
+      });
   }
 
-  setMockPlatformStats() {
+  private setMockPlatformStats() {
     this.platformStats.set({
       totalUsers: 247,
       totalCourses: 38,
@@ -189,27 +203,41 @@ export class AdminDashboardComponent implements OnInit {
     });
   }
 
+  // Users
   loadUsers() {
-    this.http.get<any>(`${this.apiUrl}/users`).subscribe({
-      next: (response) => {
-        if (response.data && Array.isArray(response.data)) {
-          const users = response.data.map((user: any) => ({
-            id: user.id,
-            name: `${user.firstName} ${user.lastName}`,
-            email: user.email,
-            role: (user.role || 'student').toLowerCase(),
-            status: user.status || 'active',
-            joinedDate: this.formatDate(user.createdAt),
-          }));
-          this.allUsers.set(users);
-          this.applyUserFilters();
-        }
-      },
-      error: (err) => this.setMockUsers(),
-    });
+    this.isLoadingUsers.set(true);
+    this.usersError.set(null);
+
+    this.http
+      .get<any>(`${this.apiUrl}/users`)
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => this.isLoadingUsers.set(false))
+      )
+      .subscribe({
+        next: (response) => {
+          if (response?.data && Array.isArray(response.data)) {
+            const users = response.data.map((user: any) => ({
+              id: user.id,
+              name: `${user.firstName || ''} ${user.lastName || ''}`.trim(),
+              email: user.email,
+              role: (user.role || 'student').toLowerCase(),
+              status: (user.isActive ? 'active' : 'inactive').toLowerCase(),
+              joinedDate: this.formatDate(user.createdAt),
+            }));
+            this.allUsers.set(users);
+            this.applyUserFilters();
+          }
+        },
+        error: (err) => {
+          console.error('Error loading users:', err);
+          this.usersError.set('Failed to load users');
+          this.setMockUsers();
+        },
+      });
   }
 
-  setMockUsers() {
+  private setMockUsers() {
     const mockUsers: RecentUser[] = [
       {
         id: 1,
@@ -227,56 +255,68 @@ export class AdminDashboardComponent implements OnInit {
         status: 'active',
         joinedDate: '5 days ago',
       },
-      {
-        id: 3,
-        name: 'Mike Johnson',
-        email: 'mike@example.com',
-        role: 'student',
-        status: 'inactive',
-        joinedDate: '1 week ago',
-      },
-      {
-        id: 4,
-        name: 'Sarah Williams',
-        email: 'sarah@example.com',
-        role: 'instructor',
-        status: 'active',
-        joinedDate: '3 days ago',
-      },
     ];
     this.allUsers.set(mockUsers);
     this.applyUserFilters();
   }
 
+  // Courses
   loadCourses() {
-    this.http.get<any>(`${this.apiUrl}/courses`).subscribe({
-      next: (response) => {
-        if (response.data && Array.isArray(response.data)) {
-          const courses = response.data.map((course: any) => ({
-            id: course.id,
-            title: course.title,
-            instructor: `${course.instructor?.firstName || ''} ${
-              course.instructor?.lastName || ''
-            }`.trim(),
-            status: course.status || 'active',
-            students: course.enrollmentCount || 0,
-            createdDate: this.formatDate(course.createdAt),
-          }));
-          this.allCourses.set(courses);
-          this.applyCourseFilters();
-        }
-      },
-      error: (err) => this.setMockCourses(),
-    });
+    this.isLoadingCourses.set(true);
+    this.coursesError.set(null);
+
+    this.http
+      .get<any>(`${this.apiUrl}/courses`)
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => this.isLoadingCourses.set(false))
+      )
+      .subscribe({
+        next: (response) => {
+          console.log('Raw courses response:', response); // DEBUG
+
+          if (response?.data && Array.isArray(response.data)) {
+            const courses = response.data.map((course: any) => {
+              // Handle both possible response formats
+              const instructorName = course.instructor_name
+                ? course.instructor_name
+                : `${course.instructor?.firstName || ''} ${
+                    course.instructor?.lastName || ''
+                  }`.trim() || 'N/A';
+
+              return {
+                id: course.id,
+                title: course.title || 'Untitled',
+                instructor: instructorName,
+                status: (course.status || 'draft').toLowerCase(),
+                students: course.enrollment_count || course.enrollmentCount || 0,
+                createdDate: this.formatDate(course.created_at || course.createdAt),
+              };
+            });
+
+            console.log('Mapped courses:', courses); // DEBUG
+            this.allCourses.set(courses);
+            this.applyCourseFilters();
+          } else {
+            console.warn('No courses data in response');
+            this.setMockCourses();
+          }
+        },
+        error: (err) => {
+          console.error('Error loading courses:', err);
+          this.coursesError.set('Failed to load courses');
+          this.setMockCourses();
+        },
+      });
   }
 
-  setMockCourses() {
+  private setMockCourses() {
     const mockCourses: Course[] = [
       {
         id: 1,
         title: 'Web Development Fundamentals',
         instructor: 'Jane Smith',
-        status: 'active',
+        status: 'published',
         students: 45,
         createdDate: '1 week ago',
       },
@@ -284,51 +324,47 @@ export class AdminDashboardComponent implements OnInit {
         id: 2,
         title: 'Advanced JavaScript',
         instructor: 'Sarah Williams',
-        status: 'active',
+        status: 'published',
         students: 32,
         createdDate: '3 days ago',
-      },
-      {
-        id: 3,
-        title: 'Python for Beginners',
-        instructor: 'Jane Smith',
-        status: 'pending',
-        students: 0,
-        createdDate: '1 day ago',
-      },
-      {
-        id: 4,
-        title: 'Data Structures',
-        instructor: 'Sarah Williams',
-        status: 'active',
-        students: 28,
-        createdDate: '2 weeks ago',
       },
     ];
     this.allCourses.set(mockCourses);
     this.applyCourseFilters();
   }
 
+  // Activities
   loadRecentActivity() {
-    this.http.get<any>(`${this.apiUrl}/admin/activities?limit=10`).subscribe({
-      next: (response) => {
-        if (response.data && Array.isArray(response.data)) {
-          const activities = response.data.map((activity: any, index: number) => ({
-            id: index,
-            type: activity.type || 'user',
-            action: activity.action || activity.description || 'Activity logged',
-            user: activity.user || 'System',
-            time: this.formatDate(activity.createdAt || activity.timestamp),
-            icon: this.getActivityIcon(activity.type),
-          }));
-          this.recentActivity.set(activities);
-        }
-      },
-      error: (err) => this.setMockActivity(),
-    });
+    this.isLoadingActivity.set(true);
+
+    this.http
+      .get<any>(`${this.apiUrl}/admin/activities?limit=10`)
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => this.isLoadingActivity.set(false))
+      )
+      .subscribe({
+        next: (response) => {
+          if (response?.data && Array.isArray(response.data)) {
+            const activities = response.data.map((activity: any, index: number) => ({
+              id: activity.id || index,
+              type: activity.activity_type || activity.type || 'user',
+              action: activity.action || activity.description || 'Activity logged',
+              user: activity.student_name || activity.user || 'System',
+              time: this.formatDate(activity.created_at || activity.timestamp),
+              icon: this.getActivityIcon(activity.activity_type || activity.type),
+            }));
+            this.recentActivity.set(activities);
+          }
+        },
+        error: (err) => {
+          console.error('Error loading activities:', err);
+          this.setMockActivity();
+        },
+      });
   }
 
-  setMockActivity() {
+  private setMockActivity() {
     const mockActivity: Activity[] = [
       {
         id: 1,
@@ -354,33 +390,21 @@ export class AdminDashboardComponent implements OnInit {
         time: '2 hours ago',
         icon: 'check',
       },
-      {
-        id: 4,
-        type: 'user',
-        action: 'User profile updated',
-        user: 'Sarah Williams',
-        time: '3 hours ago',
-        icon: 'edit',
-      },
-      {
-        id: 5,
-        type: 'course',
-        action: 'Course content updated',
-        user: 'Jane Smith',
-        time: '5 hours ago',
-        icon: 'book',
-      },
     ];
     this.recentActivity.set(mockActivity);
   }
 
+  // Audit Logs
   loadAuditLogs() {
+    this.isLoadingAudit.set(true);
+
+    // For now using mock data - you can connect to a real endpoint later
     const mockLogs: AuditLog[] = [
       {
         id: 1,
         action: 'User Login',
         user: 'admin@visnet.com',
-        timestamp: '2025-10-11 14:30:22',
+        timestamp: '2025-10-12 14:30:22',
         details: 'Successful login',
         ipAddress: '192.168.1.1',
       },
@@ -388,7 +412,7 @@ export class AdminDashboardComponent implements OnInit {
         id: 2,
         action: 'Course Approved',
         user: 'admin@visnet.com',
-        timestamp: '2025-10-11 13:15:10',
+        timestamp: '2025-10-12 13:15:10',
         details: 'Approved Web Development course',
         ipAddress: '192.168.1.1',
       },
@@ -396,70 +420,19 @@ export class AdminDashboardComponent implements OnInit {
         id: 3,
         action: 'User Created',
         user: 'admin@visnet.com',
-        timestamp: '2025-10-11 12:00:05',
+        timestamp: '2025-10-12 12:00:05',
         details: 'Created new instructor account',
-        ipAddress: '192.168.1.1',
-      },
-      {
-        id: 4,
-        action: 'Settings Updated',
-        user: 'admin@visnet.com',
-        timestamp: '2025-10-11 11:45:30',
-        details: 'Updated platform settings',
         ipAddress: '192.168.1.1',
       },
     ];
     this.auditLogs.set(mockLogs);
-  }
-
-  loadAnalyticsData() {
-    // User Growth Chart
-    this.userGrowthData.set({
-      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-      datasets: [
-        {
-          label: 'Users',
-          data: [45, 78, 125, 167, 203, 247],
-          borderColor: '#8b7dff',
-          backgroundColor: 'rgba(139, 125, 255, 0.1)',
-          borderWidth: 2,
-        },
-      ],
-    });
-
-    // Course Stats Chart
-    this.courseStatsData.set({
-      labels: ['Active', 'Pending', 'Draft'],
-      datasets: [
-        {
-          label: 'Courses',
-          data: [28, 6, 4],
-          backgroundColor: ['#48bb78', '#ed8936', '#4299e1'],
-          borderWidth: 0,
-        },
-      ],
-    });
-
-    // Enrollment Trends Chart
-    this.enrollmentTrendsData.set({
-      labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
-      datasets: [
-        {
-          label: 'Enrollments',
-          data: [32, 45, 38, 52],
-          borderColor: '#48bb78',
-          backgroundColor: 'rgba(72, 187, 120, 0.1)',
-          borderWidth: 2,
-        },
-      ],
-    });
+    this.isLoadingAudit.set(false);
   }
 
   // Filtering and Sorting
   applyUserFilters() {
     let users = [...this.allUsers()];
 
-    // Search
     if (this.userSearchQuery()) {
       const query = this.userSearchQuery().toLowerCase();
       users = users.filter(
@@ -467,17 +440,14 @@ export class AdminDashboardComponent implements OnInit {
       );
     }
 
-    // Role filter
     if (this.userRoleFilter() !== 'all') {
       users = users.filter((u) => u.role === this.userRoleFilter());
     }
 
-    // Status filter
     if (this.userStatusFilter() !== 'all') {
       users = users.filter((u) => u.status === this.userStatusFilter());
     }
 
-    // Sort
     users.sort((a, b) => {
       const aVal = a[this.userSortBy() as keyof RecentUser];
       const bVal = b[this.userSortBy() as keyof RecentUser];
@@ -513,10 +483,11 @@ export class AdminDashboardComponent implements OnInit {
     this.applyUserFilters();
   }
 
+  // Update the applyCourseFilters method to handle all statuses
   applyCourseFilters() {
     let courses = [...this.allCourses()];
 
-    // Search
+    // Search filter
     if (this.courseSearchQuery()) {
       const query = this.courseSearchQuery().toLowerCase();
       courses = courses.filter(
@@ -524,19 +495,31 @@ export class AdminDashboardComponent implements OnInit {
       );
     }
 
-    // Status filter
+    // Status filter - show all if 'all' selected
     if (this.courseStatusFilter() !== 'all') {
       courses = courses.filter((c) => c.status === this.courseStatusFilter());
     }
 
     // Sort
     courses.sort((a, b) => {
-      const aVal = a[this.courseSortBy() as keyof Course];
-      const bVal = b[this.courseSortBy() as keyof Course];
+      let aVal: any = a[this.courseSortBy() as keyof Course];
+      let bVal: any = b[this.courseSortBy() as keyof Course];
+
+      // Handle numeric comparisons for students
+      if (this.courseSortBy() === 'students') {
+        aVal = parseInt(aVal) || 0;
+        bVal = parseInt(bVal) || 0;
+        return this.courseSortOrder() === 'asc' ? aVal - bVal : bVal - aVal;
+      }
+
+      // String comparisons
       const order = this.courseSortOrder() === 'asc' ? 1 : -1;
-      return aVal > bVal ? order : -order;
+      if (aVal < bVal) return -order;
+      if (aVal > bVal) return order;
+      return 0;
     });
 
+    console.log('Filtered courses:', courses); // DEBUG
     this.filteredCourses.set(courses);
   }
 
@@ -563,45 +546,57 @@ export class AdminDashboardComponent implements OnInit {
   // Actions
   viewUser(userId: number) {
     console.log('View user:', userId);
-    // Implement user detail view
   }
 
   editUser(userId: number) {
     console.log('Edit user:', userId);
-    // Implement user edit
   }
 
   deleteUser(userId: number) {
     if (confirm('Are you sure you want to delete this user?')) {
-      console.log('Delete user:', userId);
-      // Implement user deletion
+      this.http
+        .delete<any>(`${this.apiUrl}/users/${userId}`)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: () => {
+            this.loadUsers();
+          },
+          error: (err) => console.error('Error deleting user:', err),
+        });
     }
   }
 
   viewCourse(courseId: number) {
     console.log('View course:', courseId);
-    // Implement course detail view
   }
 
   editCourse(courseId: number) {
     console.log('Edit course:', courseId);
-    // Implement course edit
   }
 
   approveCourse(courseId: number) {
-    this.http.patch<any>(`${this.apiUrl}/courses/${courseId}/approve`, {}).subscribe({
-      next: () => {
-        console.log('Course approved:', courseId);
-        this.loadCourses();
-      },
-      error: (err) => console.error('Error approving course:', err),
-    });
+    this.http
+      .patch<any>(`${this.apiUrl}/courses/${courseId}/approve`, {})
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.loadCourses();
+        },
+        error: (err) => console.error('Error approving course:', err),
+      });
   }
 
   deleteCourse(courseId: number) {
     if (confirm('Are you sure you want to delete this course?')) {
-      console.log('Delete course:', courseId);
-      // Implement course deletion
+      this.http
+        .delete<any>(`${this.apiUrl}/courses/${courseId}`)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: () => {
+            this.loadCourses();
+          },
+          error: (err) => console.error('Error deleting course:', err),
+        });
     }
   }
 
@@ -619,6 +614,9 @@ export class AdminDashboardComponent implements OnInit {
       enrollment: 'check',
       edit: 'edit',
       delete: 'trash',
+      course_enrolled: 'user-plus',
+      lesson_completed: 'check',
+      course_completed: 'check',
     };
     return icons[type] || 'activity';
   }
@@ -630,18 +628,22 @@ export class AdminDashboardComponent implements OnInit {
 
   formatDate(dateString: string): string {
     if (!dateString) return 'N/A';
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
+    try {
+      const date = new Date(dateString);
+      const now = new Date();
+      const diffMs = now.getTime() - date.getTime();
+      const diffMins = Math.floor(diffMs / 60000);
+      const diffHours = Math.floor(diffMs / 3600000);
+      const diffDays = Math.floor(diffMs / 86400000);
 
-    if (diffMins < 1) return 'just now';
-    if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
-    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
-    if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+      if (diffMins < 1) return 'just now';
+      if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
+      if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+      if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
 
-    return date.toLocaleDateString();
+      return date.toLocaleDateString();
+    } catch (err) {
+      return 'N/A';
+    }
   }
 }
