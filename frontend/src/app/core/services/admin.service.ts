@@ -42,11 +42,11 @@ export interface Activity {
 
 export interface AuditLog {
   id: number;
+  timestamp: string;
   action: string;
   user: string;
-  timestamp: string;
   details: string;
-  ipAddress: string;
+  ip_address: string;
 }
 
 @Injectable({
@@ -83,6 +83,12 @@ export class AdminService {
   private activitiesErrorSubject = new BehaviorSubject<string | null>(null);
   public activitiesError$ = this.activitiesErrorSubject.asObservable();
 
+  // Audit Logs
+  private auditLogsSubject = new BehaviorSubject<AuditLog[]>([]);
+  public auditLogs$ = this.auditLogsSubject.asObservable();
+  private auditLogsErrorSubject = new BehaviorSubject<string | null>(null);
+  public auditLogsError$ = this.auditLogsErrorSubject.asObservable();
+
   // Loading states
   private statsLoadingSubject = new BehaviorSubject<boolean>(false);
   public statsLoading$ = this.statsLoadingSubject.asObservable();
@@ -96,6 +102,9 @@ export class AdminService {
   private activitiesLoadingSubject = new BehaviorSubject<boolean>(false);
   public activitiesLoading$ = this.activitiesLoadingSubject.asObservable();
 
+  private auditLogsLoadingSubject = new BehaviorSubject<boolean>(false);
+  public auditLogsLoading$ = this.auditLogsLoadingSubject.asObservable();
+
   constructor(private http: HttpClient) {}
 
   /**
@@ -106,6 +115,7 @@ export class AdminService {
     this.loadUsers();
     this.loadCourses();
     this.loadActivities();
+    this.loadAuditLogs();
   }
 
   /**
@@ -142,7 +152,6 @@ export class AdminService {
     this.usersLoadingSubject.next(true);
     this.usersErrorSubject.next(null);
 
-    // Fetch with a high limit to get all users
     this.http
       .get<any>(`${this.apiUrl}/users?limit=100&offset=0`)
       .pipe(takeUntil(this.destroy$))
@@ -171,36 +180,54 @@ export class AdminService {
   }
 
   /**
-   * Load all courses
+   * Load all courses - NOW using /courses endpoint
    */
   loadCourses(): void {
     this.coursesLoadingSubject.next(true);
     this.coursesErrorSubject.next(null);
 
     this.http
-      .get<any>(`${this.apiUrl}/courses?limit=100`)
+      .get<any>(`${this.apiUrl}/courses?limit=100&page=1`)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
-          if (response?.data && Array.isArray(response.data)) {
-            const courses = response.data.map((course: any) => {
-              const instructorName = course.instructor_name
-                ? course.instructor_name
-                : `${course.instructor?.firstName || ''} ${
-                    course.instructor?.lastName || ''
-                  }`.trim() || 'N/A';
+          console.log('Courses API response:', response);
 
-              return {
-                id: course.id,
-                title: course.title || 'Untitled',
-                instructor_name: instructorName,
-                status: (course.status || 'draft').toLowerCase(),
-                enrollment_count: course.enrollment_count || 0,
-                created_at: this.formatDate(course.created_at),
-              };
-            });
+          if (response?.data) {
+            // Handle both nested (response.data.courses) and direct (response.data) array formats
+            const coursesList = Array.isArray(response.data)
+              ? response.data
+              : response.data.courses || [];
 
-            this.coursesSubject.next(courses);
+            console.log('Extracted courses list:', coursesList);
+
+            if (Array.isArray(coursesList) && coursesList.length > 0) {
+              const courses = coursesList.map((course: any) => {
+                const instructorName = course.instructor_name
+                  ? course.instructor_name
+                  : `${course.instructor?.first_name || course.instructor?.firstName || ''} ${
+                      course.instructor?.last_name || course.instructor?.lastName || ''
+                    }`.trim() || 'N/A';
+
+                return {
+                  id: course.id,
+                  title: course.title || 'Untitled',
+                  instructor_name: instructorName,
+                  status: (course.status || 'draft').toLowerCase(),
+                  enrollment_count: course.enrollment_count || 0,
+                  created_at: this.formatDate(course.created_at),
+                };
+              });
+
+              console.log('Mapped courses:', courses);
+              this.coursesSubject.next(courses);
+            } else {
+              console.warn('No courses found in response');
+              this.coursesSubject.next([]);
+            }
+          } else {
+            console.warn('No data in courses response');
+            this.coursesSubject.next([]);
           }
           this.coursesLoadingSubject.next(false);
         },
@@ -246,19 +273,50 @@ export class AdminService {
   }
 
   /**
+   * Load audit logs
+   */
+  loadAuditLogs(): void {
+    this.auditLogsLoadingSubject.next(true);
+    this.auditLogsErrorSubject.next(null);
+
+    this.http
+      .get<any>(`${this.apiUrl}/admin/audit-logs?limit=50`)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          if (response?.data && Array.isArray(response.data.logs)) {
+            const auditLogs = response.data.logs.map((log: any) => ({
+              id: log.id,
+              timestamp: log.timestamp || log.created_at,
+              action: log.action,
+              user: log.user || log.email || 'System',
+              details: log.details,
+              ip_address: log.ip_address || log.ipAddress || 'N/A',
+            }));
+            this.auditLogsSubject.next(auditLogs);
+          }
+          this.auditLogsLoadingSubject.next(false);
+        },
+        error: (err) => {
+          console.error('Error loading audit logs:', err);
+          this.auditLogsErrorSubject.next('Failed to load audit logs');
+          this.auditLogsLoadingSubject.next(false);
+        },
+      });
+  }
+
+  /**
    * Start auto-refresh polling every 30 seconds
-   * Refreshes: Stats and Activities
+   * Refreshes: Stats, Activities, and Audit Logs
    */
   startAutoRefresh(intervalSeconds: number = 30): void {
     interval(intervalSeconds * 1000)
       .pipe(
-        startWith(0), // Start immediately, then repeat every interval
+        startWith(0),
         switchMap(() => {
-          // Load stats and activities
           this.loadPlatformStats();
           this.loadActivities();
-          // Note: We don't reload users/courses every 30s to reduce server load
-          // They only update when admin manually refreshes or on page reload
+          this.loadAuditLogs();
           return of(null);
         }),
         takeUntil(this.destroy$)

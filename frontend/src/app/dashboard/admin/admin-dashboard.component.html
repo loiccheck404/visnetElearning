@@ -834,9 +834,18 @@
         <div class="card">
           <div class="card-header">
             <h3>System Audit Logs</h3>
-            <span class="badge-info">Last 30 days</span>
+            <span class="badge-info">Last 50 days</span>
           </div>
 
+          @if (auditLogsLoading$ | async) {
+          <div class="loading-state">
+            <p>Loading audit logs...</p>
+          </div>
+          } @else if (auditLogsError$ | async; as error) {
+          <div class="error-state">
+            <p>{{ error }}</p>
+          </div>
+          } @else {
           <div class="table-container">
             <table class="data-table audit-table">
               <thead>
@@ -849,42 +858,27 @@
                 </tr>
               </thead>
               <tbody>
+                @if (auditLogs$ | async; as $logs) { @for (log of $logs; track log.id) {
                 <tr>
-                  <td>2025-10-12 14:30:22</td>
+                  <td>{{ log.timestamp }}</td>
                   <td>
-                    <span class="action-badge">User Login</span>
+                    <span class="action-badge">{{ log.action }}</span>
                   </td>
-                  <td>admin@visnet.com</td>
-                  <td>Successful login</td>
+                  <td>{{ log.user }}</td>
+                  <td>{{ log.details }}</td>
                   <td>
-                    <code>192.168.1.1</code>
+                    <code>{{ log.ip_address }}</code>
                   </td>
                 </tr>
+                } @empty {
                 <tr>
-                  <td>2025-10-12 13:15:10</td>
-                  <td>
-                    <span class="action-badge">Course Approved</span>
-                  </td>
-                  <td>admin@visnet.com</td>
-                  <td>Approved Web Development course</td>
-                  <td>
-                    <code>192.168.1.1</code>
-                  </td>
+                  <td colspan="5" class="empty-state">No audit logs found</td>
                 </tr>
-                <tr>
-                  <td>2025-10-12 12:00:05</td>
-                  <td>
-                    <span class="action-badge">User Created</span>
-                  </td>
-                  <td>admin@visnet.com</td>
-                  <td>Created new instructor account</td>
-                  <td>
-                    <code>192.168.1.1</code>
-                  </td>
-                </tr>
+                } }
               </tbody>
             </table>
           </div>
+          }
         </div>
       </section>
       }

@@ -30,7 +30,7 @@ router.get("/stats", async (req, res) => {
   }
 });
 
-// GET recent activities - FIXED: Query student_activities table
+// GET recent activities
 router.get("/activities", async (req, res) => {
   try {
     const limit = parseInt(req.query.limit) || 10;
@@ -62,7 +62,6 @@ router.get("/activities", async (req, res) => {
       [limit]
     );
 
-    // Transform the response to match expected format
     const activities = result.rows.map((row) => ({
       id: row.id,
       type: row.type,
@@ -84,6 +83,67 @@ router.get("/activities", async (req, res) => {
   }
 });
 
+// GET audit logs - admin actions and user logins
+router.get("/audit-logs", async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 50;
+
+    const result = await db.query(
+      `
+      SELECT 
+        id,
+        created_at as timestamp,
+        action,
+        user_id,
+        email,
+        details,
+        ip_address
+      FROM audit_logs
+      ORDER BY created_at DESC
+      LIMIT $1
+    `,
+      [limit]
+    );
+
+    const logs = result.rows.map((row) => ({
+      id: row.id,
+      timestamp: formatAuditTimestamp(row.timestamp),
+      action: row.action,
+      user: row.email || "System",
+      details: row.details || "",
+      ip_address: row.ip_address || "N/A",
+    }));
+
+    res.json({
+      status: "SUCCESS",
+      data: {
+        logs: logs,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching audit logs:", error);
+    res.status(500).json({ status: "ERROR", message: error.message });
+  }
+});
+
+// Helper function to log audit actions
+async function logAuditAction(
+  email,
+  action,
+  details,
+  ip_address = "127.0.0.1"
+) {
+  try {
+    await db.query(
+      `INSERT INTO audit_logs (email, action, details, ip_address) 
+       VALUES ($1, $2, $3, $4)`,
+      [email, action, details, ip_address]
+    );
+  } catch (error) {
+    console.error("Error logging audit action:", error);
+  }
+}
+
 // Helper function to format relative time
 function formatRelativeTime(dateString) {
   if (!dateString) return "N/A";
@@ -103,6 +163,24 @@ function formatRelativeTime(dateString) {
     if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
 
     return date.toLocaleDateString();
+  } catch (err) {
+    return "N/A";
+  }
+}
+
+// Helper function to format audit log timestamp (full datetime)
+function formatAuditTimestamp(dateString) {
+  if (!dateString) return "N/A";
+  try {
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    const seconds = String(date.getSeconds()).padStart(2, "0");
+
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
   } catch (err) {
     return "N/A";
   }
