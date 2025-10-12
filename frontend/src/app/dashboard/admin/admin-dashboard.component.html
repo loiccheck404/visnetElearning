@@ -302,7 +302,7 @@
               </svg>
             </div>
             <div class="stat-info">
-              <h3>{{ platformStats().totalUsers }}</h3>
+              <h3>{{ (platformStats$ | async)?.totalUsers ?? 0 }}</h3>
               <p>Total Users</p>
               <span class="stat-change positive">+12% this month</span>
             </div>
@@ -327,7 +327,7 @@
               </svg>
             </div>
             <div class="stat-info">
-              <h3>{{ platformStats().totalCourses }}</h3>
+              <h3>{{ (platformStats$ | async)?.totalCourses ?? 0 }}</h3>
               <p>Total Courses</p>
               <span class="stat-change positive">+8% this month</span>
             </div>
@@ -352,7 +352,7 @@
               </svg>
             </div>
             <div class="stat-info">
-              <h3>{{ platformStats().totalInstructors }}</h3>
+              <h3>{{ (platformStats$ | async)?.totalInstructors ?? 0 }}</h3>
               <p>Instructors</p>
               <span class="stat-change positive">+3 this week</span>
             </div>
@@ -377,7 +377,7 @@
               </svg>
             </div>
             <div class="stat-info">
-              <h3>{{ platformStats().totalStudents }}</h3>
+              <h3>{{ (platformStats$ | async)?.totalStudents ?? 0 }}</h3>
               <p>Students</p>
               <span class="stat-change positive">+15% this month</span>
             </div>
@@ -392,7 +392,8 @@
               <button class="btn-text" (click)="setActiveSection('audit')">View All</button>
             </div>
             <div class="activity-list">
-              @for (activity of recentActivity().slice(0, 5); track activity.id) {
+              @if (recentActivity$ | async; as $activities) { @for (activity of $activities.slice(0,
+              5); track activity.id) {
               <div class="activity-item">
                 <div class="activity-icon" [class]="'icon-' + activity.type">
                   <svg
@@ -415,7 +416,11 @@
                   </div>
                 </div>
               </div>
-              }
+              } @empty {
+              <div class="activity-item">
+                <p>No recent activity</p>
+              </div>
+              } }
             </div>
           </div>
 
@@ -426,7 +431,7 @@
             <div class="quick-stats">
               <div class="quick-stat-item">
                 <span class="label">Active Courses</span>
-                <span class="value">{{ platformStats().totalCourses }}</span>
+                <span class="value">{{ (platformStats$ | async)?.totalCourses ?? 0 }}</span>
               </div>
               <div class="quick-stat-item">
                 <span class="label">Pending Approvals</span>
@@ -521,12 +526,15 @@
               </tr>
             </thead>
             <tbody>
-              @for (user of filteredUsers(); track user.id) {
+              @if (allUsers$ | async; as $users) { @for (user of getFilteredUsers($users); track
+              user.id) {
               <tr>
                 <td>
                   <div class="user-cell">
-                    <div class="user-avatar-small">{{ user.name.charAt(0) }}</div>
-                    <span>{{ user.name }}</span>
+                    <div class="user-avatar-small">
+                      {{ (user.firstName + user.lastName).charAt(0) }}
+                    </div>
+                    <span>{{ user.firstName }} {{ user.lastName }}</span>
                   </div>
                 </td>
                 <td>{{ user.email }}</td>
@@ -534,11 +542,13 @@
                   <span class="badge" [class]="'badge-' + user.role">{{ user.role }}</span>
                 </td>
                 <td>
-                  <span class="status-badge" [class]="'status-' + user.status">{{
-                    user.status
-                  }}</span>
+                  <span
+                    class="status-badge"
+                    [class]="'status-' + (user.isActive ? 'active' : 'inactive')"
+                    >{{ user.isActive ? 'active' : 'inactive' }}</span
+                  >
                 </td>
-                <td>{{ user.joinedDate }}</td>
+                <td>{{ user.createdAt }}</td>
                 <td class="actions-col">
                   <button class="btn-icon" title="View" (click)="viewUser(user.id)">
                     <svg
@@ -590,7 +600,7 @@
               <tr>
                 <td colspan="6" class="empty-state">No users found</td>
               </tr>
-              }
+              } }
             </tbody>
           </table>
         </div>
@@ -664,19 +674,20 @@
               </tr>
             </thead>
             <tbody>
-              @for (course of filteredCourses(); track course.id) {
+              @if (allCourses$ | async; as $courses) { @for (course of getFilteredCourses($courses);
+              track course.id) {
               <tr>
                 <td>
                   <strong>{{ course.title }}</strong>
                 </td>
-                <td>{{ course.instructor }}</td>
+                <td>{{ course.instructor_name }}</td>
                 <td>
                   <span class="status-badge" [class]="'status-' + course.status">{{
                     course.status
                   }}</span>
                 </td>
-                <td>{{ course.students }}</td>
-                <td>{{ course.createdDate }}</td>
+                <td>{{ course.enrollment_count }}</td>
+                <td>{{ course.created_at }}</td>
                 <td class="actions-col">
                   <button class="btn-icon" title="View" (click)="viewCourse(course.id)">
                     <svg
@@ -747,7 +758,7 @@
               <tr>
                 <td colspan="6" class="empty-state">No courses found</td>
               </tr>
-              }
+              } }
             </tbody>
           </table>
         </div>
@@ -838,23 +849,39 @@
                 </tr>
               </thead>
               <tbody>
-                @for (log of auditLogs(); track log.id) {
                 <tr>
-                  <td>{{ log.timestamp }}</td>
+                  <td>2025-10-12 14:30:22</td>
                   <td>
-                    <span class="action-badge">{{ log.action }}</span>
+                    <span class="action-badge">User Login</span>
                   </td>
-                  <td>{{ log.user }}</td>
-                  <td>{{ log.details }}</td>
+                  <td>admin@visnet.com</td>
+                  <td>Successful login</td>
                   <td>
-                    <code>{{ log.ipAddress }}</code>
+                    <code>192.168.1.1</code>
                   </td>
                 </tr>
-                } @empty {
                 <tr>
-                  <td colspan="5" class="empty-state">No audit logs available</td>
+                  <td>2025-10-12 13:15:10</td>
+                  <td>
+                    <span class="action-badge">Course Approved</span>
+                  </td>
+                  <td>admin@visnet.com</td>
+                  <td>Approved Web Development course</td>
+                  <td>
+                    <code>192.168.1.1</code>
+                  </td>
                 </tr>
-                }
+                <tr>
+                  <td>2025-10-12 12:00:05</td>
+                  <td>
+                    <span class="action-badge">User Created</span>
+                  </td>
+                  <td>admin@visnet.com</td>
+                  <td>Created new instructor account</td>
+                  <td>
+                    <code>192.168.1.1</code>
+                  </td>
+                </tr>
               </tbody>
             </table>
           </div>
