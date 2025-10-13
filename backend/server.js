@@ -19,9 +19,21 @@ const adminRoutes = require("./routes/admin");
 // Basic middleware
 app.use(helmet());
 app.use(compression());
+const allowedOrigins = [
+  "http://localhost:4200",
+  "http://localhost:3000",
+  process.env.FRONTEND_URL || "", // Will be set in Vercel env vars
+];
+
 app.use(
   cors({
-    origin: "http://localhost:4200",
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
   })
 );
