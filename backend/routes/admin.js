@@ -30,7 +30,7 @@ router.get("/stats", async (req, res) => {
   }
 });
 
-// GET recent activities
+// GET recent activities - INCLUDES user registration
 router.get("/activities", async (req, res) => {
   try {
     const limit = parseInt(req.query.limit) || 10;
@@ -48,6 +48,7 @@ router.get("/activities", async (req, res) => {
           WHEN sa.activity_type = 'lesson_started' THEN 'Lesson started'
           WHEN sa.activity_type = 'quiz_started' THEN 'Quiz started'
           WHEN sa.activity_type = 'quiz_completed' THEN 'Quiz completed'
+          WHEN sa.activity_type = 'user_registered' THEN 'New user registered'
           ELSE sa.activity_type
         END as action,
         u.first_name || ' ' || u.last_name as user,
@@ -55,7 +56,7 @@ router.get("/activities", async (req, res) => {
         sa.created_at
       FROM student_activities sa
       JOIN users u ON sa.student_id = u.id
-      JOIN courses c ON sa.course_id = c.id
+      LEFT JOIN courses c ON sa.course_id = c.id
       ORDER BY sa.created_at DESC
       LIMIT $1
     `,
@@ -141,6 +142,90 @@ router.get("/audit-logs", async (req, res) => {
       status: "ERROR",
       message: error.message,
     });
+  }
+});
+
+// DELETE user - HARD DELETE
+router.delete("/users/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const userIdNum = parseInt(userId);
+
+    if (isNaN(userIdNum)) {
+      return res
+        .status(400)
+        .json({ status: "ERROR", message: "Invalid user ID" });
+    }
+
+    // Hard delete: Remove user completely
+    const deleteResult = await db.query(
+      `DELETE FROM users WHERE id = $1 RETURNING id`,
+      [userIdNum]
+    );
+
+    if (deleteResult.rows.length === 0) {
+      return res
+        .status(404)
+        .json({ status: "ERROR", message: "User not found" });
+    }
+
+    // Log the action
+    await logAuditAction(
+      "system",
+      "user_deleted",
+      `User ID ${userIdNum} permanently deleted`
+    );
+
+    res.json({
+      status: "SUCCESS",
+      message: "User permanently deleted",
+      data: { userId: deleteResult.rows[0].id },
+    });
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    res.status(500).json({ status: "ERROR", message: error.message });
+  }
+});
+
+// DELETE course - HARD DELETE
+router.delete("/courses/:courseId", async (req, res) => {
+  try {
+    const { courseId } = req.params;
+    const courseIdNum = parseInt(courseId);
+
+    if (isNaN(courseIdNum)) {
+      return res
+        .status(400)
+        .json({ status: "ERROR", message: "Invalid course ID" });
+    }
+
+    // Hard delete: Remove course completely
+    const deleteResult = await db.query(
+      `DELETE FROM courses WHERE id = $1 RETURNING id, title`,
+      [courseIdNum]
+    );
+
+    if (deleteResult.rows.length === 0) {
+      return res
+        .status(404)
+        .json({ status: "ERROR", message: "Course not found" });
+    }
+
+    // Log the action
+    await logAuditAction(
+      "system",
+      "course_deleted",
+      `Course "${deleteResult.rows[0].title}" (ID ${courseIdNum}) permanently deleted`
+    );
+
+    res.json({
+      status: "SUCCESS",
+      message: "Course permanently deleted",
+      data: { courseId: deleteResult.rows[0].id },
+    });
+  } catch (error) {
+    console.error("Error deleting course:", error);
+    res.status(500).json({ status: "ERROR", message: error.message });
   }
 });
 

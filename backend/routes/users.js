@@ -1,41 +1,36 @@
 const express = require("express");
+const { body } = require("express-validator");
 const db = require("../config/database");
+const { authenticateToken } = require("../middleware/auth");
+
 const router = express.Router();
 
-// GET all users with pagination and filtering
-router.get("/", async (req, res) => {
+// GET all users (admin)
+router.get("/", authenticateToken, async (req, res) => {
   try {
-    const limit = parseInt(req.query.limit) || 10;
-    const offset = parseInt(req.query.offset) || 0;
-    const role = req.query.role;
+    const { limit = 100, offset = 0 } = req.query;
+    const limitNum = parseInt(limit);
+    const offsetNum = parseInt(offset);
 
-    let query =
-      'SELECT id, first_name as "firstName", last_name as "lastName", email, role, is_active as "isActive", created_at as "createdAt", updated_at as "updatedAt" FROM users';
-    let countQuery = "SELECT COUNT(*) as total FROM users";
-    const params = [];
-
-    if (role) {
-      query += " WHERE role = $1";
-      countQuery += " WHERE role = $1";
-      params.push(role);
-    }
-
-    query += ` ORDER BY "createdAt" DESC LIMIT $${params.length + 1} OFFSET $${
-      params.length + 2
-    }`;
-    params.push(limit, offset);
-
-    const [users, countResult] = await Promise.all([
-      db.query(query, params),
-      db.query(countQuery, role ? [role] : []),
-    ]);
+    const result = await db.query(
+      `SELECT 
+        id,
+        first_name as "firstName",
+        last_name as "lastName",
+        email,
+        role,
+        is_active as "isActive",
+        created_at as "createdAt"
+      FROM users
+      WHERE is_active = true
+      ORDER BY created_at DESC
+      LIMIT $1 OFFSET $2`,
+      [limitNum, offsetNum]
+    );
 
     res.json({
       status: "SUCCESS",
-      data: users.rows,
-      total: countResult.rows[0].total,
-      limit,
-      offset,
+      data: result.rows,
     });
   } catch (error) {
     console.error("Error fetching users:", error);
@@ -43,12 +38,22 @@ router.get("/", async (req, res) => {
   }
 });
 
-// GET single user by ID
-router.get("/:id", async (req, res) => {
+// GET single user
+router.get("/:id", authenticateToken, async (req, res) => {
   try {
+    const { id } = req.params;
     const result = await db.query(
-      'SELECT id, first_name as "firstName", last_name as "lastName", email, role, is_active as "isActive", created_at as "createdAt", updated_at as "updatedAt" FROM users WHERE id = $1',
-      [req.params.id]
+      `SELECT 
+        id,
+        first_name as "firstName",
+        last_name as "lastName",
+        email,
+        role,
+        is_active as "isActive",
+        created_at as "createdAt"
+      FROM users
+      WHERE id = $1 AND is_active = true`,
+      [id]
     );
 
     if (result.rows.length === 0) {
@@ -57,67 +62,135 @@ router.get("/:id", async (req, res) => {
         .json({ status: "ERROR", message: "User not found" });
     }
 
-    res.json({ status: "SUCCESS", data: result.rows[0] });
+    res.json({
+      status: "SUCCESS",
+      data: result.rows[0],
+    });
   } catch (error) {
     console.error("Error fetching user:", error);
     res.status(500).json({ status: "ERROR", message: error.message });
   }
 });
 
-// GET user statistics (admin only)
-router.get("/stats/overview", async (req, res) => {
+// UPDATE user
+router.put("/:id", authenticateToken, async (req, res) => {
   try {
-    const result = await db.query(`
-      SELECT 
-        COUNT(*) as "totalUsers",
-        SUM(CASE WHEN role = 'student' THEN 1 ELSE 0 END) as "totalStudents",
-        SUM(CASE WHEN role = 'instructor' THEN 1 ELSE 0 END) as "totalInstructors",
-        SUM(CASE WHEN role = 'admin' THEN 1 ELSE 0 END) as "totalAdmins"
-      FROM users
-    `);
+    const { id } = req.params;
+    const { firstName, lastName, email, bio, phone, dateOfBirth } = req.body;
 
-    res.json({ status: "SUCCESS", data: result.rows[0] });
+    const result = await db.query(
+      `UPDATE users 
+       SET first_name = COALESCE($2, first_name),
+           last_name = COALESCE($3, last_name),
+           email = COALESCE($4, email),
+           bio = COALESCE($5, bio),
+           phone = COALESCE($6, phone),
+           date_of_birth = COALESCE($7, date_of_birth),
+           updated_at = NOW()
+       WHERE id = $1 AND is_active = true
+       RETURNING id, first_name, last_name, email, role`,
+      [id, firstName, lastName, email, bio, phone, dateOfBirth]
+    );
+
+    if (result.rows.length === 0) {
+      return res
+        .status(404)
+        .json({ status: "ERROR", message: "User not found" });
+    }
+
+    res.json({
+      status: "SUCCESS",
+      message: "User updated successfully",
+      data: result.rows[0],
+    });
   } catch (error) {
-    console.error("Error fetching user stats:", error);
+    console.error("Error updating user:", error);
     res.status(500).json({ status: "ERROR", message: error.message });
   }
 });
 
-// DELETE user (soft delete - set status to inactive)
-router.delete("/:id", async (req, res) => {
+// DELETE user - HARD DELETE (completely remove from database)
+router.delete("/:id", authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
+    const userIdNum = parseInt(id);
 
-    // Check if user exists
-    const userExists = await db.query("SELECT id FROM users WHERE id = $1", [
-      id,
-    ]);
-
-    if (userExists.rows.length === 0) {
-      return res.status(404).json({
-        status: "ERROR",
-        message: "User not found",
-      });
+    if (isNaN(userIdNum)) {
+      return res
+        .status(400)
+        .json({ status: "ERROR", message: "Invalid user ID" });
     }
 
-    // Soft delete - set is_active to false
-    const result = await db.query(
-      'UPDATE users SET is_active = false, updated_at = NOW() WHERE id = $1 RETURNING id, first_name as "firstName", last_name as "lastName", email, role',
-      [id]
+    console.log(`\n========== DELETE USER START ==========`);
+    console.log(`User ID: ${userIdNum}`);
+
+    // HARD DELETE: First check if user exists
+    const checkUser = await db.query(
+      `SELECT id, first_name, last_name, email FROM users WHERE id = $1`,
+      [userIdNum]
     );
+
+    if (checkUser.rows.length === 0) {
+      console.log(`User not found: ${userIdNum}`);
+      return res
+        .status(404)
+        .json({ status: "ERROR", message: "User not found" });
+    }
+
+    const deletedUser = checkUser.rows[0];
+    console.log(
+      `Found user to delete: ${deletedUser.first_name} ${deletedUser.last_name}`
+    );
+
+    // Delete all related records first (if needed)
+    // Delete enrollments
+    await db.query(`DELETE FROM enrollments WHERE student_id = $1`, [
+      userIdNum,
+    ]);
+    console.log(`Deleted enrollments for user ${userIdNum}`);
+
+    // Delete student activities
+    await db.query(`DELETE FROM student_activities WHERE student_id = $1`, [
+      userIdNum,
+    ]);
+    console.log(`Deleted student activities for user ${userIdNum}`);
+
+    // Finally, delete the user
+    const deleteResult = await db.query(
+      `DELETE FROM users WHERE id = $1 RETURNING id, first_name, last_name, email`,
+      [userIdNum]
+    );
+
+    console.log(`User deleted successfully: ${userIdNum}`);
+    console.log(`========== DELETE USER END ==========\n`);
+
+    // Log to audit logs
+    try {
+      await db.query(
+        `INSERT INTO public.audit_logs (email, action, details, ip_address, created_at)
+         VALUES ($1, $2, $3, $4, NOW())`,
+        [
+          deletedUser.email,
+          "user_deleted",
+          `User "${deletedUser.first_name} ${deletedUser.last_name}" (ID: ${userIdNum}) permanently deleted`,
+          req.ip || "127.0.0.1",
+        ]
+      );
+      console.log(`Audit log created for user deletion`);
+    } catch (auditError) {
+      console.error("Error logging to audit logs:", auditError);
+      // Don't fail the delete if audit logging fails
+    }
 
     res.json({
       status: "SUCCESS",
-      message: "User deleted successfully",
-      data: result.rows[0],
+      message: "User permanently deleted",
+      data: { userId: deleteResult.rows[0].id },
     });
   } catch (error) {
     console.error("Error deleting user:", error);
-    res.status(500).json({
-      status: "ERROR",
-      message: "Failed to delete user",
-      error: error.message,
-    });
+    console.error("Stack:", error.stack);
+    res.status(500).json({ status: "ERROR", message: error.message });
   }
 });
 
