@@ -283,24 +283,66 @@ const publishCourse = async (req, res) => {
 const deleteCourse = async (req, res) => {
   try {
     const { id } = req.params;
+    const courseIdNum = parseInt(id);
     const instructorId = req.user.id;
 
-    const query = `DELETE FROM courses WHERE id = $1 AND instructor_id = $2 RETURNING id`;
-    const result = await db.query(query, [id, instructorId]);
+    if (isNaN(courseIdNum)) {
+      return res
+        .status(400)
+        .json({ status: "ERROR", message: "Invalid course ID" });
+    }
 
-    if (result.rows.length === 0) {
-      return res.status(403).json({
+    console.log(`\n========== DELETE COURSE START ==========`);
+    console.log(`Course ID: ${courseIdNum}, Instructor ID: ${instructorId}`);
+
+    // Check if course exists and belongs to instructor
+    const checkCourse = await db.query(
+      `SELECT id, title FROM courses WHERE id = $1 AND instructor_id = $2`,
+      [courseIdNum, instructorId]
+    );
+
+    if (checkCourse.rows.length === 0) {
+      console.log(`Course not found or not authorized: ${courseIdNum}`);
+      return res.status(404).json({
         status: "ERROR",
-        message: "Not authorized or course not found",
+        message: "Course not found or not authorized",
       });
     }
+
+    const deletedCourse = checkCourse.rows[0];
+    console.log(`Found course to delete: ${deletedCourse.title}`);
+
+    // Delete related records FIRST (foreign key cleanup)
+    await db.query(`DELETE FROM enrollments WHERE course_id = $1`, [
+      courseIdNum,
+    ]);
+    console.log(`Deleted enrollments for course ${courseIdNum}`);
+
+    await db.query(`DELETE FROM student_activities WHERE course_id = $1`, [
+      courseIdNum,
+    ]);
+    console.log(`Deleted student activities for course ${courseIdNum}`);
+
+    await db.query(`DELETE FROM lessons WHERE course_id = $1`, [courseIdNum]);
+    console.log(`Deleted lessons for course ${courseIdNum}`);
+
+    // Finally, delete the course itself
+    const deleteResult = await db.query(
+      `DELETE FROM courses WHERE id = $1 RETURNING id, title`,
+      [courseIdNum]
+    );
+
+    console.log(`Course deleted successfully: ${courseIdNum}`);
+    console.log(`========== DELETE COURSE END ==========\n`);
 
     res.json({
       status: "SUCCESS",
       message: "Course deleted successfully",
+      data: { courseId: deleteResult.rows[0].id },
     });
   } catch (error) {
-    console.error("Delete course error:", error);
+    console.error("Error deleting course:", error);
+    console.error("Stack:", error.stack);
     res.status(500).json({
       status: "ERROR",
       message: "Failed to delete course",

@@ -47,10 +47,44 @@ const register = async (req, res) => {
       `INSERT INTO users (email, password_hash, first_name, last_name, role, is_verified) 
        VALUES ($1, $2, $3, $4, $5, $6) 
        RETURNING id, email, first_name, last_name, role, created_at`,
-      [email.toLowerCase(), passwordHash, firstName, lastName, role, true] // Set is_verified=true for development
+      [email.toLowerCase(), passwordHash, firstName, lastName, role, true]
     );
 
     const newUser = result.rows[0];
+
+    console.log(`\n========== USER REGISTRATION ==========`);
+    console.log(`New ${role} registered: ${firstName} ${lastName} (${email})`);
+
+    // LOG USER REGISTRATION ACTIVITY
+    try {
+      await db.query(
+        `INSERT INTO student_activities (student_id, activity_type, created_at)
+         VALUES ($1, 'user_registered', NOW())`,
+        [newUser.id]
+      );
+      console.log(`✓ Registration activity logged for user ${newUser.id}`);
+    } catch (activityError) {
+      console.error("✗ Error logging registration activity:", activityError);
+    }
+
+    // LOG TO AUDIT LOGS
+    try {
+      await db.query(
+        `INSERT INTO public.audit_logs (email, action, details, ip_address, created_at)
+         VALUES ($1, $2, $3, $4, NOW())`,
+        [
+          email,
+          "user_registered",
+          `New ${role} registered: ${firstName} ${lastName}`,
+          req.ip || "127.0.0.1",
+        ]
+      );
+      console.log(`✓ Audit log created for registration`);
+    } catch (auditError) {
+      console.error("✗ Error logging to audit logs:", auditError);
+    }
+
+    console.log(`========== END REGISTRATION ==========\n`);
 
     // Generate JWT token
     const token = generateToken(newUser.id, newUser.email, newUser.role);
