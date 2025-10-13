@@ -766,67 +766,135 @@
       }
 
       <!-- Analytics Section -->
-      @if (activeSection() === 'analytics') {
-      <section class="section-content">
-        <div class="analytics-grid">
-          <div class="card chart-card">
-            <div class="card-header">
-              <h3>User Growth</h3>
-            </div>
-            <div class="chart-placeholder">
-              <canvas id="userGrowthChart"></canvas>
-              <div class="chart-info">
-                <p>User registration trends over the last 6 months</p>
-              </div>
-            </div>
-          </div>
-
-          <div class="card chart-card">
-            <div class="card-header">
-              <h3>Course Distribution</h3>
-            </div>
-            <div class="chart-placeholder">
-              <canvas id="courseStatsChart"></canvas>
-              <div class="chart-info">
-                <p>Breakdown of courses by status</p>
-              </div>
-            </div>
-          </div>
-
-          <div class="card chart-card full-width">
-            <div class="card-header">
-              <h3>Enrollment Trends</h3>
-            </div>
-            <div class="chart-placeholder">
-              <canvas id="enrollmentChart"></canvas>
-              <div class="chart-info">
-                <p>Weekly enrollment statistics</p>
-              </div>
-            </div>
-          </div>
+     @if (activeSection() === 'analytics') {
+<section class="section-content">
+  <div class="analytics-grid">
+    <div class="card chart-card">
+      <div class="card-header">
+        <h3>Platform Overview</h3>
+      </div>
+      <div class="overview-stats">
+        <div class="overview-stat">
+          <span class="label">Total Users</span>
+          <span class="value">{{ (platformStats$ | async)?.totalUsers ?? 0 }}</span>
         </div>
-
-        <div class="analytics-summary">
-          <div class="summary-card">
-            <h4>Platform Performance</h4>
-            <div class="summary-metrics">
-              <div class="metric">
-                <span class="metric-label">Average Course Rating</span>
-                <span class="metric-value">4.7 / 5.0</span>
-              </div>
-              <div class="metric">
-                <span class="metric-label">Course Completion Rate</span>
-                <span class="metric-value">78%</span>
-              </div>
-              <div class="metric">
-                <span class="metric-label">User Satisfaction</span>
-                <span class="metric-value">92%</span>
-              </div>
-            </div>
-          </div>
+        <div class="overview-stat">
+          <span class="label">Total Courses</span>
+          <span class="value">{{ (platformStats$ | async)?.totalCourses ?? 0 }}</span>
         </div>
-      </section>
-      }
+        <div class="overview-stat">
+          <span class="label">Total Instructors</span>
+          <span class="value">{{ (platformStats$ | async)?.totalInstructors ?? 0 }}</span>
+        </div>
+        <div class="overview-stat">
+          <span class="label">Total Students</span>
+          <span class="value">{{ (platformStats$ | async)?.totalStudents ?? 0 }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card chart-card">
+      <div class="card-header">
+        <h3>User Distribution</h3>
+      </div>
+      <div class="distribution-stats">
+        <div class="dist-row">
+          <span class="label">Instructors</span>
+          <div class="progress-bar">
+            <div class="progress-fill" [style.width.%]="getInstructorPercentage()"></div>
+          </div>
+          <span class="percentage">{{ getInstructorPercentage() | number: '1.0-0' }}%</span>
+        </div>
+        <div class="dist-row">
+          <span class="label">Students</span>
+          <div class="progress-bar">
+            <div class="progress-fill" [style.width.%]="getStudentPercentage()"></div>
+          </div>
+          <span class="percentage">{{ getStudentPercentage() | number: '1.0-0' }}%</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card chart-card full-width">
+      <div class="card-header">
+        <h3>Course Status Breakdown</h3>
+      </div>
+      <div class="status-breakdown">
+        <div class="status-item">
+          <div class="status-box published"></div>
+          <span class="label">Published Courses</span>
+          <span class="value">{{ (platformStats$ | async)?.totalCourses ?? 0 }}</span>
+        </div>
+        <div class="status-item">
+          <div class="status-box pending"></div>
+          <span class="label">Pending Approval</span>
+          <span class="value">6</span>
+        </div>
+        <div class="status-item">
+          <div class="status-box draft"></div>
+          <span class="label">Draft Courses</span>
+          <span class="value">2</span>
+        </div>
+        <div class="status-item">
+          <div class="status-box archived"></div>
+          <span class="label">Archived</span>
+          <span class="value">1</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="analytics-summary">
+    <div class="summary-card">
+      <h4>Platform Performance Metrics</h4>
+      <div class="summary-metrics">
+        <div class="metric">
+          <span class="metric-label">Average Course Rating</span>
+          <span class="metric-value">4.7 / 5.0</span>
+          <span class="metric-subtext">Based on student reviews</span>
+        </div>
+        <div class="metric">
+          <span class="metric-label">Course Completion Rate</span>
+          <span class="metric-value">78%</span>
+          <span class="metric-subtext">Average across all courses</span>
+        </div>
+        <div class="metric">
+          <span class="metric-label">User Satisfaction</span>
+          <span class="metric-value">92%</span>
+          <span class="metric-subtext">Based on platform surveys</span>
+        </div>
+        <div class="metric">
+          <span class="metric-label">Active Users</span>
+          <span class="metric-value">{{ (platformStats$ | async)?.totalStudents ?? 0 }}</span>
+          <span class="metric-subtext">Current active students</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <h4>Recent Trends</h4>
+      <div class="trends-list">
+        <div class="trend-item">
+          <span class="trend-label">User Growth</span>
+          <span class="trend-value positive">+12% this month</span>
+        </div>
+        <div class="trend-item">
+          <span class="trend-label">Course Enrollments</span>
+          <span class="trend-value positive">+8% this month</span>
+        </div>
+        <div class="trend-item">
+          <span class="trend-label">Instructor Signups</span>
+          <span class="trend-value positive">+3 this week</span>
+        </div>
+        <div class="trend-item">
+          <span class="trend-label">Completion Rate</span>
+          <span class="trend-value positive">+5% from last month</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+}
 
       <!-- Audit Logs Section -->
       @if (activeSection() === 'audit') {

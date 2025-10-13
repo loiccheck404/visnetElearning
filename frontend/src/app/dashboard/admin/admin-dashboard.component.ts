@@ -36,6 +36,15 @@ interface Activity {
   time: string;
 }
 
+interface AuditLog {
+  id: number;
+  timestamp: string;
+  action: string;
+  user: string;
+  details: string;
+  ip_address: string;
+}
+
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
@@ -44,7 +53,6 @@ interface Activity {
   styleUrls: ['./admin-dashboard.component.scss'],
 })
 export class AdminDashboardComponent implements OnInit, OnDestroy {
-  // Inject services using inject() to avoid initialization order issues
   private authService = inject(AuthService);
   private adminService = inject(AdminService);
   private router = inject(Router);
@@ -53,8 +61,10 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   activeSection = signal<string>('dashboard');
   sidebarCollapsed = signal(false);
   showUserDropdown = signal(false);
+  getInstructorPercentage = signal(0);
+  getStudentPercentage = signal(0);
 
-  // Observables from service - NOW we can use adminService
+  // Observables from service
   platformStats$ = this.adminService.stats$;
   allUsers$ = this.adminService.users$;
   usersError$ = this.adminService.usersError$;
@@ -67,6 +77,10 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   recentActivity$ = this.adminService.activities$;
   activitiesError$ = this.adminService.activitiesError$;
   activitiesLoading$ = this.adminService.activitiesLoading$;
+
+  auditLogs$ = this.adminService.auditLogs$;
+  auditLogsError$ = this.adminService.auditLogsError$;
+  auditLogsLoading$ = this.adminService.auditLogsLoading$;
 
   // Local state for filtering/sorting
   userSearchQuery = signal('');
@@ -100,9 +114,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.loadUserData();
     this.adminService.loadDashboardData();
-
-    // Start auto-refresh: stats and activities every 30 seconds
     this.adminService.startAutoRefresh(30);
+    this.updatePercentages();
   }
 
   ngOnDestroy() {
@@ -156,7 +169,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   getFilteredUsers(users: RecentUser[]): RecentUser[] {
     let filtered = [...users];
 
-    // Search
     if (this.userSearchQuery()) {
       const query = this.userSearchQuery().toLowerCase();
       filtered = filtered.filter(
@@ -166,18 +178,15 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       );
     }
 
-    // Role filter
     if (this.userRoleFilter() !== 'all') {
       filtered = filtered.filter((u) => u.role === this.userRoleFilter());
     }
 
-    // Status filter
     if (this.userStatusFilter() !== 'all') {
       const status = this.userStatusFilter() === 'active' ? true : false;
       filtered = filtered.filter((u) => u.isActive === status);
     }
 
-    // Sort
     filtered.sort((a, b) => {
       let aVal: any;
       let bVal: any;
@@ -247,7 +256,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   getFilteredCourses(courses: Course[]): Course[] {
     let filtered = [...courses];
 
-    // Search
     if (this.courseSearchQuery()) {
       const query = this.courseSearchQuery().toLowerCase();
       filtered = filtered.filter(
@@ -256,24 +264,20 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       );
     }
 
-    // Status filter
     if (this.courseStatusFilter() !== 'all') {
       filtered = filtered.filter((c) => c.status === this.courseStatusFilter());
     }
 
-    // Sort
     filtered.sort((a, b) => {
       let aVal: any = a[this.courseSortBy() as keyof Course];
       let bVal: any = b[this.courseSortBy() as keyof Course];
 
-      // Handle numeric comparisons
       if (this.courseSortBy() === 'enrollment_count') {
         aVal = parseInt(String(aVal)) || 0;
         bVal = parseInt(String(bVal)) || 0;
         return this.courseSortOrder() === 'asc' ? aVal - bVal : bVal - aVal;
       }
 
-      // String comparisons
       const order = this.courseSortOrder() === 'asc' ? 1 : -1;
       if (aVal < bVal) return -order;
       if (aVal > bVal) return order;
@@ -325,6 +329,21 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     if (hour < 12) return 'Good Morning';
     if (hour < 18) return 'Good Afternoon';
     return 'Good Evening';
+  }
+
+  updatePercentages(): void {
+    this.platformStats$.pipe(takeUntil(this.destroy$)).subscribe((stats) => {
+      if (stats && stats.totalUsers > 0) {
+        const instructorPercent = (stats.totalInstructors / stats.totalUsers) * 100;
+        const studentPercent = (stats.totalStudents / stats.totalUsers) * 100;
+
+        this.getInstructorPercentage.set(instructorPercent);
+        this.getStudentPercentage.set(studentPercent);
+      } else {
+        this.getInstructorPercentage.set(0);
+        this.getStudentPercentage.set(0);
+      }
+    });
   }
 
   onLogout() {

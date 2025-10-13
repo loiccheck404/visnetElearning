@@ -284,6 +284,8 @@ export class AdminService {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
+          console.log('Audit logs API response:', response);
+
           if (response?.data && Array.isArray(response.data.logs)) {
             const auditLogs = response.data.logs.map((log: any) => ({
               id: log.id,
@@ -293,7 +295,12 @@ export class AdminService {
               details: log.details,
               ip_address: log.ip_address || log.ipAddress || 'N/A',
             }));
+
+            console.log('Mapped audit logs:', auditLogs);
             this.auditLogsSubject.next(auditLogs);
+          } else {
+            console.warn('No audit logs found in response');
+            this.auditLogsSubject.next([]);
           }
           this.auditLogsLoadingSubject.next(false);
         },

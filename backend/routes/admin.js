@@ -83,14 +83,17 @@ router.get("/activities", async (req, res) => {
   }
 });
 
-// GET audit logs - admin actions and user logins
+// GET audit logs - FIXED VERSION
 router.get("/audit-logs", async (req, res) => {
   try {
+    console.log("\n========== AUDIT LOGS ENDPOINT ==========");
     const limit = parseInt(req.query.limit) || 50;
+    console.log("Request limit:", limit);
 
+    // Query from public schema explicitly
+    console.log("Querying public.audit_logs...");
     const result = await db.query(
-      `
-      SELECT 
+      `SELECT 
         id,
         created_at as timestamp,
         action,
@@ -98,12 +101,18 @@ router.get("/audit-logs", async (req, res) => {
         email,
         details,
         ip_address
-      FROM audit_logs
+      FROM public.audit_logs
       ORDER BY created_at DESC
-      LIMIT $1
-    `,
+      LIMIT $1`,
       [limit]
     );
+
+    console.log("Query successful!");
+    console.log("Rows returned:", result.rows.length);
+
+    if (result.rows.length > 0) {
+      console.log("First row:", JSON.stringify(result.rows[0]));
+    }
 
     const logs = result.rows.map((row) => ({
       id: row.id,
@@ -114,6 +123,9 @@ router.get("/audit-logs", async (req, res) => {
       ip_address: row.ip_address || "N/A",
     }));
 
+    console.log("Mapped logs count:", logs.length);
+    console.log("========== END AUDIT LOGS ==========\n");
+
     res.json({
       status: "SUCCESS",
       data: {
@@ -121,8 +133,14 @@ router.get("/audit-logs", async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Error fetching audit logs:", error);
-    res.status(500).json({ status: "ERROR", message: error.message });
+    console.error("\n========== ERROR IN AUDIT LOGS ==========");
+    console.error("Error:", error.message);
+    console.error("Stack:", error.stack);
+    console.error("========== END ERROR ==========\n");
+    res.status(500).json({
+      status: "ERROR",
+      message: error.message,
+    });
   }
 });
 
@@ -135,7 +153,7 @@ async function logAuditAction(
 ) {
   try {
     await db.query(
-      `INSERT INTO audit_logs (email, action, details, ip_address) 
+      `INSERT INTO public.audit_logs (email, action, details, ip_address) 
        VALUES ($1, $2, $3, $4)`,
       [email, action, details, ip_address]
     );
