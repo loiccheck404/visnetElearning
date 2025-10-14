@@ -3,6 +3,11 @@ import { inject } from '@angular/core';
 import { AuthService } from '../services/auth.service';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
+  // Skip HTTP calls during SSR/build time
+  if (typeof window === 'undefined') {
+    return next(req);
+  }
+
   const authService = inject(AuthService);
   const token = authService.tokenValue;
 
