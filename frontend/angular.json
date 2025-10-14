@@ -41,13 +41,7 @@
                 "input": "public"
               }
             ],
-            "styles": ["src/styles.scss"],
-            "server": "src/main.server.ts",
-            "outputMode": "static",
-            "ssr": {
-              "entry": "src/server.ts",
-              "prerender": []
-            }
+            "styles": ["src/styles.scss"]
           },
           "configurations": {
             "production": {
