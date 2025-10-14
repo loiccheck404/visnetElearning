@@ -15,6 +15,7 @@ const studentRoutes = require("./routes/students");
 const path = require("path");
 const userRoutes = require("./routes/users");
 const adminRoutes = require("./routes/admin");
+const authRoutes = require("./routes/auth");
 
 // Basic middleware
 app.use(helmet());
@@ -22,7 +23,7 @@ app.use(compression());
 const allowedOrigins = [
   "http://localhost:4200",
   "http://localhost:3000",
-  process.env.FRONTEND_URL || "", // Will be set in Vercel env vars
+  process.env.FRONTEND_URL || "",
 ];
 
 app.use(
@@ -46,7 +47,7 @@ if (process.env.NODE_ENV !== "production") {
   app.use(morgan("dev"));
 }
 
-// Routes
+// Health check route
 app.get("/api/health", (req, res) => {
   res.json({
     status: "OK",
@@ -55,20 +56,6 @@ app.get("/api/health", (req, res) => {
     environment: process.env.NODE_ENV || "development",
   });
 });
-
-app.use("/api/students", studentRoutes);
-
-app.use("/api/activities", activityRoutes);
-
-app.use("/api/progress", progressRoutes);
-
-app.use("/api/enrollments", enrollmentRoutes);
-
-app.use("/api/users", userRoutes);
-app.use("/api/admin", adminRoutes);
-
-// Serve uploaded files statically
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Database test route
 app.get("/api/db-test", async (req, res) => {
@@ -94,16 +81,18 @@ app.get("/api/db-test", async (req, res) => {
   }
 });
 
-// Authentication routes - FIXED: Only register once with error handling
-try {
-  const authRoutes = require("./routes/auth");
-  app.use("/api/auth", authRoutes);
-  app.use("/api/courses", courseRoutes);
-  console.log("✅ Auth routes loaded successfully");
-} catch (error) {
-  console.error("❌ Failed to load auth routes:", error.message);
-  console.error("Stack:", error.stack);
-}
+// API Routes - All registered separately
+app.use("/api/auth", authRoutes);
+app.use("/api/courses", courseRoutes);
+app.use("/api/students", studentRoutes);
+app.use("/api/activities", activityRoutes);
+app.use("/api/progress", progressRoutes);
+app.use("/api/enrollments", enrollmentRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/admin", adminRoutes);
+
+// Serve uploaded files statically
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Basic error handling
 app.use((err, req, res, next) => {
@@ -129,6 +118,6 @@ app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📊 Environment: ${process.env.NODE_ENV || "development"}`);
   console.log(`🔗 Health check: http://localhost:${PORT}/api/health`);
-  console.log(`🗃️  Database test: http://localhost:${PORT}/api/db-test`);
+  console.log(`🗄️  Database test: http://localhost:${PORT}/api/db-test`);
   console.log(`🔐 Auth endpoints: http://localhost:${PORT}/api/auth`);
 });
