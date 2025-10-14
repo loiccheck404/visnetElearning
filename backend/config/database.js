@@ -1,16 +1,32 @@
 const { Pool } = require("pg");
 require("dotenv").config();
 
-const pool = new Pool({
-  host: process.env.DB_HOST || "localhost",
-  port: process.env.DB_PORT || 5432,
-  database: process.env.DB_NAME || "visnet_elearning_dev",
-  user: process.env.DB_USER || "visnet_user",
-  password: process.env.DB_PASSWORD || "visnet_password_2024",
-  max: 20,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
-});
+// Use DATABASE_URL if available (Vercel/production), otherwise use individual env vars (local development)
+let poolConfig;
+
+if (process.env.DATABASE_URL) {
+  // Production: Use DATABASE_URL from Neon
+  poolConfig = {
+    connectionString: process.env.DATABASE_URL,
+    max: 20,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 2000,
+  };
+} else {
+  // Development: Use individual environment variables
+  poolConfig = {
+    host: process.env.DB_HOST || "localhost",
+    port: process.env.DB_PORT || 5432,
+    database: process.env.DB_NAME || "visnet_elearning_dev",
+    user: process.env.DB_USER || "visnet_user",
+    password: process.env.DB_PASSWORD || "visnet_password_2024",
+    max: 20,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 2000,
+  };
+}
+
+const pool = new Pool(poolConfig);
 
 // Test connection
 pool.on("connect", () => {
