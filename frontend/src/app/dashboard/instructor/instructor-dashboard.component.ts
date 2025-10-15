@@ -137,7 +137,6 @@ export class InstructorDashboardComponent implements OnInit {
         }
 
         // ADD THIS: Calculate unique students
-        // ADD THIS: Calculate unique students
         if (results.students.status === 'SUCCESS') {
           console.log('Dashboard - Raw students data:', results.students.data.students);
 
