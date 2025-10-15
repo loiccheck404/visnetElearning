@@ -10,7 +10,7 @@ if (process.env.DATABASE_URL) {
     connectionString: process.env.DATABASE_URL,
     max: 20,
     idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 2000,
+    connectionTimeoutMillis: 50000,
   };
 } else {
   // Development: Use individual environment variables
@@ -22,7 +22,14 @@ if (process.env.DATABASE_URL) {
     password: process.env.DB_PASSWORD || "visnet_password_2024",
     max: 20,
     idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 2000,
+    connectionTimeoutMillis: 50000,
+  };
+}
+
+const isRenderDB = process.env.DATABASE_URL?.includes("render.com");
+if (isRenderDB || process.env.NODE_ENV === "production") {
+  poolConfig.ssl = {
+    rejectUnauthorized: false,
   };
 }
 

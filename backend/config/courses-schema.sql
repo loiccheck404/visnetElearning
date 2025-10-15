@@ -102,8 +102,10 @@ INSERT INTO categories (name, description, slug) VALUES
 ON CONFLICT (slug) DO NOTHING;
 
 -- Insert sample courses
+/*
 INSERT INTO courses (title, slug, description, short_description, instructor_id, category_id, level, status, is_featured) VALUES
     ('Introduction to Angular', 'intro-angular', 'Learn Angular framework from scratch', 'Master Angular development', 2, 1, 'beginner', 'published', true),
     ('Advanced TypeScript', 'advanced-typescript', 'Deep dive into TypeScript features', 'Advanced TypeScript patterns', 2, 1, 'advanced', 'published', false),
     ('Node.js Masterclass', 'nodejs-masterclass', 'Complete Node.js backend development', 'Build scalable backend apps', 2, 1, 'intermediate', 'draft', false)
 ON CONFLICT (slug) DO NOTHING;
+*/
