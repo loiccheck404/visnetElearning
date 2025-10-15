@@ -112,6 +112,7 @@ router.put(
 );
 
 // Profile picture upload route
+/*
 router.post(
   "/profile/picture",
   authenticateToken,
@@ -136,5 +137,6 @@ router.post(
     });
   }
 );
+*/
 
 module.exports = router;

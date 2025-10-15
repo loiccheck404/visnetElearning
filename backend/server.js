@@ -23,7 +23,7 @@ app.use(compression());
 const allowedOrigins = [
   "http://localhost:4200",
   "http://localhost:3000",
-  "https://visnet-elearning.vercel.app", // Your frontend URL
+  "https://visnet-frontend.onrender.com", // ← Update this after deployment
   process.env.FRONTEND_URL || "",
 ];
 
