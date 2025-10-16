@@ -119,49 +119,49 @@ export class CourseCreateComponent implements OnInit {
   }
 
   onSubmit() {
-  if (this.courseForm.valid) {
-    this.loading.set(true);
-    
-    const courseData = this.courseForm.value;
-    
-    if (this.isEditMode() && this.editingCourseId()) {
-      // Update existing course
-      this.courseService.updateCourse(this.editingCourseId()!, courseData).subscribe({
-        next: (response) => {
-          if (response.status === 'SUCCESS') {
-            this.toastService.success('Course updated successfully!');
-            this.router.navigate(['/dashboard/instructor/courses']); // Change this line
-          }
-          this.loading.set(false);
-        },
-        error: (error) => {
-          console.error('Error updating course:', error);
-          this.toastService.error('Failed to update course. Please try again.');
-          this.loading.set(false);
-        },
-      });
+    if (this.courseForm.valid) {
+      this.loading.set(true);
+
+      const courseData = this.courseForm.value;
+
+      if (this.isEditMode() && this.editingCourseId()) {
+        // Update existing course
+        this.courseService.updateCourse(this.editingCourseId()!, courseData).subscribe({
+          next: (response) => {
+            if (response.status === 'SUCCESS') {
+              this.toastService.success('Course updated successfully!');
+              this.router.navigate(['/dashboard/instructor/courses']); // Change this line
+            }
+            this.loading.set(false);
+          },
+          error: (error) => {
+            console.error('Error updating course:', error);
+            this.toastService.error('Failed to update course. Please try again.');
+            this.loading.set(false);
+          },
+        });
+      } else {
+        // Create new course - stays the same
+        this.courseService.createCourse(courseData).subscribe({
+          next: (response) => {
+            if (response.status === 'SUCCESS') {
+              this.toastService.success('Course created successfully!');
+              this.router.navigate(['/dashboard/instructor']);
+            }
+            this.loading.set(false);
+          },
+          error: (error) => {
+            console.error('Error creating course:', error);
+            this.toastService.error('Failed to create course. Please try again.');
+            this.loading.set(false);
+          },
+        });
+      }
     } else {
-      // Create new course - stays the same
-      this.courseService.createCourse(courseData).subscribe({
-        next: (response) => {
-          if (response.status === 'SUCCESS') {
-            this.toastService.success('Course created successfully!');
-            this.router.navigate(['/dashboard/instructor']);
-          }
-          this.loading.set(false);
-        },
-        error: (error) => {
-          console.error('Error creating course:', error);
-          this.toastService.error('Failed to create course. Please try again.');
-          this.loading.set(false);
-        },
-      });
+      this.markFormGroupTouched(this.courseForm);
+      this.toastService.warning('Please fill in all required fields correctly');
     }
-  } else {
-    this.markFormGroupTouched(this.courseForm);
-    this.toastService.warning('Please fill in all required fields correctly');
   }
-}
 
   markFormGroupTouched(formGroup: FormGroup) {
     Object.keys(formGroup.controls).forEach((key) => {
@@ -189,12 +189,12 @@ export class CourseCreateComponent implements OnInit {
   }
 
   goBack() {
-  if (this.isEditMode()) {
-    this.router.navigate(['/dashboard/instructor/courses']);
-  } else {
-    this.router.navigate(['/dashboard/instructor']);
+    if (this.isEditMode()) {
+      this.router.navigate(['/dashboard/instructor/courses']);
+    } else {
+      this.router.navigate(['/dashboard/instructor']);
+    }
   }
-}
 
   onLogout() {
     this.authService.logout();
