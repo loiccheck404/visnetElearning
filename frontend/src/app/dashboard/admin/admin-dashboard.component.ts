@@ -7,6 +7,11 @@ import { AdminService } from '../../core/services/admin.service';
 import { ThemeToggleComponent } from '../../shared/components/theme-toggle/theme-toggle.component';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { Chart, ChartConfiguration, registerables } from 'chart.js';
+import { AfterViewInit, ViewChild, ElementRef } from '@angular/core';
+
+// Register Chart.js components (add after imports)
+Chart.register(...registerables);
 
 interface RecentUser {
   id: number;
@@ -52,10 +57,22 @@ interface AuditLog {
   templateUrl: './admin-dashboard.component.html',
   styleUrls: ['./admin-dashboard.component.scss'],
 })
-export class AdminDashboardComponent implements OnInit, OnDestroy {
+export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit {
   private authService = inject(AuthService);
   private adminService = inject(AdminService);
   private router = inject(Router);
+
+  // Chart references
+  @ViewChild('userDistributionChart') userDistributionCanvas!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('courseStatusChart') courseStatusCanvas!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('growthTrendChart') growthTrendCanvas!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('enrollmentChart') enrollmentCanvas!: ElementRef<HTMLCanvasElement>;
+
+  private userDistributionChart?: Chart;
+  private courseStatusChart?: Chart;
+  private growthTrendChart?: Chart;
+  private enrollmentChart?: Chart;
+  private isDarkMode = false;
 
   currentUser = signal<User | null>(null);
   activeSection = signal<string>('dashboard');
@@ -118,10 +135,399 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     this.updatePercentages();
   }
 
+  ngAfterViewInit() {
+    // Initialize charts after view is ready
+    setTimeout(() => {
+      if (this.activeSection() === 'analytics') {
+        this.initializeCharts();
+      }
+    }, 100);
+  }
+
   ngOnDestroy() {
     this.adminService.stopAutoRefresh();
+    this.destroyCharts();
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  // ============ THEME DETECTION ============
+  detectTheme() {
+    const isDark = document.documentElement.classList.contains('dark-theme');
+    this.isDarkMode = isDark;
+  }
+
+  // ============ CHART INITIALIZATION ============
+  initializeCharts() {
+    this.destroyCharts(); // Destroy existing charts first
+
+    if (
+      this.userDistributionCanvas &&
+      this.courseStatusCanvas &&
+      this.growthTrendCanvas &&
+      this.enrollmentCanvas
+    ) {
+      this.createUserDistributionChart();
+      this.createCourseStatusChart();
+      this.createGrowthTrendChart();
+      this.createEnrollmentChart();
+    }
+  }
+
+  destroyCharts() {
+    if (this.userDistributionChart) {
+      this.userDistributionChart.destroy();
+    }
+    if (this.courseStatusChart) {
+      this.courseStatusChart.destroy();
+    }
+    if (this.growthTrendChart) {
+      this.growthTrendChart.destroy();
+    }
+    if (this.enrollmentChart) {
+      this.enrollmentChart.destroy();
+    }
+  }
+
+  // ============ USER DISTRIBUTION CHART (Doughnut) ============
+  createUserDistributionChart() {
+    const ctx = this.userDistributionCanvas.nativeElement.getContext('2d');
+    if (!ctx) return;
+
+    let instructors = 0;
+    let students = 0;
+
+    this.platformStats$.pipe(takeUntil(this.destroy$)).subscribe((stats) => {
+      if (stats) {
+        instructors = stats.totalInstructors;
+        students = stats.totalStudents;
+
+        if (this.userDistributionChart) {
+          this.userDistributionChart.data.datasets[0].data = [instructors, students];
+          this.userDistributionChart.update();
+        }
+      }
+    });
+
+    const config: ChartConfiguration<'doughnut'> = {
+      type: 'doughnut',
+      data: {
+        labels: ['Instructors', 'Students'],
+        datasets: [
+          {
+            data: [instructors, students],
+            backgroundColor: ['rgba(139, 125, 255, 0.8)', 'rgba(72, 187, 120, 0.8)'],
+            borderColor: ['rgba(139, 125, 255, 1)', 'rgba(72, 187, 120, 1)'],
+            borderWidth: 2,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: {
+              color: this.isDarkMode ? '#e2e8f0' : '#1a202c',
+              padding: 20,
+              font: {
+                size: 14,
+              },
+            },
+          },
+          tooltip: {
+            backgroundColor: this.isDarkMode
+              ? 'rgba(26, 32, 44, 0.95)'
+              : 'rgba(255, 255, 255, 0.95)',
+            titleColor: this.isDarkMode ? '#e2e8f0' : '#1a202c',
+            bodyColor: this.isDarkMode ? '#cbd5e0' : '#4a5568',
+            borderColor: this.isDarkMode ? '#4a5568' : '#e2e8f0',
+            borderWidth: 1,
+            padding: 12,
+            displayColors: true,
+            callbacks: {
+              label: (context) => {
+                const label = context.label || '';
+                const value = context.parsed || 0;
+                const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0);
+                const percentage = ((value / total) * 100).toFixed(1);
+                return `${label}: ${value} (${percentage}%)`;
+              },
+            },
+          },
+        },
+        cutout: '65%',
+      },
+    };
+
+    this.userDistributionChart = new Chart(ctx, config);
+  }
+
+  // ============ COURSE STATUS CHART (Bar) ============
+  createCourseStatusChart() {
+    const ctx = this.courseStatusCanvas.nativeElement.getContext('2d');
+    if (!ctx) return;
+
+    let published = 0;
+    this.platformStats$.pipe(takeUntil(this.destroy$)).subscribe((stats) => {
+      if (stats) {
+        published = stats.totalCourses;
+        if (this.courseStatusChart) {
+          this.courseStatusChart.data.datasets[0].data = [published, 6, 2, 1];
+          this.courseStatusChart.update();
+        }
+      }
+    });
+
+    const config: ChartConfiguration<'bar'> = {
+      type: 'bar',
+      data: {
+        labels: ['Published', 'Pending', 'Draft', 'Archived'],
+        datasets: [
+          {
+            label: 'Courses',
+            data: [published, 6, 2, 1],
+            backgroundColor: [
+              'rgba(72, 187, 120, 0.8)',
+              'rgba(237, 137, 54, 0.8)',
+              'rgba(113, 128, 150, 0.8)',
+              'rgba(203, 213, 224, 0.8)',
+            ],
+            borderColor: [
+              'rgba(72, 187, 120, 1)',
+              'rgba(237, 137, 54, 1)',
+              'rgba(113, 128, 150, 1)',
+              'rgba(203, 213, 224, 1)',
+            ],
+            borderWidth: 2,
+            borderRadius: 8,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false,
+          },
+          tooltip: {
+            backgroundColor: this.isDarkMode
+              ? 'rgba(26, 32, 44, 0.95)'
+              : 'rgba(255, 255, 255, 0.95)',
+            titleColor: this.isDarkMode ? '#e2e8f0' : '#1a202c',
+            bodyColor: this.isDarkMode ? '#cbd5e0' : '#4a5568',
+            borderColor: this.isDarkMode ? '#4a5568' : '#e2e8f0',
+            borderWidth: 1,
+            padding: 12,
+          },
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              color: this.isDarkMode ? '#cbd5e0' : '#4a5568',
+              stepSize: 1,
+            },
+            grid: {
+              color: this.isDarkMode ? 'rgba(74, 85, 104, 0.2)' : 'rgba(226, 232, 240, 0.8)',
+            },
+          },
+          x: {
+            ticks: {
+              color: this.isDarkMode ? '#cbd5e0' : '#4a5568',
+            },
+            grid: {
+              display: false,
+            },
+          },
+        },
+      },
+    };
+
+    this.courseStatusChart = new Chart(ctx, config);
+  }
+
+  // ============ GROWTH TREND CHART (Line) ============
+  createGrowthTrendChart() {
+    const ctx = this.growthTrendCanvas.nativeElement.getContext('2d');
+    if (!ctx) return;
+
+    const config: ChartConfiguration<'line'> = {
+      type: 'line',
+      data: {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+        datasets: [
+          {
+            label: 'Users',
+            data: [5, 8, 12, 15, 20, 28, 35],
+            borderColor: 'rgba(139, 125, 255, 1)',
+            backgroundColor: 'rgba(139, 125, 255, 0.1)',
+            tension: 0.4,
+            fill: true,
+            pointRadius: 5,
+            pointHoverRadius: 7,
+            pointBackgroundColor: 'rgba(139, 125, 255, 1)',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+          },
+          {
+            label: 'Courses',
+            data: [3, 4, 6, 7, 9, 11, 14],
+            borderColor: 'rgba(72, 187, 120, 1)',
+            backgroundColor: 'rgba(72, 187, 120, 0.1)',
+            tension: 0.4,
+            fill: true,
+            pointRadius: 5,
+            pointHoverRadius: 7,
+            pointBackgroundColor: 'rgba(72, 187, 120, 1)',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+          mode: 'index',
+          intersect: false,
+        },
+        plugins: {
+          legend: {
+            position: 'top',
+            labels: {
+              color: this.isDarkMode ? '#e2e8f0' : '#1a202c',
+              padding: 15,
+              font: {
+                size: 13,
+              },
+              usePointStyle: true,
+              pointStyle: 'circle',
+            },
+          },
+          tooltip: {
+            backgroundColor: this.isDarkMode
+              ? 'rgba(26, 32, 44, 0.95)'
+              : 'rgba(255, 255, 255, 0.95)',
+            titleColor: this.isDarkMode ? '#e2e8f0' : '#1a202c',
+            bodyColor: this.isDarkMode ? '#cbd5e0' : '#4a5568',
+            borderColor: this.isDarkMode ? '#4a5568' : '#e2e8f0',
+            borderWidth: 1,
+            padding: 12,
+          },
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              color: this.isDarkMode ? '#cbd5e0' : '#4a5568',
+            },
+            grid: {
+              color: this.isDarkMode ? 'rgba(74, 85, 104, 0.2)' : 'rgba(226, 232, 240, 0.8)',
+            },
+          },
+          x: {
+            ticks: {
+              color: this.isDarkMode ? '#cbd5e0' : '#4a5568',
+            },
+            grid: {
+              color: this.isDarkMode ? 'rgba(74, 85, 104, 0.2)' : 'rgba(226, 232, 240, 0.8)',
+            },
+          },
+        },
+      },
+    };
+
+    this.growthTrendChart = new Chart(ctx, config);
+  }
+
+  // ============ ENROLLMENT CHART (Polar Area) ============
+  createEnrollmentChart() {
+    const ctx = this.enrollmentCanvas.nativeElement.getContext('2d');
+    if (!ctx) return;
+
+    const config: ChartConfiguration<'polarArea'> = {
+      type: 'polarArea',
+      data: {
+        labels: ['Web Dev', 'Data Science', 'Design', 'Business', 'Marketing'],
+        datasets: [
+          {
+            data: [450, 320, 280, 190, 150],
+            backgroundColor: [
+              'rgba(139, 125, 255, 0.7)',
+              'rgba(72, 187, 120, 0.7)',
+              'rgba(237, 137, 54, 0.7)',
+              'rgba(66, 153, 225, 0.7)',
+              'rgba(245, 101, 101, 0.7)',
+            ],
+            borderColor: [
+              'rgba(139, 125, 255, 1)',
+              'rgba(72, 187, 120, 1)',
+              'rgba(237, 137, 54, 1)',
+              'rgba(66, 153, 225, 1)',
+              'rgba(245, 101, 101, 1)',
+            ],
+            borderWidth: 2,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'right',
+            labels: {
+              color: this.isDarkMode ? '#e2e8f0' : '#1a202c',
+              padding: 15,
+              font: {
+                size: 13,
+              },
+            },
+          },
+          tooltip: {
+            backgroundColor: this.isDarkMode
+              ? 'rgba(26, 32, 44, 0.95)'
+              : 'rgba(255, 255, 255, 0.95)',
+            titleColor: this.isDarkMode ? '#e2e8f0' : '#1a202c',
+            bodyColor: this.isDarkMode ? '#cbd5e0' : '#4a5568',
+            borderColor: this.isDarkMode ? '#4a5568' : '#e2e8f0',
+            borderWidth: 1,
+            padding: 12,
+            callbacks: {
+              label: (context) => {
+                return `${context.label}: ${context.parsed.r} enrollments`;
+              },
+            },
+          },
+        },
+        scales: {
+          r: {
+            ticks: {
+              color: this.isDarkMode ? '#cbd5e0' : '#4a5568',
+              backdropColor: 'transparent',
+            },
+            grid: {
+              color: this.isDarkMode ? 'rgba(74, 85, 104, 0.2)' : 'rgba(226, 232, 240, 0.8)',
+            },
+          },
+        },
+      },
+    };
+
+    this.enrollmentChart = new Chart(ctx, config);
+  }
+
+  // ============ NAVIGATION & EXISTING METHODS ============
+  setActiveSection(section: string) {
+    this.activeSection.set(section);
+
+    // Initialize charts when analytics section is activated
+    if (section === 'analytics') {
+      setTimeout(() => this.initializeCharts(), 100);
+    }
   }
 
   loadUserData() {
@@ -129,11 +535,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     if (user) {
       this.currentUser.set(user);
     }
-  }
-
-  // Navigation
-  setActiveSection(section: string) {
-    this.activeSection.set(section);
   }
 
   toggleSidebar() {

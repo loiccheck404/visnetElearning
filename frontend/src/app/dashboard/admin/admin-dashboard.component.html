@@ -765,130 +765,451 @@
       </section>
       }
 
-      <!-- Analytics Section -->
+      <!-- Analytics Section with Chart.js -->
       @if (activeSection() === 'analytics') {
-      <section class="section-content">
-        <div class="analytics-grid">
-          <div class="card chart-card">
-            <div class="card-header">
-              <h3>Platform Overview</h3>
+      <section class="section-content analytics-section">
+        <!-- Overview Stats Row -->
+        <div class="stats-overview-row">
+          <div class="overview-stat-card">
+            <div class="stat-header">
+              <div
+                class="stat-icon-wrapper"
+                style="background: linear-gradient(135deg, #8b7dff 0%, #b794f6 100%)"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+              </div>
+              <span class="stat-label">Total Users</span>
             </div>
-            <div class="overview-stats">
-              <div class="overview-stat">
-                <span class="label">Total Users</span>
-                <span class="value">{{ (platformStats$ | async)?.totalUsers ?? 0 }}</span>
-              </div>
-              <div class="overview-stat">
-                <span class="label">Total Courses</span>
-                <span class="value">{{ (platformStats$ | async)?.totalCourses ?? 0 }}</span>
-              </div>
-              <div class="overview-stat">
-                <span class="label">Total Instructors</span>
-                <span class="value">{{ (platformStats$ | async)?.totalInstructors ?? 0 }}</span>
-              </div>
-              <div class="overview-stat">
-                <span class="label">Total Students</span>
-                <span class="value">{{ (platformStats$ | async)?.totalStudents ?? 0 }}</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="card chart-card">
-            <div class="card-header">
-              <h3>User Distribution</h3>
-            </div>
-            <div class="distribution-stats">
-              <div class="dist-row">
-                <span class="label">Instructors</span>
-                <div class="progress-bar">
-                  <div class="progress-fill" [style.width.%]="getInstructorPercentage()"></div>
-                </div>
-                <span class="percentage">{{ getInstructorPercentage() | number : '1.0-0' }}%</span>
-              </div>
-              <div class="dist-row">
-                <span class="label">Students</span>
-                <div class="progress-bar">
-                  <div class="progress-fill" [style.width.%]="getStudentPercentage()"></div>
-                </div>
-                <span class="percentage">{{ getStudentPercentage() | number : '1.0-0' }}%</span>
-              </div>
+            <div class="stat-value">{{ (platformStats$ | async)?.totalUsers ?? 0 }}</div>
+            <div class="stat-trend positive">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                <polyline points="17 6 23 6 23 12"></polyline>
+              </svg>
+              +12% from last month
             </div>
           </div>
 
-          <div class="card chart-card full-width">
-            <div class="card-header">
-              <h3>Course Status Breakdown</h3>
+          <div class="overview-stat-card">
+            <div class="stat-header">
+              <div
+                class="stat-icon-wrapper"
+                style="background: linear-gradient(135deg, #48bb78 0%, #38a169 100%)"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                  <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                </svg>
+              </div>
+              <span class="stat-label">Total Courses</span>
             </div>
-            <div class="status-breakdown">
-              <div class="status-item">
-                <div class="status-box published"></div>
-                <span class="label">Published Courses</span>
-                <span class="value">{{ (platformStats$ | async)?.totalCourses ?? 0 }}</span>
+            <div class="stat-value">{{ (platformStats$ | async)?.totalCourses ?? 0 }}</div>
+            <div class="stat-trend positive">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                <polyline points="17 6 23 6 23 12"></polyline>
+              </svg>
+              +8% from last month
+            </div>
+          </div>
+
+          <div class="overview-stat-card">
+            <div class="stat-header">
+              <div
+                class="stat-icon-wrapper"
+                style="background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%)"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                  <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                </svg>
               </div>
-              <div class="status-item">
-                <div class="status-box pending"></div>
-                <span class="label">Pending Approval</span>
-                <span class="value">6</span>
+              <span class="stat-label">Instructors</span>
+            </div>
+            <div class="stat-value">{{ (platformStats$ | async)?.totalInstructors ?? 0 }}</div>
+            <div class="stat-trend positive">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                <polyline points="17 6 23 6 23 12"></polyline>
+              </svg>
+              +3 this week
+            </div>
+          </div>
+
+          <div class="overview-stat-card">
+            <div class="stat-header">
+              <div
+                class="stat-icon-wrapper"
+                style="background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%)"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
+                </svg>
               </div>
-              <div class="status-item">
-                <div class="status-box draft"></div>
-                <span class="label">Draft Courses</span>
-                <span class="value">2</span>
-              </div>
-              <div class="status-item">
-                <div class="status-box archived"></div>
-                <span class="label">Archived</span>
-                <span class="value">1</span>
-              </div>
+              <span class="stat-label">Students</span>
+            </div>
+            <div class="stat-value">{{ (platformStats$ | async)?.totalStudents ?? 0 }}</div>
+            <div class="stat-trend positive">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                <polyline points="17 6 23 6 23 12"></polyline>
+              </svg>
+              +15% from last month
             </div>
           </div>
         </div>
 
-        <div class="analytics-summary">
-          <div class="summary-card">
-            <h4>Platform Performance Metrics</h4>
-            <div class="summary-metrics">
-              <div class="metric">
-                <span class="metric-label">Average Course Rating</span>
-                <span class="metric-value">4.7 / 5.0</span>
-                <span class="metric-subtext">Based on student reviews</span>
+        <!-- Charts Grid -->
+        <div class="analytics-charts-grid">
+          <!-- User Distribution Chart -->
+          <div class="chart-card">
+            <div class="card-header">
+              <h3>User Distribution</h3>
+              <span class="chart-subtitle">Role breakdown</span>
+            </div>
+            <div class="chart-canvas-wrapper">
+              <canvas #userDistributionChart></canvas>
+            </div>
+          </div>
+
+          <!-- Course Status Chart -->
+          <div class="chart-card">
+            <div class="card-header">
+              <h3>Course Status</h3>
+              <span class="chart-subtitle">Status breakdown</span>
+            </div>
+            <div class="chart-canvas-wrapper">
+              <canvas #courseStatusChart></canvas>
+            </div>
+          </div>
+
+          <!-- Growth Trend Chart - Full Width -->
+          <div class="chart-card full-width-chart">
+            <div class="card-header">
+              <h3>Growth Trends</h3>
+              <span class="chart-subtitle">Last 7 months</span>
+            </div>
+            <div class="chart-canvas-wrapper large">
+              <canvas #growthTrendChart></canvas>
+            </div>
+          </div>
+
+          <!-- Enrollment by Category Chart -->
+          <div class="chart-card full-width-chart">
+            <div class="card-header">
+              <h3>Enrollments by Category</h3>
+              <span class="chart-subtitle">Top 5 categories</span>
+            </div>
+            <div class="chart-canvas-wrapper large">
+              <canvas #enrollmentChart></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Performance Metrics -->
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div
+              class="metric-icon"
+              style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%)"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="28"
+                height="28"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <polygon
+                  points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+                ></polygon>
+              </svg>
+            </div>
+            <div class="metric-content">
+              <div class="metric-value">4.7 / 5.0</div>
+              <div class="metric-label">Avg Course Rating</div>
+              <div class="metric-subtext">Based on student reviews</div>
+            </div>
+          </div>
+
+          <div class="metric-card">
+            <div
+              class="metric-icon"
+              style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%)"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="28"
+                height="28"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+              </svg>
+            </div>
+            <div class="metric-content">
+              <div class="metric-value">78%</div>
+              <div class="metric-label">Completion Rate</div>
+              <div class="metric-subtext">Average across all courses</div>
+            </div>
+          </div>
+
+          <div class="metric-card">
+            <div
+              class="metric-icon"
+              style="background: linear-gradient(135deg, #30cfd0 0%, #330867 100%)"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="28"
+                height="28"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+            </div>
+            <div class="metric-content">
+              <div class="metric-value">92%</div>
+              <div class="metric-label">User Satisfaction</div>
+              <div class="metric-subtext">Based on platform surveys</div>
+            </div>
+          </div>
+
+          <div class="metric-card">
+            <div
+              class="metric-icon"
+              style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="28"
+                height="28"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+              </svg>
+            </div>
+            <div class="metric-content">
+              <div class="metric-value">1,247</div>
+              <div class="metric-label">Total Enrollments</div>
+              <div class="metric-subtext">Across all courses</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Additional Insights -->
+        <div class="insights-section">
+          <div class="card insight-card">
+            <div class="card-header">
+              <h3>📈 Key Insights</h3>
+            </div>
+            <div class="insights-list">
+              <div class="insight-item">
+                <div class="insight-icon success">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                </div>
+                <div class="insight-content">
+                  <strong>User Growth Accelerating</strong>
+                  <p>12% increase in new users this month, highest in 6 months</p>
+                </div>
               </div>
-              <div class="metric">
-                <span class="metric-label">Course Completion Rate</span>
-                <span class="metric-value">78%</span>
-                <span class="metric-subtext">Average across all courses</span>
+
+              <div class="insight-item">
+                <div class="insight-icon info">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                  </svg>
+                </div>
+                <div class="insight-content">
+                  <strong>Course Quality High</strong>
+                  <p>Average rating of 4.7/5.0 shows excellent content quality</p>
+                </div>
               </div>
-              <div class="metric">
-                <span class="metric-label">User Satisfaction</span>
-                <span class="metric-value">92%</span>
-                <span class="metric-subtext">Based on platform surveys</span>
+
+              <div class="insight-item">
+                <div class="insight-icon warning">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path
+                      d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"
+                    ></path>
+                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                  </svg>
+                </div>
+                <div class="insight-content">
+                  <strong>Pending Approvals</strong>
+                  <p>6 courses awaiting approval - review recommended</p>
+                </div>
               </div>
-              <div class="metric">
-                <span class="metric-label">Active Users</span>
-                <span class="metric-value">{{ (platformStats$ | async)?.totalStudents ?? 0 }}</span>
-                <span class="metric-subtext">Current active students</span>
+
+              <div class="insight-item">
+                <div class="insight-icon success">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                    <polyline points="17 6 23 6 23 12"></polyline>
+                  </svg>
+                </div>
+                <div class="insight-content">
+                  <strong>Strong Engagement</strong>
+                  <p>78% completion rate indicates high student engagement</p>
+                </div>
               </div>
             </div>
           </div>
 
-          <div class="summary-card">
-            <h4>Recent Trends</h4>
-            <div class="trends-list">
-              <div class="trend-item">
-                <span class="trend-label">User Growth</span>
-                <span class="trend-value positive">+12% this month</span>
+          <div class="card insight-card">
+            <div class="card-header">
+              <h3>🎯 Recommendations</h3>
+            </div>
+            <div class="insights-list">
+              <div class="insight-item">
+                <div class="insight-number">1</div>
+                <div class="insight-content">
+                  <strong>Review Pending Courses</strong>
+                  <p>Approve or provide feedback on the 6 pending courses</p>
+                </div>
               </div>
-              <div class="trend-item">
-                <span class="trend-label">Course Enrollments</span>
-                <span class="trend-value positive">+8% this month</span>
+
+              <div class="insight-item">
+                <div class="insight-number">2</div>
+                <div class="insight-content">
+                  <strong>Recruit More Instructors</strong>
+                  <p>With growing student base, onboard more quality instructors</p>
+                </div>
               </div>
-              <div class="trend-item">
-                <span class="trend-label">Instructor Signups</span>
-                <span class="trend-value positive">+3 this week</span>
+
+              <div class="insight-item">
+                <div class="insight-number">3</div>
+                <div class="insight-content">
+                  <strong>Expand Course Categories</strong>
+                  <p>Consider adding new categories based on user demand</p>
+                </div>
               </div>
-              <div class="trend-item">
-                <span class="trend-label">Completion Rate</span>
-                <span class="trend-value positive">+5% from last month</span>
+
+              <div class="insight-item">
+                <div class="insight-number">4</div>
+                <div class="insight-content">
+                  <strong>Monitor Archived Courses</strong>
+                  <p>Review archived courses to identify improvement opportunities</p>
+                </div>
               </div>
             </div>
           </div>
