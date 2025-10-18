@@ -1,6 +1,11 @@
 const express = require("express");
 const db = require("../config/database");
 const router = express.Router();
+const { authenticate, authorize } = require("../middleware/auth");
+
+// Apply authentication to all admin routes
+router.use(authenticate);
+router.use(authorize("admin"));
 
 // GET platform statistics
 router.get("/stats", async (req, res) => {
@@ -171,9 +176,10 @@ router.delete("/users/:userId", async (req, res) => {
 
     // Log the action
     await logAuditAction(
-      "system",
+      req.user.email || "admin",
       "user_deleted",
-      `User ID ${userIdNum} permanently deleted`
+      `User ID ${userIdNum} permanently deleted`,
+      req.ip
     );
 
     res.json({
@@ -187,36 +193,56 @@ router.delete("/users/:userId", async (req, res) => {
   }
 });
 
-// DELETE course - HARD DELETE
+// DELETE course - HARD DELETE (Admin can delete ANY course)
 router.delete("/courses/:courseId", async (req, res) => {
   try {
+    console.log("\n========== ADMIN DELETE COURSE ==========");
+    console.log("Course ID:", req.params.courseId);
+    console.log("User:", req.user);
+
     const { courseId } = req.params;
     const courseIdNum = parseInt(courseId);
 
     if (isNaN(courseIdNum)) {
+      console.log("Invalid course ID");
       return res
         .status(400)
         .json({ status: "ERROR", message: "Invalid course ID" });
     }
 
-    // Hard delete: Remove course completely
-    const deleteResult = await db.query(
-      `DELETE FROM courses WHERE id = $1 RETURNING id, title`,
+    // First check if course exists
+    const checkResult = await db.query(
+      `SELECT id, title, instructor_id FROM courses WHERE id = $1`,
       [courseIdNum]
     );
 
-    if (deleteResult.rows.length === 0) {
+    if (checkResult.rows.length === 0) {
+      console.log("Course not found");
       return res
         .status(404)
         .json({ status: "ERROR", message: "Course not found" });
     }
 
+    const course = checkResult.rows[0];
+    console.log("Found course:", course);
+
+    // Admin can delete any course (no ownership check)
+    const deleteResult = await db.query(
+      `DELETE FROM courses WHERE id = $1 RETURNING id, title`,
+      [courseIdNum]
+    );
+
+    console.log("Delete result:", deleteResult.rows);
+
     // Log the action
     await logAuditAction(
-      "system",
+      req.user.email || "admin",
       "course_deleted",
-      `Course "${deleteResult.rows[0].title}" (ID ${courseIdNum}) permanently deleted`
+      `Course "${deleteResult.rows[0].title}" (ID ${courseIdNum}) permanently deleted by admin`,
+      req.ip
     );
+
+    console.log("========== DELETE SUCCESS ==========\n");
 
     res.json({
       status: "SUCCESS",
@@ -224,7 +250,9 @@ router.delete("/courses/:courseId", async (req, res) => {
       data: { courseId: deleteResult.rows[0].id },
     });
   } catch (error) {
+    console.error("========== DELETE ERROR ==========");
     console.error("Error deleting course:", error);
+    console.error("========== END ERROR ==========\n");
     res.status(500).json({ status: "ERROR", message: error.message });
   }
 });

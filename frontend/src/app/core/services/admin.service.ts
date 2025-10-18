@@ -1,9 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, interval, Subject } from 'rxjs';
-import { switchMap, takeUntil, catchError, startWith } from 'rxjs/operators';
+import { BehaviorSubject, Observable, interval, Subject, of, throwError } from 'rxjs';
+import { switchMap, takeUntil, catchError, startWith, tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
-import { of } from 'rxjs';
 
 export interface PlatformStats {
   totalUsers: number;
@@ -343,7 +342,7 @@ export class AdminService {
    * Delete a user
    */
   deleteUser(userId: number): Observable<any> {
-    return this.http.delete<any>(`${this.apiUrl}/users/${userId}`);
+    return this.http.delete<any>(`${this.apiUrl}/admin/users/${userId}`);
   }
 
   /**
@@ -357,7 +356,29 @@ export class AdminService {
    * Delete a course
    */
   deleteCourse(courseId: number): Observable<any> {
-    return this.http.delete<any>(`${this.apiUrl}/courses/${courseId}`);
+    console.log(
+      `Attempting to delete course ${courseId} at ${this.apiUrl}/admin/courses/${courseId}`
+    );
+
+    return this.http.delete<any>(`${this.apiUrl}/admin/courses/${courseId}`).pipe(
+      tap((response) => {
+        console.log(`Course ${courseId} deleted successfully:`, response);
+      }),
+      catchError((error) => {
+        console.error('Delete course error:', error);
+        console.error('Error status:', error.status);
+        console.error('Error message:', error.error?.message || error.message);
+
+        // Return a more user-friendly error
+        const errorMessage = error.error?.message || error.statusText || 'Failed to delete course';
+
+        return throwError(() => ({
+          status: error.status,
+          message: errorMessage,
+          originalError: error,
+        }));
+      })
+    );
   }
 
   /**

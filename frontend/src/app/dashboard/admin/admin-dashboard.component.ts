@@ -133,6 +133,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
     this.adminService.loadDashboardData();
     this.adminService.startAutoRefresh(30);
     this.updatePercentages();
+    this.detectTheme();
+    this.observeThemeChanges();
   }
 
   ngAfterViewInit() {
@@ -155,6 +157,49 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
   detectTheme() {
     const isDark = document.documentElement.classList.contains('dark-theme');
     this.isDarkMode = isDark;
+    console.log('Current theme - Dark mode:', isDark); // For debugging
+  }
+
+  // Observe theme changes and re-render charts
+  observeThemeChanges() {
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.attributeName === 'class') {
+          const wasDark = this.isDarkMode;
+          this.detectTheme();
+
+          // If theme changed and we're on analytics, re-initialize charts
+          if (wasDark !== this.isDarkMode && this.activeSection() === 'analytics') {
+            setTimeout(() => this.initializeCharts(), 100);
+          }
+        }
+      });
+    });
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+    });
+  }
+
+  private getChartColors() {
+    if (this.isDarkMode) {
+      return {
+        textColor: '#e2e8f0',
+        secondaryText: '#cbd5e0',
+        gridColor: 'rgba(203, 213, 224, 0.15)',
+        tooltipBg: 'rgba(45, 55, 72, 0.98)',
+        tooltipBorder: '#4a5568',
+      };
+    } else {
+      return {
+        textColor: '#1a202c',
+        secondaryText: '#4a5568',
+        gridColor: 'rgba(226, 232, 240, 0.8)',
+        tooltipBg: 'rgba(255, 255, 255, 0.98)',
+        tooltipBorder: '#e2e8f0',
+      };
+    }
   }
 
   // ============ CHART INITIALIZATION ============
@@ -194,6 +239,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
     const ctx = this.userDistributionCanvas.nativeElement.getContext('2d');
     if (!ctx) return;
 
+    const colors = this.getChartColors();
     let instructors = 0;
     let students = 0;
 
@@ -269,6 +315,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
     const ctx = this.courseStatusCanvas.nativeElement.getContext('2d');
     if (!ctx) return;
 
+    const colors = this.getChartColors();
     let published = 0;
     this.platformStats$.pipe(takeUntil(this.destroy$)).subscribe((stats) => {
       if (stats) {
@@ -354,6 +401,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
     const ctx = this.growthTrendCanvas.nativeElement.getContext('2d');
     if (!ctx) return;
 
+    const colors = this.getChartColors();
     const config: ChartConfiguration<'line'> = {
       type: 'line',
       data: {
@@ -447,6 +495,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
   createEnrollmentChart() {
     const ctx = this.enrollmentCanvas.nativeElement.getContext('2d');
     if (!ctx) return;
+
+    const colors = this.getChartColors();
 
     const config: ChartConfiguration<'polarArea'> = {
       type: 'polarArea',
@@ -710,16 +760,43 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
   }
 
   deleteCourse(courseId: number) {
-    if (confirm('Are you sure you want to delete this course?')) {
+    if (
+      confirm(
+        `Are you sure you want to delete this course?\n\nThis action cannot be undone and will remove all associated data.`
+      )
+    ) {
+      console.log('Deleting course:', courseId);
+
       this.adminService
         .deleteCourse(courseId)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
-          next: () => {
+          next: (response) => {
+            console.log('Course deleted successfully:', response);
+            alert('Course deleted successfully!');
+
+            // Reload data
             this.adminService.loadCourses();
             this.adminService.loadPlatformStats();
           },
-          error: (err) => console.error('Error deleting course:', err),
+          error: (err) => {
+            console.error('Error deleting course:', err);
+
+            // Show more specific error message
+            let errorMsg = 'Failed to delete course.';
+
+            if (err.status === 404) {
+              errorMsg = 'Course not found or you may not have permission to delete it.';
+            } else if (err.status === 401 || err.status === 403) {
+              errorMsg = 'You are not authorized to delete this course.';
+            } else if (err.message) {
+              errorMsg = err.message;
+            } else if (err.error?.message) {
+              errorMsg = err.error.message;
+            }
+
+            alert(`Error: ${errorMsg}`);
+          },
         });
     }
   }
