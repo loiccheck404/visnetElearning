@@ -2,7 +2,7 @@
   <header class="dashboard-header">
     <div class="header-content">
       <div class="logo">
-        <h2>VISNET</h2>
+        <h2>PAISUD</h2>
       </div>
       <!-- Mobile Menu Toggle -->
       <button class="mobile-menu-toggle" (click)="toggleMobileMenu($event)">
@@ -389,86 +389,86 @@
     </section>
 
     <section class="activity-section">
-  <h2>Recent Activity</h2>
-  <div class="activity-list">
-    @for (activity of recentActivity(); track $index) {
-    <div class="activity-item">
-      <div class="activity-icon" [class]="'activity-' + activity.type">
-        @if (activity.type === 'enrollment') {
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-        >
-          <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-          <circle cx="8.5" cy="7" r="4"></circle>
-          <line x1="20" y1="8" x2="20" y2="14"></line>
-          <line x1="23" y1="11" x2="17" y2="11"></line>
-        </svg>
-        } @else if (activity.type === 'unenrolled') {
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-        >
-          <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-          <circle cx="8.5" cy="7" r="4"></circle>
-          <line x1="23" y1="11" x2="17" y2="11"></line>
-        </svg>
-        } @else if (activity.type === 'question') {
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-        >
-          <circle cx="12" cy="12" r="10"></circle>
-          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
-          <line x1="12" y1="17" x2="12.01" y2="17"></line>
-        </svg>
-        } @else if (activity.type === 'completion') {
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-        >
-          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-          <polyline points="22 4 12 14.01 9 11.01"></polyline>
-        </svg>
+      <h2>Recent Activity</h2>
+      <div class="activity-list">
+        @for (activity of recentActivity(); track $index) {
+        <div class="activity-item">
+          <div class="activity-icon" [class]="'activity-' + activity.type">
+            @if (activity.type === 'enrollment') {
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="8.5" cy="7" r="4"></circle>
+              <line x1="20" y1="8" x2="20" y2="14"></line>
+              <line x1="23" y1="11" x2="17" y2="11"></line>
+            </svg>
+            } @else if (activity.type === 'unenrolled') {
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="8.5" cy="7" r="4"></circle>
+              <line x1="23" y1="11" x2="17" y2="11"></line>
+            </svg>
+            } @else if (activity.type === 'question') {
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+              <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+            } @else if (activity.type === 'completion') {
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+            }
+          </div>
+          <div class="activity-details">
+            <p class="activity-text">
+              @if (activity.type === 'enrollment') {
+              <strong>{{ activity.student }}</strong> enrolled in {{ activity.course }}
+              } @else if (activity.type === 'unenrolled') {
+              <strong>{{ activity.student }}</strong> unenrolled from {{ activity.course }}
+              } @else if (activity.type === 'question') {
+              <strong>{{ activity.student }}</strong> asked a question in {{ activity.course }}
+              } @else if (activity.type === 'completion') {
+              <strong>{{ activity.student }}</strong> completed {{ activity.course }}
+              }
+            </p>
+            <span class="activity-time">{{ activity.date }}</span>
+          </div>
+        </div>
         }
       </div>
-      <div class="activity-details">
-        <p class="activity-text">
-          @if (activity.type === 'enrollment') {
-          <strong>{{ activity.student }}</strong> enrolled in {{ activity.course }}
-          } @else if (activity.type === 'unenrolled') {
-          <strong>{{ activity.student }}</strong> unenrolled from {{ activity.course }}
-          } @else if (activity.type === 'question') {
-          <strong>{{ activity.student }}</strong> asked a question in {{ activity.course }}
-          } @else if (activity.type === 'completion') {
-          <strong>{{ activity.student }}</strong> completed {{ activity.course }}
-          }
-        </p>
-        <span class="activity-time">{{ activity.date }}</span>
-      </div>
-    </div>
-    }
-  </div>
-</section>
+    </section>
   </main>
 </div>

@@ -5,12 +5,13 @@ import { FormsModule } from '@angular/forms';
 import { AuthService, User } from '../../core/services/auth.service';
 import { AdminService } from '../../core/services/admin.service';
 import { ThemeToggleComponent } from '../../shared/components/theme-toggle/theme-toggle.component';
+import { ConfirmationDialogComponent } from '../../shared/components/confirmation-dialog/confirmation-dialog.component';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { Chart, ChartConfiguration, registerables } from 'chart.js';
 import { AfterViewInit, ViewChild, ElementRef } from '@angular/core';
 
-// Register Chart.js components (add after imports)
+// Register Chart.js components
 Chart.register(...registerables);
 
 interface RecentUser {
@@ -53,7 +54,13 @@ interface AuditLog {
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule, ThemeToggleComponent, FormsModule],
+  imports: [
+    CommonModule,
+    RouterModule,
+    ThemeToggleComponent,
+    FormsModule,
+    ConfirmationDialogComponent,
+  ],
   templateUrl: './admin-dashboard.component.html',
   styleUrls: ['./admin-dashboard.component.scss'],
 })
@@ -80,6 +87,18 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
   showUserDropdown = signal(false);
   getInstructorPercentage = signal(0);
   getStudentPercentage = signal(0);
+
+  // Confirmation dialog states
+  showDeleteUserDialog = signal(false);
+  showDeleteCourseDialog = signal(false);
+  showSuccessDialog = signal(false);
+  showErrorDialog = signal(false);
+  isDeleting = signal(false);
+  selectedUserId = signal<number | null>(null);
+  selectedCourseId = signal<number | null>(null);
+  selectedCourseName = signal<string>('');
+  successMessage = signal('');
+  errorMessage = signal('');
 
   // Observables from service
   platformStats$ = this.adminService.stats$;
@@ -671,19 +690,45 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
     console.log('Edit user:', userId);
   }
 
-  deleteUser(userId: number) {
-    if (confirm('Are you sure you want to delete this user?')) {
-      this.adminService
-        .deleteUser(userId)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: () => {
-            this.adminService.loadUsers();
-            this.adminService.loadPlatformStats();
-          },
-          error: (err) => console.error('Error deleting user:', err),
-        });
-    }
+  confirmDeleteUser(userId: number) {
+    this.selectedUserId.set(userId);
+    this.showDeleteUserDialog.set(true);
+  }
+
+  cancelDeleteUser() {
+    this.showDeleteUserDialog.set(false);
+    this.selectedUserId.set(null);
+  }
+
+  deleteUser() {
+    const userId = this.selectedUserId();
+    if (!userId) return;
+
+    this.isDeleting.set(true);
+    this.adminService
+      .deleteUser(userId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.isDeleting.set(false);
+          this.showDeleteUserDialog.set(false);
+          this.selectedUserId.set(null);
+
+          this.successMessage.set('User deleted successfully!');
+          this.showSuccessDialog.set(true);
+
+          this.adminService.loadUsers();
+          this.adminService.loadPlatformStats();
+        },
+        error: (err) => {
+          console.error('Error deleting user:', err);
+          this.isDeleting.set(false);
+          this.showDeleteUserDialog.set(false);
+
+          this.errorMessage.set(err.message || 'Failed to delete user. Please try again.');
+          this.showErrorDialog.set(true);
+        },
+      });
   }
 
   // Course Management
@@ -754,51 +799,79 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
         next: () => {
           this.adminService.loadCourses();
           this.adminService.loadPlatformStats();
+
+          this.successMessage.set('Course approved successfully!');
+          this.showSuccessDialog.set(true);
         },
-        error: (err) => console.error('Error approving course:', err),
+        error: (err) => {
+          console.error('Error approving course:', err);
+          this.errorMessage.set('Failed to approve course. Please try again.');
+          this.showErrorDialog.set(true);
+        },
       });
   }
 
-  deleteCourse(courseId: number) {
-    if (
-      confirm(
-        `Are you sure you want to delete this course?\n\nThis action cannot be undone and will remove all associated data.`
-      )
-    ) {
-      console.log('Deleting course:', courseId);
+  confirmDeleteCourse(courseId: number, courseTitle: string) {
+    this.selectedCourseId.set(courseId);
+    this.selectedCourseName.set(courseTitle);
+    this.showDeleteCourseDialog.set(true);
+  }
 
-      this.adminService
-        .deleteCourse(courseId)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: (response) => {
-            console.log('Course deleted successfully:', response);
-            alert('Course deleted successfully!');
+  cancelDeleteCourse() {
+    this.showDeleteCourseDialog.set(false);
+    this.selectedCourseId.set(null);
+    this.selectedCourseName.set('');
+  }
 
-            // Reload data
-            this.adminService.loadCourses();
-            this.adminService.loadPlatformStats();
-          },
-          error: (err) => {
-            console.error('Error deleting course:', err);
+  deleteCourse() {
+    const courseId = this.selectedCourseId();
+    if (!courseId) return;
 
-            // Show more specific error message
-            let errorMsg = 'Failed to delete course.';
+    this.isDeleting.set(true);
+    this.adminService
+      .deleteCourse(courseId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.isDeleting.set(false);
+          this.showDeleteCourseDialog.set(false);
+          this.selectedCourseId.set(null);
+          this.selectedCourseName.set('');
 
-            if (err.status === 404) {
-              errorMsg = 'Course not found or you may not have permission to delete it.';
-            } else if (err.status === 401 || err.status === 403) {
-              errorMsg = 'You are not authorized to delete this course.';
-            } else if (err.message) {
-              errorMsg = err.message;
-            } else if (err.error?.message) {
-              errorMsg = err.error.message;
-            }
+          this.successMessage.set('Course deleted successfully!');
+          this.showSuccessDialog.set(true);
 
-            alert(`Error: ${errorMsg}`);
-          },
-        });
-    }
+          this.adminService.loadCourses();
+          this.adminService.loadPlatformStats();
+        },
+        error: (err) => {
+          console.error('Error deleting course:', err);
+          this.isDeleting.set(false);
+          this.showDeleteCourseDialog.set(false);
+
+          let errorMsg = 'Failed to delete course.';
+          if (err.status === 404) {
+            errorMsg = 'Course not found or you may not have permission to delete it.';
+          } else if (err.status === 401 || err.status === 403) {
+            errorMsg = 'You are not authorized to delete this course.';
+          } else if (err.message) {
+            errorMsg = err.message;
+          }
+
+          this.errorMessage.set(errorMsg);
+          this.showErrorDialog.set(true);
+        },
+      });
+  }
+
+  closeSuccessDialog() {
+    this.showSuccessDialog.set(false);
+    this.successMessage.set('');
+  }
+
+  closeErrorDialog() {
+    this.showErrorDialog.set(false);
+    this.errorMessage.set('');
   }
 
   // Utilities
