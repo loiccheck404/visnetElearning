@@ -8,6 +8,7 @@ import { ActivityService } from '../../core/services/activity.service';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { StudentService } from '../../core/services/student.service';
+import { ConfirmationDialogComponent } from '../../shared/components/confirmation-dialog/confirmation-dialog.component';
 
 interface InstructorCourse {
   id: number;
@@ -28,7 +29,7 @@ interface InstructorActivity {
 @Component({
   selector: 'app-instructor-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule, ThemeToggleComponent],
+  imports: [CommonModule, RouterModule, ThemeToggleComponent, ConfirmationDialogComponent],
   templateUrl: './instructor-dashboard.component.html',
   styleUrls: ['./instructor-dashboard.component.scss'],
 })
@@ -50,6 +51,7 @@ export class InstructorDashboardComponent implements OnInit {
 
   showMobileMenu = signal(false);
   showUserDropdown = signal(false);
+  showLogoutDialog = signal(false);
 
   constructor(
     private authService: AuthService,
@@ -228,8 +230,17 @@ export class InstructorDashboardComponent implements OnInit {
   }
 
   onLogout() {
+    this.showLogoutDialog.set(true);
+  }
+
+  confirmLogout() {
+    this.showLogoutDialog.set(false);
     this.authService.logout();
     this.router.navigate(['/auth/login']);
+  }
+
+  cancelLogout() {
+    this.showLogoutDialog.set(false);
   }
 
   createCourse() {

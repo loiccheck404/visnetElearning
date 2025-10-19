@@ -99,6 +99,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
   selectedCourseName = signal<string>('');
   successMessage = signal('');
   errorMessage = signal('');
+  showLogoutDialog = signal(false);
 
   // Observables from service
   platformStats$ = this.adminService.stats$;
@@ -898,7 +899,16 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
   }
 
   onLogout() {
+    this.showLogoutDialog.set(true);
+  }
+
+  confirmLogout() {
+    this.showLogoutDialog.set(false);
     this.authService.logout();
     this.router.navigate(['/auth/login']);
+  }
+
+  cancelLogout() {
+    this.showLogoutDialog.set(false);
   }
 }

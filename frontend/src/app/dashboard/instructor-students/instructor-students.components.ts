@@ -9,6 +9,7 @@ import { ToastService } from '../../core/services/toast.service';
 import { StudentService, InstructorStudent } from '../../core/services/student.service';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { ConfirmationDialogComponent } from '../../shared/components/confirmation-dialog/confirmation-dialog.component';
 
 interface Student {
   id: number;
@@ -35,7 +36,13 @@ interface CourseEnrollment {
 @Component({
   selector: 'app-instructor-students',
   standalone: true,
-  imports: [CommonModule, RouterModule, ThemeToggleComponent, FormsModule],
+  imports: [
+    CommonModule,
+    RouterModule,
+    ThemeToggleComponent,
+    FormsModule,
+    ConfirmationDialogComponent,
+  ],
   templateUrl: './instructor-students.component.html',
   styleUrls: ['./instructor-students.component.scss'],
 })
@@ -48,6 +55,7 @@ export class InstructorStudentsComponent implements OnInit {
   searchQuery = signal('');
   showMobileMenu = signal(false);
   showUserDropdown = signal(false);
+  showLogoutDialog = signal(false);
 
   // Filtered students based on search
   filteredStudents = computed(() => {
@@ -286,8 +294,17 @@ export class InstructorStudentsComponent implements OnInit {
   }
 
   onLogout() {
+    this.showLogoutDialog.set(true);
+  }
+
+  confirmLogout() {
+    this.showLogoutDialog.set(false);
     this.authService.logout();
     this.router.navigate(['/auth/login']);
+  }
+
+  cancelLogout() {
+    this.showLogoutDialog.set(false);
   }
 
   goBackToDashboard() {

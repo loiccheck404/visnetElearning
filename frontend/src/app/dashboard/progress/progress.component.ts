@@ -4,11 +4,12 @@ import { RouterModule, Router } from '@angular/router';
 import { ProgressService } from '../../core/services/progress.service';
 import { ThemeToggleComponent } from '../../shared/components/theme-toggle/theme-toggle.component';
 import { AuthService } from '../../core/services/auth.service';
+import { ConfirmationDialogComponent } from '../../shared/components/confirmation-dialog/confirmation-dialog.component';
 
 @Component({
   selector: 'app-progress',
   standalone: true,
-  imports: [CommonModule, RouterModule, ThemeToggleComponent],
+  imports: [CommonModule, RouterModule, ThemeToggleComponent, ConfirmationDialogComponent],
   templateUrl: './progress.component.html',
   styleUrl: './progress.component.scss',
 })
@@ -25,6 +26,7 @@ export class ProgressComponent implements OnInit {
   });
   showMobileMenu = signal(false);
   showUserDropdown = signal(false);
+  showLogoutDialog = signal(false);
 
   constructor(
     private progressService: ProgressService,
@@ -140,10 +142,18 @@ export class ProgressComponent implements OnInit {
   }
 
   onLogout() {
-    this.showMobileMenu.set(false);
-    this.showUserDropdown.set(false);
+    this.showLogoutDialog.set(true);
+  }
+
+  // 3. Add these new methods right after onLogout()
+  confirmLogout() {
+    this.showLogoutDialog.set(false);
     this.authService.logout();
     this.router.navigate(['/auth/login']);
+  }
+
+  cancelLogout() {
+    this.showLogoutDialog.set(false);
   }
 
   getGreeting(): string {

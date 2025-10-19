@@ -47,6 +47,7 @@ export class HomeComponent implements OnInit {
   showCourseMenu = signal<number | null>(null);
   showMobileMenu = signal(false);
   showUserDropdown = signal(false);
+  showLogoutDialog = signal(false);
 
   // Computed statistics
   totalEnrolled = computed(() => this.enrolledCourses().length);
@@ -254,8 +255,17 @@ export class HomeComponent implements OnInit {
   }
 
   onLogout() {
+    this.showLogoutDialog.set(true);
+  }
+
+  confirmLogout() {
+    this.showLogoutDialog.set(false);
     this.authService.logout();
     this.router.navigate(['/auth/login']);
+  }
+
+  cancelLogout() {
+    this.showLogoutDialog.set(false);
   }
 
   continueCourse(courseId: number) {

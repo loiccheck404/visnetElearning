@@ -8,11 +8,19 @@ import { Location } from '@angular/common';
 import { AuthService, User } from '../../core/services/auth.service';
 import { ThemeToggleComponent } from '../../shared/components/theme-toggle/theme-toggle.component';
 import { EnrollmentService } from '../../core/services/enrollment.service';
+import { ConfirmationDialogComponent } from '../../shared/components/confirmation-dialog/confirmation-dialog.component';
 
 @Component({
   selector: 'app-course-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, LoadingSpinnerComponent, ThemeToggleComponent],
+  imports: [
+    CommonModule,
+    RouterModule,
+    FormsModule,
+    LoadingSpinnerComponent,
+    ThemeToggleComponent,
+    ConfirmationDialogComponent,
+  ],
   templateUrl: './course-list.component.html',
   styleUrls: ['./course-list.component.scss'],
 })
@@ -25,6 +33,7 @@ export class CourseListComponent implements OnInit {
   showMobileMenu = signal(false);
   showUserDropdown = signal(false);
   enrolledCourseIds = signal<Set<number>>(new Set());
+  showLogoutDialog = signal(false);
 
   // Computed properties to separate enrolled and available courses
   enrolledCourses = computed(() => {
@@ -213,9 +222,16 @@ export class CourseListComponent implements OnInit {
   }
 
   onLogout() {
-    this.showMobileMenu.set(false);
-    this.showUserDropdown.set(false);
+    this.showLogoutDialog.set(true);
+  }
+
+  confirmLogout() {
+    this.showLogoutDialog.set(false);
     this.authService.logout();
     this.router.navigate(['/auth/login']);
+  }
+
+  cancelLogout() {
+    this.showLogoutDialog.set(false);
   }
 }

@@ -530,4 +530,16 @@
       </main>
     </div>
   </div>
+  <!-- Logout Confirmation Dialog -->
+  <app-confirmation-dialog
+    [isOpen]="showLogoutDialog"
+    title="Logout Confirmation"
+    message="Are you sure you want to logout?"
+    subMessage="You will need to login again to access your dashboard."
+    confirmText="Yes, Logout"
+    cancelText="Cancel"
+    type="warning"
+    (confirm)="confirmLogout()"
+    (cancel)="cancelLogout()"
+  ></app-confirmation-dialog>
 </div>

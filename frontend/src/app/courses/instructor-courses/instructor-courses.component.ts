@@ -38,6 +38,7 @@ export class InstructorCoursesComponent implements OnInit {
 
   showMobileMenu = signal(false);
   showUserDropdown = signal(false);
+  showLogoutDialog = signal(false);
 
   constructor(
     private courseService: CourseService,
@@ -190,8 +191,17 @@ export class InstructorCoursesComponent implements OnInit {
   }
 
   onLogout() {
+    this.showLogoutDialog.set(true);
+  }
+
+  confirmLogout() {
+    this.showLogoutDialog.set(false);
     this.authService.logout();
     this.router.navigate(['/auth/login']);
+  }
+
+  cancelLogout() {
+    this.showLogoutDialog.set(false);
   }
 
   getStatusColor(status: string): string {
@@ -204,6 +214,6 @@ export class InstructorCoursesComponent implements OnInit {
   }
 
   goBackToDashboard() {
-  this.router.navigate(['/dashboard/instructor']);
-}
+    this.router.navigate(['/dashboard/instructor']);
+  }
 }
