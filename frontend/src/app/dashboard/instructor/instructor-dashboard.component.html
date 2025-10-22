@@ -333,9 +333,36 @@
             @for (course of myCourses(); track course.id) {
             <tr>
               <td>
-                <strong>{{ course.title }}</strong>
+                <div>
+                  <strong>{{ course.title }}</strong>
+
+                  <!-- ADD THE REJECTION ALERT HERE - Right after the course title -->
+                  @if (course.status === 'draft' && course.rejection_reason) {
+                  <div class="rejection-alert">
+                    <div class="alert-icon">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                      >
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="8" x2="12" y2="12"></line>
+                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                      </svg>
+                    </div>
+                    <div class="alert-content">
+                      <strong>Course Rejected</strong>
+                      <p>{{ course.rejection_reason }}</p>
+                    </div>
+                  </div>
+                  }
+                </div>
               </td>
-              <td>{{ course.students }}</td>
+              <td>{{ course.student_count }}</td>
               <td>
                 <span class="status-badge" [class]="'status-' + course.status">
                   {{ course.status }}
@@ -482,5 +509,18 @@
     type="warning"
     (confirm)="confirmLogout()"
     (cancel)="cancelLogout()"
+  ></app-confirmation-dialog>
+
+  <!-- Submit Course Confirmation Dialog -->
+  <app-confirmation-dialog
+    [isOpen]="showSubmitCourseDialog"
+    title="Submit Course for Approval"
+    message="Submit this course for admin approval? You will be notified once it is reviewed."
+    subMessage="Make sure your course content is complete before submitting."
+    confirmText="Submit for Approval"
+    cancelText="Cancel"
+    type="info"
+    (confirm)="submitCourseForApproval()"
+    (cancel)="cancelSubmitCourse()"
   ></app-confirmation-dialog>
 </div>

@@ -324,7 +324,6 @@ const publishCourse = async (req, res) => {
     const userId = req.user.id;
     const userRole = req.user.role;
 
-    // Check if course exists and user has permission
     const courseCheck = await db.query("SELECT * FROM courses WHERE id = $1", [
       id,
     ]);
@@ -338,7 +337,6 @@ const publishCourse = async (req, res) => {
 
     const course = courseCheck.rows[0];
 
-    // Only course instructor or admin can publish
     if (course.instructor_id !== userId && userRole !== "admin") {
       return res.status(403).json({
         status: "ERROR",
@@ -346,23 +344,24 @@ const publishCourse = async (req, res) => {
       });
     }
 
-    // If instructor, set to 'pending' for approval
-    // If admin, publish directly
+    // Clear rejection reason when resubmitting
     const newStatus = userRole === "admin" ? "published" : "pending";
     const message =
       userRole === "admin"
         ? "Course published successfully"
-        : "Course submitted for approval";
+        : "Course submitted for admin approval";
 
     const result = await db.query(
       `UPDATE courses 
-       SET status = $1, updated_at = NOW()
+       SET status = $1, 
+           rejection_reason = NULL,
+           rejection_date = NULL,
+           updated_at = NOW()
        WHERE id = $2 
        RETURNING *`,
       [newStatus, id]
     );
 
-    // Log activity - FIXED: Only use columns that exist
     try {
       await db.query(
         `INSERT INTO student_activities (student_id, activity_type, course_id, created_at)

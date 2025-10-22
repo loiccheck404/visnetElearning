@@ -16,6 +16,7 @@ interface InstructorCourse {
   student_count: number;
   status: 'published' | 'draft';
   progress: number;
+  rejection_reason?: string;
 }
 
 interface InstructorActivity {
@@ -52,6 +53,8 @@ export class InstructorDashboardComponent implements OnInit {
   showMobileMenu = signal(false);
   showUserDropdown = signal(false);
   showLogoutDialog = signal(false);
+  showSubmitCourseDialog = signal(false);
+  selectedCourseForSubmit = signal<number | null>(null);
 
   constructor(
     private authService: AuthService,
@@ -258,5 +261,35 @@ export class InstructorDashboardComponent implements OnInit {
     this.router.navigate(['/dashboard/instructor/students'], {
       queryParams: { courseId: courseId },
     });
+  }
+
+  confirmSubmitCourse(courseId: number) {
+    this.selectedCourseForSubmit.set(courseId);
+    this.showSubmitCourseDialog.set(true);
+  }
+
+  // Add method to submit:
+  submitCourseForApproval() {
+    const courseId = this.selectedCourseForSubmit();
+    if (!courseId) return;
+
+    this.courseService.publishCourse(courseId).subscribe({
+      next: (response) => {
+        this.showSubmitCourseDialog.set(false);
+        this.selectedCourseForSubmit.set(null);
+        // Show success message
+        alert('Course submitted for admin approval! You will be notified once it is reviewed.');
+        this.loadDashboardData();
+      },
+      error: (err) => {
+        console.error('Error submitting course:', err);
+        alert('Failed to submit course. Please try again.');
+      },
+    });
+  }
+
+  cancelSubmitCourse() {
+    this.showSubmitCourseDialog.set(false);
+    this.selectedCourseForSubmit.set(null);
   }
 }

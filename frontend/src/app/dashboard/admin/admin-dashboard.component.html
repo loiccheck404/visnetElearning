@@ -1463,19 +1463,79 @@
   ></app-confirmation-dialog>
 
   <!-- Reject Course Dialog with Reason Input -->
-  <app-confirmation-dialog
-    [isOpen]="showRejectCourseDialog"
-    [isLoading]="isRejecting"
-    title="Reject Course"
-    [message]="'Reject ' + selectedCourseName() + '?'"
-    subMessage="The course will be returned to draft status. Please provide a reason for the instructor."
-    confirmText="Reject"
-    cancelText="Cancel"
-    loadingText="Rejecting..."
-    type="danger"
-    (confirm)="rejectCourse()"
-    (cancel)="cancelRejectCourse()"
-  ></app-confirmation-dialog>
+  <!-- Reject Course Dialog with Reason Input -->
+  @if (showRejectCourseDialog()) {
+  <div class="dialog-overlay" (click)="cancelRejectCourse()">
+    <div class="rejection-dialog" (click)="$event.stopPropagation()">
+      <div class="dialog-header">
+        <div class="icon-wrapper danger">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="32"
+            height="32"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </div>
+        <h3>Reject Course</h3>
+        <button class="close-btn" (click)="cancelRejectCourse()" [disabled]="isRejecting()">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="dialog-body">
+        <p class="message">Reject "{{ selectedCourseName() }}"?</p>
+        <p class="sub-message">
+          The course will be returned to draft status. Please provide a reason for the instructor.
+        </p>
+
+        <div class="form-group">
+          <label for="rejection-reason">Rejection Reason *</label>
+          <textarea
+            id="rejection-reason"
+            rows="4"
+            placeholder="Explain why this course is being rejected..."
+            [value]="rejectionReasonInput()"
+            (input)="rejectionReasonInput.set($any($event.target).value)"
+            [disabled]="isRejecting()"
+          ></textarea>
+          <span class="char-count">{{ rejectionReasonInput().length }} characters</span>
+        </div>
+      </div>
+
+      <div class="dialog-actions">
+        <button class="btn-cancel" (click)="cancelRejectCourse()" [disabled]="isRejecting()">
+          Cancel
+        </button>
+        <button
+          class="btn-confirm danger"
+          (click)="rejectCourse()"
+          [disabled]="isRejecting() || rejectionReasonInput().trim().length === 0"
+        >
+          @if (isRejecting()) {
+          <span class="spinner"></span>
+          Rejecting... } @else { Reject Course }
+        </button>
+      </div>
+    </div>
+  </div>
+  }
 
   <!-- Logout Confirmation Dialog -->
   <app-confirmation-dialog

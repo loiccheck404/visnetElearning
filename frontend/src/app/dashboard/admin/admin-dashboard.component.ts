@@ -106,6 +106,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
   isRejecting = signal(false);
   rejectionReason = signal('');
   pendingCoursesCount = signal(0);
+  showRejectReasonDialog = signal(false);
+  rejectionReasonInput = signal('');
 
   // Observables from service
   platformStats$ = this.adminService.stats$;
@@ -888,37 +890,27 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
   confirmRejectCourse(courseId: number, courseTitle: string) {
     this.selectedCourseId.set(courseId);
     this.selectedCourseName.set(courseTitle);
+    this.rejectionReasonInput.set(''); // Clear previous reason
     this.showRejectCourseDialog.set(true);
-
-    // Prompt for rejection reason
-    const reason = prompt('Please provide a reason for rejecting this course:');
-    if (reason && reason.trim().length > 0) {
-      this.rejectionReason.set(reason.trim());
-      this.rejectCourseWithReason(courseId, reason.trim());
-    } else {
-      this.showRejectCourseDialog.set(false);
-      this.selectedCourseId.set(null);
-      this.selectedCourseName.set('');
-    }
   }
 
   cancelRejectCourse() {
     this.showRejectCourseDialog.set(false);
     this.selectedCourseId.set(null);
     this.selectedCourseName.set('');
-    this.rejectionReason.set('');
+    this.rejectionReasonInput.set('');
   }
 
   rejectCourse() {
     const courseId = this.selectedCourseId();
-    const reason = this.rejectionReason();
+    const reason = this.rejectionReasonInput().trim();
 
-    if (!courseId || !reason) return;
+    if (!courseId || !reason) {
+      this.errorMessage.set('Please provide a reason for rejection');
+      this.showErrorDialog.set(true);
+      return;
+    }
 
-    this.rejectCourseWithReason(courseId, reason);
-  }
-
-  private rejectCourseWithReason(courseId: number, reason: string) {
     this.isRejecting.set(true);
     this.adminService
       .rejectCourse(courseId, reason)
@@ -929,7 +921,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
           this.showRejectCourseDialog.set(false);
           this.selectedCourseId.set(null);
           this.selectedCourseName.set('');
-          this.rejectionReason.set('');
+          this.rejectionReasonInput.set('');
 
           this.successMessage.set('Course rejected and returned to draft for revision.');
           this.showSuccessDialog.set(true);

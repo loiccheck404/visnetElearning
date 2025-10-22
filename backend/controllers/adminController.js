@@ -18,12 +18,14 @@ const getAllCoursesForAdmin = async (req, res) => {
       LEFT JOIN enrollments e ON c.id = e.course_id
       GROUP BY c.id, cat.name, u.first_name, u.last_name, u.email
       ORDER BY 
+        -- Priority 1: Status (pending first, then published, then draft, then others)
         CASE c.status
           WHEN 'pending' THEN 1
           WHEN 'published' THEN 2
           WHEN 'draft' THEN 3
           ELSE 4
         END,
+        -- Priority 2: Within same status, newest first
         c.created_at DESC
       LIMIT $1 OFFSET $2
     `;
@@ -35,8 +37,13 @@ const getAllCoursesForAdmin = async (req, res) => {
 
     console.log(`Admin fetched ${result.rows.length} courses`);
     console.log(
-      "Course statuses:",
-      result.rows.map((c) => ({ id: c.id, title: c.title, status: c.status }))
+      "Course statuses and order:",
+      result.rows.map((c) => ({
+        id: c.id,
+        title: c.title,
+        status: c.status,
+        created: c.created_at,
+      }))
     );
 
     res.json({
@@ -136,7 +143,6 @@ const rejectCourse = async (req, res) => {
       });
     }
 
-    // Check if course exists
     const checkCourse = await db.query(
       `SELECT id, title, instructor_id, status FROM courses WHERE id = $1`,
       [id]
@@ -151,17 +157,19 @@ const rejectCourse = async (req, res) => {
 
     const course = checkCourse.rows[0];
 
-    // Update course status to 'draft'
+    // ADDED: Store rejection reason in the course record
     const result = await db.query(
       `UPDATE courses 
        SET status = 'draft',
+           rejection_reason = $1,
+           rejection_date = NOW(),
            updated_at = NOW()
-       WHERE id = $1 
+       WHERE id = $2 
        RETURNING *`,
-      [id]
+      [reason, id]
     );
 
-    // Log activity - FIXED: Only use columns that exist
+    // Log activity
     try {
       await db.query(
         `INSERT INTO student_activities (student_id, activity_type, course_id, created_at)
