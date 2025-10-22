@@ -1176,6 +1176,7 @@
   justify-content: center;
   transition: all 0.2s;
   margin-left: 0.25rem;
+  pointer-events: auto;
 
   &:hover {
     background: var(--hover-bg);
@@ -1842,5 +1843,90 @@
     .chart-card {
       page-break-inside: avoid;
     }
+  }
+}
+
+.pending-alert {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem;
+  background: linear-gradient(135deg, rgba(237, 137, 54, 0.1) 0%, rgba(221, 107, 32, 0.1) 100%);
+  border: 2px solid rgba(237, 137, 54, 0.3);
+  border-radius: 0.75rem;
+  margin: 1.5rem 0;
+  animation: pulse 2s ease-in-out infinite;
+
+  .alert-icon {
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+    border-radius: 50%;
+    color: white;
+  }
+
+  .alert-content {
+    flex: 1;
+
+    h3 {
+      margin: 0 0 0.25rem 0;
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    p {
+      margin: 0;
+      font-size: 0.9375rem;
+      color: var(--text-secondary);
+    }
+  }
+
+  .alert-action {
+    padding: 0.625rem 1.25rem;
+    background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(237, 137, 54, 0.4);
+    }
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(237, 137, 54, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(237, 137, 54, 0);
+  }
+}
+
+/* Update status badges to include pending */
+.status-badge {
+  &.status-pending {
+    background: rgba(237, 137, 54, 0.1);
+    color: #ed8936;
+    border: 1px solid rgba(237, 137, 54, 0.3);
+  }
+}
+
+/* Highlight pending courses in the table */
+.data-table tbody tr {
+  &:has(.status-pending) {
+    background: rgba(237, 137, 54, 0.05);
+    border-left: 3px solid #ed8936;
   }
 }

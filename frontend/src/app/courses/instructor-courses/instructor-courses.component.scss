@@ -649,3 +649,72 @@
     color: var(--primary-color);
   }
 }
+
+/* Add to instructor-courses.component.scss */
+
+.course-status {
+  &.status-pending {
+    background: linear-gradient(135deg, rgba(237, 137, 54, 0.1) 0%, rgba(221, 107, 32, 0.1) 100%);
+    color: #ed8936;
+    border: 1px solid rgba(237, 137, 54, 0.3);
+  }
+
+  &.status-published {
+    background: linear-gradient(135deg, rgba(72, 187, 120, 0.1) 0%, rgba(56, 161, 105, 0.1) 100%);
+    color: #48bb78;
+    border: 1px solid rgba(72, 187, 120, 0.3);
+  }
+
+  &.status-draft {
+    background: linear-gradient(135deg, rgba(113, 128, 150, 0.1) 0%, rgba(74, 85, 104, 0.1) 100%);
+    color: #718096;
+    border: 1px solid rgba(113, 128, 150, 0.3);
+  }
+}
+
+.course-status-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: rgba(237, 137, 54, 0.05);
+  border: 1px solid rgba(237, 137, 54, 0.2);
+  border-radius: 0.5rem;
+  margin-top: 0.75rem;
+  font-size: 0.875rem;
+  color: #ed8936;
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+.action-btn {
+  &.disabled,
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+
+    &:hover {
+      transform: none;
+      box-shadow: none;
+    }
+  }
+
+  &.publish {
+    background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+    color: white;
+
+    &:hover:not(:disabled) {
+      box-shadow: 0 4px 12px rgba(72, 187, 120, 0.4);
+    }
+  }
+}
+
+/* Highlight pending courses */
+.course-card {
+  &:has(.status-pending) {
+    border: 2px solid rgba(237, 137, 54, 0.3);
+    box-shadow: 0 4px 20px rgba(237, 137, 54, 0.1);
+  }
+}

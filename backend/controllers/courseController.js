@@ -122,7 +122,10 @@ const getCourseById = async (req, res) => {
 // Create new course (instructor only)
 const createCourse = async (req, res) => {
   try {
-    const instructorId = req.user.id;
+    console.log("\n========== CREATE COURSE START ==========");
+    console.log("Request body:", req.body);
+    console.log("User:", req.user);
+
     const {
       title,
       description,
@@ -131,41 +134,112 @@ const createCourse = async (req, res) => {
       level,
       language,
       price,
+      thumbnail_url,
     } = req.body;
 
+    // Validation
+    if (!title || !description || !category_id || !level || !language) {
+      console.log("Validation failed - missing required fields");
+      return res.status(400).json({
+        status: "ERROR",
+        message:
+          "Missing required fields: title, description, category_id, level, language",
+      });
+    }
+
+    const instructorId = req.user.id;
+    console.log("Instructor ID:", instructorId);
+
     // Generate slug from title
-    const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    const slug = title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "");
 
-    const query = `
-      INSERT INTO courses (
-        title, slug, description, short_description, instructor_id, 
-        category_id, level, language, price, status
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'published')
-      RETURNING *
-    `;
+    console.log("Generated slug:", slug);
 
-    const result = await db.query(query, [
-      title,
+    // Check if slug already exists
+    const slugCheck = await db.query(`SELECT id FROM courses WHERE slug = $1`, [
       slug,
-      description,
-      short_description,
-      instructorId,
-      category_id,
-      level,
-      language,
-      price || 0,
     ]);
+
+    if (slugCheck.rows.length > 0) {
+      console.log("Slug already exists:", slug);
+      return res.status(400).json({
+        status: "ERROR",
+        message: `A course with similar title already exists. Please use a different title.`,
+      });
+    }
+
+    // For instructors, set status to 'pending' (awaiting admin approval)
+    // For admins, set status to 'published' directly
+    const status = req.user.role === "admin" ? "published" : "pending";
+    console.log("Course status will be:", status);
+
+    const result = await db.query(
+      `INSERT INTO courses (
+        title, slug, description, short_description, instructor_id, 
+        category_id, level, language, price, thumbnail_url, status
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+      RETURNING *`,
+      [
+        title,
+        slug,
+        description,
+        short_description || "",
+        instructorId,
+        category_id,
+        level,
+        language,
+        price || 0,
+        thumbnail_url || null,
+        status,
+      ]
+    );
+
+    console.log("Course created successfully:", result.rows[0]);
+
+    // Log activity - FIXED: Only use columns that exist
+    try {
+      await db.query(
+        `INSERT INTO student_activities (student_id, activity_type, course_id, created_at)
+         VALUES ($1, $2, $3, NOW())`,
+        [
+          instructorId,
+          status === "pending"
+            ? "course_submitted_for_approval"
+            : "course_created",
+          result.rows[0].id,
+        ]
+      );
+      console.log("Activity logged successfully");
+    } catch (activityError) {
+      // Don't fail course creation if activity logging fails
+      console.warn(
+        "Failed to log activity (non-critical):",
+        activityError.message
+      );
+    }
+
+    console.log("========== CREATE COURSE END ==========\n");
 
     res.status(201).json({
       status: "SUCCESS",
-      message: "Course created successfully",
+      message:
+        status === "pending"
+          ? "Course created and submitted for admin approval"
+          : "Course created and published successfully",
       data: { course: result.rows[0] },
     });
   } catch (error) {
-    console.error("Create course error:", error);
+    console.error("Error creating course:", error);
+    console.error("Error stack:", error.stack);
+    console.log("========== CREATE COURSE ERROR ==========\n");
+
     res.status(500).json({
       status: "ERROR",
-      message: "Failed to create course",
+      message: error.message || "Failed to create course",
+      error: process.env.NODE_ENV === "development" ? error.stack : undefined,
     });
   }
 };
@@ -243,38 +317,78 @@ const updateCourse = async (req, res) => {
   }
 };
 
-// Publish course
+// Publish Course - Now submits for approval instead of publishing directly
 const publishCourse = async (req, res) => {
   try {
     const { id } = req.params;
-    const instructorId = req.user.id;
+    const userId = req.user.id;
+    const userRole = req.user.role;
 
-    const query = `
-      UPDATE courses 
-      SET status = 'published', published_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
-      WHERE id = $1 AND instructor_id = $2
-      RETURNING *
-    `;
+    // Check if course exists and user has permission
+    const courseCheck = await db.query("SELECT * FROM courses WHERE id = $1", [
+      id,
+    ]);
 
-    const result = await db.query(query, [id, instructorId]);
+    if (courseCheck.rows.length === 0) {
+      return res.status(404).json({
+        status: "ERROR",
+        message: "Course not found",
+      });
+    }
 
-    if (result.rows.length === 0) {
+    const course = courseCheck.rows[0];
+
+    // Only course instructor or admin can publish
+    if (course.instructor_id !== userId && userRole !== "admin") {
       return res.status(403).json({
         status: "ERROR",
-        message: "Not authorized or course not found",
+        message: "You don't have permission to publish this course",
       });
+    }
+
+    // If instructor, set to 'pending' for approval
+    // If admin, publish directly
+    const newStatus = userRole === "admin" ? "published" : "pending";
+    const message =
+      userRole === "admin"
+        ? "Course published successfully"
+        : "Course submitted for approval";
+
+    const result = await db.query(
+      `UPDATE courses 
+       SET status = $1, updated_at = NOW()
+       WHERE id = $2 
+       RETURNING *`,
+      [newStatus, id]
+    );
+
+    // Log activity - FIXED: Only use columns that exist
+    try {
+      await db.query(
+        `INSERT INTO student_activities (student_id, activity_type, course_id, created_at)
+         VALUES ($1, $2, $3, NOW())`,
+        [
+          userId,
+          newStatus === "published"
+            ? "course_published"
+            : "course_submitted_for_approval",
+          id,
+        ]
+      );
+    } catch (activityError) {
+      console.warn("Failed to log publish activity:", activityError.message);
     }
 
     res.json({
       status: "SUCCESS",
-      message: "Course published successfully",
+      message,
       data: { course: result.rows[0] },
     });
   } catch (error) {
-    console.error("Publish course error:", error);
+    console.error("Error publishing course:", error);
     res.status(500).json({
       status: "ERROR",
-      message: "Failed to publish course",
+      message: error.message,
     });
   }
 };
@@ -353,7 +467,7 @@ const deleteCourse = async (req, res) => {
 // Get instructor's courses
 const getInstructorCourses = async (req, res) => {
   try {
-    const instructorId = req.user.id; // Make sure this is correct
+    const instructorId = req.user.id;
 
     const query = `
       SELECT c.*, cat.name as category_name,
@@ -384,9 +498,7 @@ const getInstructorCourses = async (req, res) => {
 // Get all categories
 const getCategories = async (req, res) => {
   try {
-    const result = await db.query(`
-      SELECT * FROM categories ORDER BY name ASC
-    `);
+    const result = await db.query(`SELECT * FROM categories ORDER BY name ASC`);
 
     res.json({
       status: "SUCCESS",

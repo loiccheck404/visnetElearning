@@ -11,7 +11,7 @@ interface InstructorCourse {
   id: number;
   title: string;
   student_count: number;
-  status: 'published' | 'draft';
+  status: 'published' | 'draft' | 'pending';
   category_name: string;
   created_at: string;
   enrollment_count: number;
@@ -174,18 +174,28 @@ export class InstructorCoursesComponent implements OnInit {
     });
   }
 
-  publishCourse(courseId: number, event: Event) {
+  submitForApproval(courseId: number, event: Event) {
     event.stopPropagation();
+
+    // Confirm submission
+    const confirmed = confirm(
+      'Submit this course for admin approval? You will be notified once it is reviewed.'
+    );
+
+    if (!confirmed) return;
+
     this.courseService.publishCourse(courseId).subscribe({
       next: (response) => {
         if (response.status === 'SUCCESS') {
-          this.toastService.success('Course published successfully');
+          this.toastService.success(
+            'Course submitted for approval! You will be notified once it is reviewed.'
+          );
           this.loadCourses();
         }
       },
       error: (err) => {
-        console.error('Error publishing course:', err);
-        this.toastService.error('Failed to publish course');
+        console.error('Error submitting course:', err);
+        this.toastService.error('Failed to submit course for approval');
       },
     });
   }

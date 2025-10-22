@@ -179,24 +179,24 @@ export class AdminService {
   }
 
   /**
-   * Load all courses - NOW using /courses endpoint
+   * Load ALL courses for admin (including pending, draft, published)
+   * CRITICAL: Admin needs to see ALL courses to approve/reject them
    */
   loadCourses(): void {
     this.coursesLoadingSubject.next(true);
     this.coursesErrorSubject.next(null);
 
+    // Use admin endpoint to get ALL courses regardless of status
     this.http
-      .get<any>(`${this.apiUrl}/courses?limit=100&page=1`)
+      .get<any>(`${this.apiUrl}/admin/courses?limit=100`)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
-          console.log('Courses API response:', response);
+          console.log('Admin Courses API response:', response);
 
           if (response?.data) {
-            // Handle both nested (response.data.courses) and direct (response.data) array formats
-            const coursesList = Array.isArray(response.data)
-              ? response.data
-              : response.data.courses || [];
+            // FIXED: Correctly extract courses from nested data structure
+            const coursesList = response.data.courses || [];
 
             console.log('Extracted courses list:', coursesList);
 
@@ -208,17 +208,26 @@ export class AdminService {
                       course.instructor?.last_name || course.instructor?.lastName || ''
                     }`.trim() || 'N/A';
 
+                // IMPORTANT: Ensure status is lowercase for consistency
+                const status = (course.status || 'draft').toLowerCase();
+
+                console.log(`Course: ${course.title}, Status: ${status}`);
+
                 return {
                   id: course.id,
                   title: course.title || 'Untitled',
                   instructor_name: instructorName,
-                  status: (course.status || 'draft').toLowerCase(),
+                  status: status, // 'pending', 'published', 'draft'
                   enrollment_count: course.enrollment_count || 0,
                   created_at: this.formatDate(course.created_at),
                 };
               });
 
-              console.log('Mapped courses:', courses);
+              console.log('Final mapped courses:', courses);
+              console.log(
+                'Pending courses:',
+                courses.filter((c) => c.status === 'pending')
+              );
               this.coursesSubject.next(courses);
             } else {
               console.warn('No courses found in response');
@@ -232,6 +241,8 @@ export class AdminService {
         },
         error: (err) => {
           console.error('Error loading courses:', err);
+          console.error('Error status:', err.status);
+          console.error('Error message:', err.error?.message || err.message);
           this.coursesErrorSubject.next('Failed to load courses');
           this.coursesLoadingSubject.next(false);
         },
@@ -346,13 +357,6 @@ export class AdminService {
   }
 
   /**
-   * Approve a course
-   */
-  approveCourse(courseId: number): Observable<any> {
-    return this.http.patch<any>(`${this.apiUrl}/courses/${courseId}/approve`, {});
-  }
-
-  /**
    * Delete a course
    */
   deleteCourse(courseId: number): Observable<any> {
@@ -403,5 +407,59 @@ export class AdminService {
     } catch (err) {
       return 'N/A';
     }
+  }
+
+  /**
+   * Approve a course (sets status to 'published')
+   */
+  approveCourse(courseId: number, feedback?: string): Observable<any> {
+    return this.http
+      .patch<any>(`${this.apiUrl}/admin/courses/${courseId}/approve`, {
+        feedback: feedback || 'Course approved',
+      })
+      .pipe(
+        tap(() => {
+          // Reload courses after approval
+          this.loadCourses();
+          this.loadPlatformStats();
+        }),
+        catchError((error) => {
+          console.error('Error approving course:', error);
+          return throwError(() => error);
+        })
+      );
+  }
+
+  /**
+   * Reject a course (returns to draft status)
+   */
+  rejectCourse(courseId: number, reason: string): Observable<any> {
+    if (!reason || reason.trim().length === 0) {
+      return throwError(() => new Error('Rejection reason is required'));
+    }
+
+    return this.http
+      .patch<any>(`${this.apiUrl}/admin/courses/${courseId}/reject`, {
+        reason: reason,
+      })
+      .pipe(
+        tap(() => {
+          // Reload courses after rejection
+          this.loadCourses();
+          this.loadPlatformStats();
+        }),
+        catchError((error) => {
+          console.error('Error rejecting course:', error);
+          return throwError(() => error);
+        })
+      );
+  }
+
+  /**
+   * Get pending courses count
+   */
+  getPendingCoursesCount(): number {
+    const courses = this.coursesSubject.value;
+    return courses.filter((c) => c.status === 'pending').length;
   }
 }

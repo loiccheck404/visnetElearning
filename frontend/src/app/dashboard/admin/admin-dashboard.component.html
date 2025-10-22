@@ -383,6 +383,31 @@
             </div>
           </div>
         </div>
+        <!-- Pending Courses Alert (if any) -->
+        @if (pendingCoursesCount() > 0) {
+        <div class="pending-alert">
+          <div class="alert-icon">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+          </div>
+          <div class="alert-content">
+            <h3>Courses Awaiting Approval</h3>
+            <p>{{ pendingCoursesCount() }} course(s) need your review</p>
+          </div>
+          <button class="alert-action" (click)="setActiveSection('courses')">Review Now</button>
+        </div>
+        }
 
         <!-- Recent Activity -->
         <div class="dashboard-grid">
@@ -691,25 +716,14 @@
                 <td>{{ course.enrollment_count }}</td>
                 <td>{{ course.created_at }}</td>
                 <td class="actions-col">
-                  <button class="btn-icon" title="View" (click)="viewCourse(course.id)">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                    >
-                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                      <circle cx="12" cy="12" r="3"></circle>
-                    </svg>
-                  </button>
+                  <!-- Approve/Reject buttons for PENDING courses only -->
                   @if (course.status === 'pending') {
                   <button
                     class="btn-icon success"
-                    title="Approve"
-                    (click)="approveCourse(course.id)"
+                    title="Approve Course"
+                    (click)="
+                      confirmApproveCourse(course.id, course.title); $event.stopPropagation()
+                    "
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -723,8 +737,52 @@
                       <polyline points="20 6 9 17 4 12"></polyline>
                     </svg>
                   </button>
+                  <button
+                    class="btn-icon danger"
+                    title="Reject Course"
+                    (click)="confirmRejectCourse(course.id, course.title); $event.stopPropagation()"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                  </button>
                   }
-                  <button class="btn-icon" title="Edit" (click)="editCourse(course.id)">
+
+                  <!-- View button - ALWAYS visible -->
+                  <button
+                    class="btn-icon"
+                    title="View Course"
+                    (click)="viewCourse(course.id); $event.stopPropagation()"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                  </button>
+
+                  <!-- Edit button - ALWAYS visible -->
+                  <button
+                    class="btn-icon"
+                    title="Edit Course"
+                    (click)="editCourse(course.id); $event.stopPropagation()"
+                  >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="16"
@@ -738,10 +796,12 @@
                       <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                     </svg>
                   </button>
+
+                  <!-- Delete button - ALWAYS visible -->
                   <button
                     class="btn-icon"
-                    title="Delete"
-                    (click)="confirmDeleteCourse(course.id, course.title)"
+                    title="Delete Course"
+                    (click)="confirmDeleteCourse(course.id, course.title); $event.stopPropagation()"
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -1385,6 +1445,36 @@
     confirmText="OK"
     type="danger"
     (confirm)="closeErrorDialog()"
+  ></app-confirmation-dialog>
+
+  <!-- Approve Course Dialog -->
+  <app-confirmation-dialog
+    [isOpen]="showApproveCourseDialog"
+    [isLoading]="isApproving"
+    title="Approve Course"
+    [message]="'Approve ' + selectedCourseName() + '?'"
+    subMessage="This will publish the course and make it visible to students."
+    confirmText="Approve"
+    cancelText="Cancel"
+    loadingText="Approving..."
+    type="info"
+    (confirm)="approveCourse()"
+    (cancel)="cancelApproveCourse()"
+  ></app-confirmation-dialog>
+
+  <!-- Reject Course Dialog with Reason Input -->
+  <app-confirmation-dialog
+    [isOpen]="showRejectCourseDialog"
+    [isLoading]="isRejecting"
+    title="Reject Course"
+    [message]="'Reject ' + selectedCourseName() + '?'"
+    subMessage="The course will be returned to draft status. Please provide a reason for the instructor."
+    confirmText="Reject"
+    cancelText="Cancel"
+    loadingText="Rejecting..."
+    type="danger"
+    (confirm)="rejectCourse()"
+    (cancel)="cancelRejectCourse()"
   ></app-confirmation-dialog>
 
   <!-- Logout Confirmation Dialog -->

@@ -41,7 +41,7 @@ router.put(
   courseController.publishCourse
 );
 
-// Approve course (admin only)
+// Approve course (admin only) - Improved with notification
 router.patch(
   "/:id/approve",
   authenticateToken,
@@ -50,24 +50,79 @@ router.patch(
     try {
       const db = require("../config/database");
       const { id } = req.params;
+      const { feedback } = req.body; // Optional approval message
 
-      const result = await db.query(
-        `UPDATE courses SET status = 'published', updated_at = NOW() 
-         WHERE id = $1 RETURNING *`,
+      // Get course details
+      const courseResult = await db.query(
+        `SELECT c.*, u.email as instructor_email, u.first_name, u.last_name
+         FROM courses c
+         JOIN users u ON c.instructor_id = u.id
+         WHERE c.id = $1`,
         [id]
       );
 
-      if (result.rows.length === 0) {
+      if (courseResult.rows.length === 0) {
         return res.status(404).json({
           status: "ERROR",
           message: "Course not found",
         });
       }
 
+      const course = courseResult.rows[0];
+
+      // Update course status to published
+      await db.query(
+        `UPDATE courses 
+         SET status = 'published', 
+             published_at = NOW(),
+             updated_at = NOW() 
+         WHERE id = $1`,
+        [id]
+      );
+
+      // Log approval activity
+      await db.query(
+        `INSERT INTO student_activities (
+          student_id, activity_type, activity_data, course_id
+        ) VALUES ($1, $2, $3, $4)`,
+        [
+          req.user.id,
+          "course_approved",
+          JSON.stringify({
+            title: course.title,
+            approved_by: `${req.user.firstName} ${req.user.lastName}`,
+            feedback: feedback || "Course approved",
+          }),
+          id,
+        ]
+      );
+
+      // Create notification for instructor
+      await db.query(
+        `INSERT INTO student_activities (
+          student_id, activity_type, activity_data, course_id
+        ) VALUES ($1, $2, $3, $4)`,
+        [
+          course.instructor_id,
+          "course_status_notification",
+          JSON.stringify({
+            title: course.title,
+            status: "approved",
+            message:
+              feedback ||
+              `Your course "${course.title}" has been approved and is now published!`,
+          }),
+          id,
+        ]
+      );
+
       res.json({
         status: "SUCCESS",
-        message: "Course approved",
-        data: result.rows[0],
+        message: "Course approved and published",
+        data: {
+          courseId: id,
+          status: "published",
+        },
       });
     } catch (error) {
       console.error("Error approving course:", error);
@@ -79,7 +134,7 @@ router.patch(
   }
 );
 
-// Reject course (admin only)
+// Reject course (admin only) - Returns to draft for revision
 router.patch(
   "/:id/reject",
   authenticateToken,
@@ -88,24 +143,84 @@ router.patch(
     try {
       const db = require("../config/database");
       const { id } = req.params;
+      const { reason } = req.body; // Rejection reason (required)
 
-      const result = await db.query(
-        `UPDATE courses SET status = 'archived', updated_at = NOW() 
-         WHERE id = $1 RETURNING *`,
+      if (!reason) {
+        return res.status(400).json({
+          status: "ERROR",
+          message: "Rejection reason is required",
+        });
+      }
+
+      // Get course details
+      const courseResult = await db.query(
+        `SELECT c.*, u.email as instructor_email, u.first_name, u.last_name
+         FROM courses c
+         JOIN users u ON c.instructor_id = u.id
+         WHERE c.id = $1`,
         [id]
       );
 
-      if (result.rows.length === 0) {
+      if (courseResult.rows.length === 0) {
         return res.status(404).json({
           status: "ERROR",
           message: "Course not found",
         });
       }
 
+      const course = courseResult.rows[0];
+
+      // Set status back to 'draft' so instructor can revise
+      await db.query(
+        `UPDATE courses 
+         SET status = 'draft', 
+             updated_at = NOW() 
+         WHERE id = $1`,
+        [id]
+      );
+
+      // Log rejection activity
+      await db.query(
+        `INSERT INTO student_activities (
+          student_id, activity_type, activity_data, course_id
+        ) VALUES ($1, $2, $3, $4)`,
+        [
+          req.user.id,
+          "course_rejected",
+          JSON.stringify({
+            title: course.title,
+            rejected_by: `${req.user.firstName} ${req.user.lastName}`,
+            reason: reason,
+          }),
+          id,
+        ]
+      );
+
+      // Create notification for instructor
+      await db.query(
+        `INSERT INTO student_activities (
+          student_id, activity_type, activity_data, course_id
+        ) VALUES ($1, $2, $3, $4)`,
+        [
+          course.instructor_id,
+          "course_status_notification",
+          JSON.stringify({
+            title: course.title,
+            status: "rejected",
+            message: `Your course "${course.title}" needs revision. Reason: ${reason}`,
+          }),
+          id,
+        ]
+      );
+
       res.json({
         status: "SUCCESS",
-        message: "Course rejected",
-        data: result.rows[0],
+        message: "Course returned to draft for revision",
+        data: {
+          courseId: id,
+          status: "draft",
+          reason: reason,
+        },
       });
     } catch (error) {
       console.error("Error rejecting course:", error);

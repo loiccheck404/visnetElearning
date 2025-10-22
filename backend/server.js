@@ -14,7 +14,7 @@ const activityRoutes = require("./routes/activities");
 const studentRoutes = require("./routes/students");
 const path = require("path");
 const userRoutes = require("./routes/users");
-const adminRoutes = require("./routes/admin");
+const adminRoutes = require("./routes/adminRoutes");
 const authRoutes = require("./routes/auth");
 
 // Basic middleware
@@ -121,4 +121,5 @@ app.listen(PORT, () => {
   console.log(`🔗 Health check: http://localhost:${PORT}/api/health`);
   console.log(`🗄️  Database test: http://localhost:${PORT}/api/db-test`);
   console.log(`🔐 Auth endpoints: http://localhost:${PORT}/api/auth`);
+  console.log(`📚 Admin courses: http://localhost:${PORT}/api/admin/courses`);
 });

@@ -100,6 +100,12 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
   successMessage = signal('');
   errorMessage = signal('');
   showLogoutDialog = signal(false);
+  showApproveCourseDialog = signal(false);
+  showRejectCourseDialog = signal(false);
+  isApproving = signal(false);
+  isRejecting = signal(false);
+  rejectionReason = signal('');
+  pendingCoursesCount = signal(0);
 
   // Observables from service
   platformStats$ = this.adminService.stats$;
@@ -155,6 +161,20 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
     this.updatePercentages();
     this.detectTheme();
     this.observeThemeChanges();
+
+    // Subscribe to courses changes to update pending count
+    this.allCourses$.pipe(takeUntil(this.destroy$)).subscribe((courses) => {
+      if (courses) {
+        console.log('All courses:', courses); // Debug: see all courses
+        console.log(
+          'Course statuses:',
+          courses.map((c) => ({ id: c.id, title: c.title, status: c.status }))
+        );
+        const pending = courses.filter((c) => c.status === 'pending').length;
+        this.pendingCoursesCount.set(pending);
+        console.log('Updated pending courses count:', pending);
+      }
+    });
   }
 
   ngAfterViewInit() {
@@ -683,12 +703,19 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
     return filtered;
   }
 
+  // ============ USER ACTIONS ============
   viewUser(userId: number) {
-    console.log('View user:', userId);
+    console.log('Viewing user:', userId);
+    alert(`Viewing User #${userId}\n\nThis would navigate to user detail view.`);
+    // TODO: Implement user detail view
+    // this.router.navigate(['/dashboard/admin/users', userId]);
   }
 
   editUser(userId: number) {
-    console.log('Edit user:', userId);
+    console.log('Editing user:', userId);
+    alert(`Editing User #${userId}\n\nThis would open user edit form.`);
+    // TODO: Implement user edit form
+    // this.router.navigate(['/dashboard/admin/users', userId, 'edit']);
   }
 
   confirmDeleteUser(userId: number) {
@@ -753,18 +780,43 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
   getFilteredCourses(courses: Course[]): Course[] {
     let filtered = [...courses];
 
+    console.log('Filtering courses - Total:', courses.length);
+    console.log(
+      'All course statuses:',
+      courses.map((c) => ({ id: c.id, title: c.title, status: c.status }))
+    );
+
+    // Search filter
     if (this.courseSearchQuery()) {
       const query = this.courseSearchQuery().toLowerCase();
       filtered = filtered.filter(
         (c) =>
           c.title.toLowerCase().includes(query) || c.instructor_name.toLowerCase().includes(query)
       );
+      console.log('After search filter:', filtered.length);
     }
 
+    // Status filter - FIXED: Now correctly filters by status
     if (this.courseStatusFilter() !== 'all') {
-      filtered = filtered.filter((c) => c.status === this.courseStatusFilter());
+      const filterStatus = this.courseStatusFilter().toLowerCase();
+      console.log('Filtering by status:', filterStatus);
+
+      // Map 'active' to 'published' for compatibility
+      const targetStatus = filterStatus === 'active' ? 'published' : filterStatus;
+
+      filtered = filtered.filter((c) => {
+        const courseStatus = c.status.toLowerCase();
+        return courseStatus === targetStatus;
+      });
+
+      console.log(`After status filter (${targetStatus}):`, filtered.length);
+      console.log(
+        'Filtered courses:',
+        filtered.map((c) => ({ id: c.id, title: c.title, status: c.status }))
+      );
     }
 
+    // Sort
     filtered.sort((a, b) => {
       let aVal: any = a[this.courseSortBy() as keyof Course];
       let bVal: any = b[this.courseSortBy() as keyof Course];
@@ -781,35 +833,134 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
       return 0;
     });
 
+    console.log('Final filtered courses count:', filtered.length);
     return filtered;
   }
 
-  viewCourse(courseId: number) {
-    console.log('View course:', courseId);
+  getPendingCoursesCount(): number {
+    return this.pendingCoursesCount();
   }
 
-  editCourse(courseId: number) {
-    console.log('Edit course:', courseId);
+  confirmApproveCourse(courseId: number, courseTitle: string) {
+    this.selectedCourseId.set(courseId);
+    this.selectedCourseName.set(courseTitle);
+    this.showApproveCourseDialog.set(true);
   }
 
-  approveCourse(courseId: number) {
+  cancelApproveCourse() {
+    this.showApproveCourseDialog.set(false);
+    this.selectedCourseId.set(null);
+    this.selectedCourseName.set('');
+  }
+
+  approveCourse() {
+    const courseId = this.selectedCourseId();
+    if (!courseId) return;
+
+    this.isApproving.set(true);
     this.adminService
-      .approveCourse(courseId)
+      .approveCourse(courseId, 'Course meets quality standards')
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
-          this.adminService.loadCourses();
-          this.adminService.loadPlatformStats();
+          this.isApproving.set(false);
+          this.showApproveCourseDialog.set(false);
+          this.selectedCourseId.set(null);
+          this.selectedCourseName.set('');
 
           this.successMessage.set('Course approved successfully!');
           this.showSuccessDialog.set(true);
+
+          this.adminService.loadCourses();
+          this.adminService.loadPlatformStats();
         },
         error: (err) => {
           console.error('Error approving course:', err);
+          this.isApproving.set(false);
+          this.showApproveCourseDialog.set(false);
+
           this.errorMessage.set('Failed to approve course. Please try again.');
           this.showErrorDialog.set(true);
         },
       });
+  }
+
+  confirmRejectCourse(courseId: number, courseTitle: string) {
+    this.selectedCourseId.set(courseId);
+    this.selectedCourseName.set(courseTitle);
+    this.showRejectCourseDialog.set(true);
+
+    // Prompt for rejection reason
+    const reason = prompt('Please provide a reason for rejecting this course:');
+    if (reason && reason.trim().length > 0) {
+      this.rejectionReason.set(reason.trim());
+      this.rejectCourseWithReason(courseId, reason.trim());
+    } else {
+      this.showRejectCourseDialog.set(false);
+      this.selectedCourseId.set(null);
+      this.selectedCourseName.set('');
+    }
+  }
+
+  cancelRejectCourse() {
+    this.showRejectCourseDialog.set(false);
+    this.selectedCourseId.set(null);
+    this.selectedCourseName.set('');
+    this.rejectionReason.set('');
+  }
+
+  rejectCourse() {
+    const courseId = this.selectedCourseId();
+    const reason = this.rejectionReason();
+
+    if (!courseId || !reason) return;
+
+    this.rejectCourseWithReason(courseId, reason);
+  }
+
+  private rejectCourseWithReason(courseId: number, reason: string) {
+    this.isRejecting.set(true);
+    this.adminService
+      .rejectCourse(courseId, reason)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.isRejecting.set(false);
+          this.showRejectCourseDialog.set(false);
+          this.selectedCourseId.set(null);
+          this.selectedCourseName.set('');
+          this.rejectionReason.set('');
+
+          this.successMessage.set('Course rejected and returned to draft for revision.');
+          this.showSuccessDialog.set(true);
+
+          this.adminService.loadCourses();
+          this.adminService.loadPlatformStats();
+        },
+        error: (err) => {
+          console.error('Error rejecting course:', err);
+          this.isRejecting.set(false);
+          this.showRejectCourseDialog.set(false);
+
+          this.errorMessage.set('Failed to reject course. Please try again.');
+          this.showErrorDialog.set(true);
+        },
+      });
+  }
+
+  // ============ COURSE ACTIONS ============
+  viewCourse(courseId: number) {
+    console.log('Viewing course:', courseId);
+    // Navigate to course detail view
+    this.router.navigate(['/dashboard/courses', courseId]);
+  }
+
+  editCourse(courseId: number) {
+    console.log('Editing course:', courseId);
+    // Navigate to course edit form
+    this.router.navigate(['/dashboard/instructor/create-course'], {
+      queryParams: { courseId: courseId },
+    });
   }
 
   confirmDeleteCourse(courseId: number, courseTitle: string) {
