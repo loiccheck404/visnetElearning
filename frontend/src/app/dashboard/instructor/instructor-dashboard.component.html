@@ -422,8 +422,13 @@
                   @if (course.status === 'draft') {
                   <button
                     class="action-btn submit"
-                    (click)="confirmSubmitCourse(course.id)"
+                    (click)="
+                      confirmSubmitCourse(course.id);
+                      $event.stopPropagation();
+                      $event.preventDefault()
+                    "
                     title="Submit for Approval"
+                    type="button"
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
