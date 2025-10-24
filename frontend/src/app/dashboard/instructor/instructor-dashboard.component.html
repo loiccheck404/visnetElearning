@@ -336,7 +336,7 @@
                 <div>
                   <strong>{{ course.title }}</strong>
 
-                  <!-- ADD THE REJECTION ALERT HERE - Right after the course title -->
+                  <!-- SHOW REJECTION REASON IF COURSE IS DRAFT AND HAS REJECTION -->
                   @if (course.status === 'draft' && course.rejection_reason) {
                   <div class="rejection-alert">
                     <div class="alert-icon">
@@ -360,6 +360,30 @@
                     </div>
                   </div>
                   }
+
+                  <!-- SHOW "AWAITING APPROVAL" MESSAGE IF PENDING -->
+                  @if (course.status === 'pending') {
+                  <div class="pending-alert">
+                    <div class="alert-icon">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                      >
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                      </svg>
+                    </div>
+                    <div class="alert-content">
+                      <strong>Awaiting Admin Approval</strong>
+                      <p>Your course is under review</p>
+                    </div>
+                  </div>
+                  }
                 </div>
               </td>
               <td>{{ course.student_count }}</td>
@@ -378,6 +402,7 @@
               </td>
               <td>
                 <div class="action-buttons">
+                  <!-- EDIT BUTTON -->
                   <button class="action-btn edit" (click)="editCourse(course.id)">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -392,6 +417,30 @@
                       <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                     </svg>
                   </button>
+
+                  <!-- SUBMIT FOR APPROVAL BUTTON (only show for draft courses) -->
+                  @if (course.status === 'draft') {
+                  <button
+                    class="action-btn submit"
+                    (click)="confirmSubmitCourse(course.id)"
+                    title="Submit for Approval"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <polyline points="9 11 12 14 22 4"></polyline>
+                      <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                    </svg>
+                  </button>
+                  }
+
+                  <!-- VIEW STUDENTS BUTTON -->
                   <button class="action-btn view" (click)="viewStudents(course.id)">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"

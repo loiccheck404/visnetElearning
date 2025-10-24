@@ -186,7 +186,6 @@ export class AdminService {
     this.coursesLoadingSubject.next(true);
     this.coursesErrorSubject.next(null);
 
-    // Use admin endpoint to get ALL courses regardless of status
     this.http
       .get<any>(`${this.apiUrl}/admin/courses?limit=100`)
       .pipe(takeUntil(this.destroy$))
@@ -195,10 +194,7 @@ export class AdminService {
           console.log('Admin Courses API response:', response);
 
           if (response?.data) {
-            // FIXED: Correctly extract courses from nested data structure
             const coursesList = response.data.courses || [];
-
-            console.log('Extracted courses list:', coursesList);
 
             if (Array.isArray(coursesList) && coursesList.length > 0) {
               const courses = coursesList.map((course: any) => {
@@ -208,26 +204,40 @@ export class AdminService {
                       course.instructor?.last_name || course.instructor?.lastName || ''
                     }`.trim() || 'N/A';
 
-                // IMPORTANT: Ensure status is lowercase for consistency
                 const status = (course.status || 'draft').toLowerCase();
-
-                console.log(`Course: ${course.title}, Status: ${status}`);
 
                 return {
                   id: course.id,
                   title: course.title || 'Untitled',
                   instructor_name: instructorName,
-                  status: status, // 'pending', 'published', 'draft'
+                  status: status,
                   enrollment_count: course.enrollment_count || 0,
                   created_at: this.formatDate(course.created_at),
+                  rejection_reason: course.rejection_reason || null, // ADD THIS
                 };
               });
 
-              console.log('Final mapped courses:', courses);
-              console.log(
-                'Pending courses:',
-                courses.filter((c) => c.status === 'pending')
-              );
+              // SORT BY STATUS PRIORITY: pending (1) → published (2) → draft (3) → others (4)
+              courses.sort((a, b) => {
+                const statusPriority: { [key: string]: number } = {
+                  pending: 1,
+                  published: 2,
+                  draft: 3,
+                };
+
+                const priorityA = statusPriority[a.status] || 4;
+                const priorityB = statusPriority[b.status] || 4;
+
+                // First sort by status priority
+                if (priorityA !== priorityB) {
+                  return priorityA - priorityB;
+                }
+
+                // Within same status, sort by created date (newest first)
+                return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+              });
+
+              console.log('Sorted courses:', courses);
               this.coursesSubject.next(courses);
             } else {
               console.warn('No courses found in response');
@@ -241,8 +251,6 @@ export class AdminService {
         },
         error: (err) => {
           console.error('Error loading courses:', err);
-          console.error('Error status:', err.status);
-          console.error('Error message:', err.error?.message || err.message);
           this.coursesErrorSubject.next('Failed to load courses');
           this.coursesLoadingSubject.next(false);
         },

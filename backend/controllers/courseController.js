@@ -469,17 +469,32 @@ const getInstructorCourses = async (req, res) => {
     const instructorId = req.user.id;
 
     const query = `
-      SELECT c.*, cat.name as category_name,
-             COUNT(DISTINCT e.id) as student_count
+      SELECT c.*, 
+             cat.name as category_name,
+             COUNT(DISTINCT e.id) as student_count,
+             c.rejection_reason,
+             c.rejection_date
       FROM courses c
       LEFT JOIN categories cat ON c.category_id = cat.id
       LEFT JOIN enrollments e ON c.id = e.course_id
       WHERE c.instructor_id = $1
       GROUP BY c.id, cat.name
-      ORDER BY c.created_at DESC
+      ORDER BY 
+        -- Sort by status priority: pending -> published -> draft
+        CASE c.status
+          WHEN 'pending' THEN 1
+          WHEN 'published' THEN 2
+          WHEN 'draft' THEN 3
+          ELSE 4
+        END,
+        c.created_at DESC
     `;
 
     const result = await db.query(query, [instructorId]);
+
+    console.log(
+      `Instructor ${instructorId} fetched ${result.rows.length} courses`
+    );
 
     res.json({
       status: "SUCCESS",

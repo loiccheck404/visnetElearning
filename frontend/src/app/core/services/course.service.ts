@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators'; // ADD THIS IMPORT
 import { environment } from '../../../environments/environment';
 
 export interface Course {
@@ -100,7 +101,36 @@ export class CourseService {
     return this.http.delete(`${this.apiUrl}/${id}`);
   }
 
+  // UPDATED: Add sorting logic here
   getInstructorCourses(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/instructor/my-courses`);
+    return this.http.get(`${this.apiUrl}/instructor/my-courses`).pipe(
+      map((response: any) => {
+        if (response.status === 'SUCCESS' && response.data?.courses) {
+          // Sort courses: pending → published → draft
+          const courses = [...response.data.courses].sort((a: any, b: any) => {
+            const statusPriority: { [key: string]: number } = {
+              pending: 1,
+              published: 2,
+              draft: 3,
+            };
+
+            const priorityA = statusPriority[a.status?.toLowerCase()] || 4;
+            const priorityB = statusPriority[b.status?.toLowerCase()] || 4;
+
+            if (priorityA !== priorityB) {
+              return priorityA - priorityB;
+            }
+
+            // Within same status, sort by created date (newest first)
+            const dateA = new Date(a.created_at).getTime();
+            const dateB = new Date(b.created_at).getTime();
+            return dateB - dateA;
+          });
+
+          return { ...response, data: { courses } };
+        }
+        return response;
+      })
+    );
   }
 }

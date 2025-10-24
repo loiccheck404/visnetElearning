@@ -14,7 +14,7 @@ interface InstructorCourse {
   id: number;
   title: string;
   student_count: number;
-  status: 'published' | 'draft';
+  status: 'published' | 'draft' | 'pending';
   progress: number;
   rejection_reason?: string;
 }
@@ -108,7 +108,6 @@ export class InstructorDashboardComponent implements OnInit {
         })
       ),
       students: this.studentService.getInstructorStudents().pipe(
-        // ADD THIS
         catchError((err) => {
           console.error('Error loading students:', err);
           return of({ status: 'ERROR', data: { students: [] } });
@@ -116,7 +115,7 @@ export class InstructorDashboardComponent implements OnInit {
       ),
     }).subscribe({
       next: (results) => {
-        // Load courses
+        // Load courses with rejection_reason
         if (results.courses.status === 'SUCCESS') {
           const courses = results.courses.data.courses.map((course: any) => ({
             id: course.id,
@@ -124,11 +123,14 @@ export class InstructorDashboardComponent implements OnInit {
             student_count: course.student_count || 0,
             status: course.status,
             progress: this.calculateCourseProgress(course),
+            rejection_reason: course.rejection_reason || null, // INCLUDE THIS
           }));
+
+          console.log('Loaded courses:', courses); // Debug
           this.myCourses.set(courses);
         }
 
-        // Load activities
+        // Load activities (unchanged)
         if (results.activities.status === 'SUCCESS') {
           const activities = results.activities.data.activities.map(
             (activity: InstructorActivity) => ({
@@ -141,28 +143,13 @@ export class InstructorDashboardComponent implements OnInit {
           this.recentActivity.set(activities);
         }
 
-        // ADD THIS: Calculate unique students
+        // Calculate unique students (unchanged)
         if (results.students.status === 'SUCCESS') {
-          console.log('Dashboard - Raw students data:', results.students.data.students);
-
-          if (results.students.data.students.length > 0) {
-            console.log('Dashboard - First student:', results.students.data.students[0]);
-            console.log(
-              'Dashboard - First student keys:',
-              Object.keys(results.students.data.students[0])
-            );
-          }
-
           const allEnrollments = results.students.data.students;
-          console.log('Dashboard - Total enrollments:', allEnrollments.length);
-
           const uniqueStudentIds = new Set(allEnrollments.map((s: any) => s.student_id));
-          console.log('Dashboard - Unique student IDs:', Array.from(uniqueStudentIds));
-          console.log('Dashboard - Unique count:', uniqueStudentIds.size);
-
           this.uniqueStudentCount.set(uniqueStudentIds.size);
-          console.log('Dashboard - uniqueStudentCount signal set to:', this.uniqueStudentCount());
         }
+
         this.isLoading.set(false);
       },
       error: (err) => {
@@ -277,12 +264,12 @@ export class InstructorDashboardComponent implements OnInit {
       next: (response) => {
         this.showSubmitCourseDialog.set(false);
         this.selectedCourseForSubmit.set(null);
-        // Show success message
-        alert('Course submitted for admin approval! You will be notified once it is reviewed.');
+        // Reload dashboard to see updated status
         this.loadDashboardData();
       },
       error: (err) => {
         console.error('Error submitting course:', err);
+        this.showSubmitCourseDialog.set(false);
         alert('Failed to submit course. Please try again.');
       },
     });
