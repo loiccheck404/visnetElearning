@@ -15,6 +15,15 @@
     />
   </head>
   <body>
+    <script>
+      // Temporarily override alert to find source
+      const originalAlert = window.alert;
+      window.alert = function (message) {
+        console.error('🚨 ALERT CALLED:', message);
+        console.trace('Alert stack trace:'); // Shows where it was called from
+        // originalAlert.call(window, message); // Uncomment to allow alert
+      };
+    </script>
     <app-root></app-root>
   </body>
 </html>

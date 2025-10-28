@@ -250,33 +250,68 @@ export class InstructorDashboardComponent implements OnInit {
     });
   }
 
-  confirmSubmitCourse(courseId: number) {
+  confirmSubmitCourse(courseId: number): void {
+    console.log('📋 Opening confirmation dialog for course:', courseId);
     this.selectedCourseForSubmit.set(courseId);
     this.showSubmitCourseDialog.set(true);
   }
 
   // Add method to submit:
-  submitCourseForApproval() {
+  submitCourseForApproval(): void {
     const courseId = this.selectedCourseForSubmit();
-    if (!courseId) return;
+    if (!courseId) {
+      console.warn('⚠️ No course selected for submission');
+      return;
+    }
+
+    console.log('📤 Submitting course for approval:', courseId);
 
     this.courseService.publishCourse(courseId).subscribe({
       next: (response) => {
+        console.log('✅ Course submitted successfully:', response);
+
+        // Close dialog
         this.showSubmitCourseDialog.set(false);
         this.selectedCourseForSubmit.set(null);
+
         // Reload dashboard to see updated status
         this.loadDashboardData();
       },
       error: (err) => {
-        console.error('Error submitting course:', err);
+        console.error('❌ Error submitting course:', err);
         this.showSubmitCourseDialog.set(false);
-        alert('Failed to submit course. Please try again.');
+
+        // Show error in a user-friendly way (you could use a toast notification instead)
+        const errorMsg = err.error?.message || 'Failed to submit course. Please try again.';
+
+        // IMPORTANT: Do NOT use alert() here
+        // Instead, you could set an error signal to show in UI
+        // For now, just log it
+        console.error('Error message:', errorMsg);
       },
     });
   }
 
-  cancelSubmitCourse() {
+  // Method 4: Cancel submission
+  cancelSubmitCourse(): void {
+    console.log('❌ Course submission canceled');
     this.showSubmitCourseDialog.set(false);
     this.selectedCourseForSubmit.set(null);
+  }
+
+  onSubmitButtonClick(courseId: number, event: Event): void {
+    // CRITICAL: Stop all propagation
+    event.preventDefault();
+    event.stopPropagation();
+    event.stopImmediatePropagation();
+
+    // Additional safety: Check if it's a real click event
+    if (event.type === 'click') {
+      console.log('🔘 Submit button clicked for course:', courseId);
+      this.confirmSubmitCourse(courseId);
+    }
+
+    // Return false to be extra sure
+    return;
   }
 }

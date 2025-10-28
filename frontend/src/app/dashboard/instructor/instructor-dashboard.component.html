@@ -403,7 +403,7 @@
               <td>
                 <div class="action-buttons">
                   <!-- EDIT BUTTON -->
-                  <button class="action-btn edit" (click)="editCourse(course.id)">
+                  <button class="action-btn edit" type="button" (click)="editCourse(course.id)">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="16"
@@ -422,13 +422,8 @@
                   @if (course.status === 'draft') {
                   <button
                     class="action-btn submit"
-                    (click)="
-                      confirmSubmitCourse(course.id);
-                      $event.stopPropagation();
-                      $event.preventDefault()
-                    "
-                    title="Submit for Approval"
                     type="button"
+                    (click)="handleSubmitClick(course.id, $event)"
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -446,7 +441,7 @@
                   }
 
                   <!-- VIEW STUDENTS BUTTON -->
-                  <button class="action-btn view" (click)="viewStudents(course.id)">
+                  <button class="action-btn view" type="button" (click)="viewStudents(course.id)">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="16"

@@ -136,7 +136,7 @@
 
       <button
         class="nav-item"
-        [class.active]="activeSection() === 'settings'"
+        [class.active]="activeSection() === 'settingsss'"
         (click)="setActiveSection('settings')"
         title="Settings"
       >
@@ -402,10 +402,12 @@
             </svg>
           </div>
           <div class="alert-content">
-            <h3>Courses Awaiting Approval</h3>
+            <h3>Courses Awaiting Approvals</h3>
             <p>{{ pendingCoursesCount() }} course(s) need your review</p>
           </div>
-          <button class="alert-action" (click)="setActiveSection('courses')">Review Now</button>
+          <button class="alert-action" (click)="setActiveSection('courses')">
+            Review Now or Not
+          </button>
         </div>
         }
 
