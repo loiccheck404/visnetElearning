@@ -171,9 +171,10 @@ const createCourse = async (req, res) => {
       });
     }
 
-    // For instructors, set status to 'pending' (awaiting admin approval)
+    // FIXED: Changed from 'pending' to 'draft'
+    // For instructors, set status to 'draft' (can be published later)
     // For admins, set status to 'published' directly
-    const status = req.user.role === "admin" ? "published" : "pending";
+    const status = req.user.role === "admin" ? "published" : "draft";
     console.log("Course status will be:", status);
 
     const result = await db.query(
@@ -206,9 +207,7 @@ const createCourse = async (req, res) => {
          VALUES ($1, $2, $3, NOW())`,
         [
           instructorId,
-          status === "pending"
-            ? "course_submitted_for_approval"
-            : "course_created",
+          status === "draft" ? "course_created_as_draft" : "course_created",
           result.rows[0].id,
         ]
       );
@@ -226,8 +225,8 @@ const createCourse = async (req, res) => {
     res.status(201).json({
       status: "SUCCESS",
       message:
-        status === "pending"
-          ? "Course created and submitted for admin approval"
+        status === "draft"
+          ? "Course created as draft"
           : "Course created and published successfully",
       data: { course: result.rows[0] },
     });
@@ -317,7 +316,7 @@ const updateCourse = async (req, res) => {
   }
 };
 
-// Publish Course - Now submits for approval instead of publishing directly
+// Publish Course - FIXED: Changed from 'pending' to 'draft'
 const publishCourse = async (req, res) => {
   try {
     const { id } = req.params;
@@ -344,19 +343,15 @@ const publishCourse = async (req, res) => {
       });
     }
 
-    // Clear rejection reason when resubmitting
-    const newStatus = userRole === "admin" ? "published" : "pending";
-    const message =
-      userRole === "admin"
-        ? "Course published successfully"
-        : "Course submitted for admin approval";
+    // FIXED: Changed from 'pending' to 'published' for non-admin users too
+    const newStatus = "published";
+    const message = "Course published successfully";
 
     const result = await db.query(
       `UPDATE courses 
        SET status = $1, 
-           rejection_reason = NULL,
-           rejection_date = NULL,
-           updated_at = NOW()
+           updated_at = NOW(),
+           published_at = NOW()
        WHERE id = $2 
        RETURNING *`,
       [newStatus, id]
@@ -366,13 +361,7 @@ const publishCourse = async (req, res) => {
       await db.query(
         `INSERT INTO student_activities (student_id, activity_type, course_id, created_at)
          VALUES ($1, $2, $3, NOW())`,
-        [
-          userId,
-          newStatus === "published"
-            ? "course_published"
-            : "course_submitted_for_approval",
-          id,
-        ]
+        [userId, "course_published", id]
       );
     } catch (activityError) {
       console.warn("Failed to log publish activity:", activityError.message);
@@ -471,20 +460,18 @@ const getInstructorCourses = async (req, res) => {
     const query = `
       SELECT c.*, 
              cat.name as category_name,
-             COUNT(DISTINCT e.id) as student_count,
-             c.rejection_reason,
-             c.rejection_date
+             COUNT(DISTINCT e.id) as student_count
       FROM courses c
       LEFT JOIN categories cat ON c.category_id = cat.id
       LEFT JOIN enrollments e ON c.id = e.course_id
       WHERE c.instructor_id = $1
       GROUP BY c.id, cat.name
       ORDER BY 
-        -- Sort by status priority: pending -> published -> draft
+        -- Sort by status priority: draft -> published -> archived
         CASE c.status
-          WHEN 'pending' THEN 1
+          WHEN 'draft' THEN 1
           WHEN 'published' THEN 2
-          WHEN 'draft' THEN 3
+          WHEN 'archived' THEN 3
           ELSE 4
         END,
         c.created_at DESC
