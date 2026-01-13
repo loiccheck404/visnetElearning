@@ -85,10 +85,10 @@ const approveCourse = async (req, res) => {
 
     const course = checkCourse.rows[0];
 
-    if (course.status !== "pending") {
+    if (course.status !== "draft") {
       return res.status(400).json({
         status: "ERROR",
-        message: `Cannot approve course with status: ${course.status}. Only pending courses can be approved.`,
+        message: `Cannot approve course with status: ${course.status}. Only draft courses can be approved.`,
       });
     }
 
