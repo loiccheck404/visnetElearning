@@ -343,9 +343,9 @@ const publishCourse = async (req, res) => {
       });
     }
 
-    // FIXED: Changed from 'pending' to 'published' for non-admin users too
-    const newStatus = "published";
-    const message = "Course published successfully";
+    // If course was previously rejected, return it to draft for admin review
+    const newStatus = "draft";
+    const message = "Course submitted for admin review";
 
     const result = await db.query(
       `UPDATE courses 
