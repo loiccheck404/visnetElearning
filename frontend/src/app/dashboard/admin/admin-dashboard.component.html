@@ -719,10 +719,10 @@
                 <td>{{ course.created_at }}</td>
                 <td class="actions-col">
                   <!-- Approve/Reject buttons for PENDING courses only -->
-                  @if (course.status === 'pending') {
+                  @if (course.status === 'draft') {
                   <button
                     class="btn-icon success"
-                    title="Approve Course"
+                    title="Approve & Publish Course"
                     (click)="
                       confirmApproveCourse(course.id, course.title); $event.stopPropagation()
                     "
