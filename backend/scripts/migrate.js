@@ -6,7 +6,7 @@ async function runMigrations() {
   try {
     console.log("Running database migrations...");
 
-    // Read schema.sql
+    // STEP 1: Create users table FIRST (no dependencies)
     const schemaSQL = fs.readFileSync(
       path.join(__dirname, "../config/schema.sql"),
       "utf8"
@@ -15,7 +15,7 @@ async function runMigrations() {
     await db.query(schemaSQL);
     console.log("✓ Users schema created");
 
-    // Read courses-schema.sql
+    // STEP 2: Create courses tables SECOND (depends on users)
     const coursesSQL = fs.readFileSync(
       path.join(__dirname, "../config/courses-schema.sql"),
       "utf8"
@@ -23,6 +23,15 @@ async function runMigrations() {
 
     await db.query(coursesSQL);
     console.log("✓ Courses schema created");
+
+    // STEP 3: Create student_activities table LAST (depends on both users and courses)
+    const studentActivitiesSQL = fs.readFileSync(
+      path.join(__dirname, "../config/student-activities-schema.sql"),
+      "utf8"
+    );
+
+    await db.query(studentActivitiesSQL);
+    console.log("✓ Student activities schema created");
 
     console.log("All migrations completed successfully!");
     process.exit(0);
