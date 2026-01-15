@@ -23,21 +23,26 @@ app.use(compression());
 
 const allowedOrigins = [
   "http://localhost:4200",
-  "http://localhost:3000",
   "https://visnet-frontend.onrender.com",
-  process.env.FRONTEND_URL || "",
-];
+  process.env.FRONTEND_URL,
+].filter(Boolean); // Remove any undefined values
 
 app.use(
   cors({
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps, curl, Postman)
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.indexOf(origin) !== -1) {
         callback(null, true);
       } else {
+        console.log("CORS blocked origin:", origin);
         callback(new Error("Not allowed by CORS"));
       }
     },
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
