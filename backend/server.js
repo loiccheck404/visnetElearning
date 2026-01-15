@@ -20,10 +20,11 @@ const authRoutes = require("./routes/auth");
 // Basic middleware
 app.use(helmet());
 app.use(compression());
+
 const allowedOrigins = [
   "http://localhost:4200",
   "http://localhost:3000",
-  "https://visnetelearning.onrender.com",
+  "https://visnet-frontend.onrender.com",
   process.env.FRONTEND_URL || "",
 ];
 
