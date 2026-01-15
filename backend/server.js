@@ -16,6 +16,7 @@ const path = require("path");
 const userRoutes = require("./routes/users");
 const adminRoutes = require("./routes/adminRoutes");
 const authRoutes = require("./routes/auth");
+const runMigrations = require("./scripts/migrate");
 
 // Basic middleware
 app.use(helmet());
@@ -120,12 +121,29 @@ app.use("*", (req, res) => {
   });
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📊 Environment: ${process.env.NODE_ENV || "development"}`);
-  console.log(`🔗 Health check: http://localhost:${PORT}/api/health`);
-  console.log(`🗄️  Database test: http://localhost:${PORT}/api/db-test`);
-  console.log(`🔐 Auth endpoints: http://localhost:${PORT}/api/auth`);
-  console.log(`📚 Admin courses: http://localhost:${PORT}/api/admin/courses`);
-});
+// Run migrations BEFORE starting server
+async function startServer() {
+  try {
+    if (process.env.NODE_ENV === "production") {
+      console.log("Running migrations...");
+      await runMigrations();
+    }
+
+    // Start server
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+      console.log(`📊 Environment: ${process.env.NODE_ENV || "development"}`);
+      console.log(`🔗 Health check: http://localhost:${PORT}/api/health`);
+      console.log(`🗄️  Database test: http://localhost:${PORT}/api/db-test`);
+      console.log(`🔐 Auth endpoints: http://localhost:${PORT}/api/auth`);
+      console.log(
+        `📚 Admin courses: http://localhost:${PORT}/api/admin/courses`
+      );
+    });
+  } catch (err) {
+    console.error("Failed to start server:", err);
+    process.exit(1);
+  }
+}
+
+startServer();
