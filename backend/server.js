@@ -24,7 +24,6 @@ app.use(compression());
 const allowedOrigins = [
   "http://localhost:4200",
   "https://visnet-frontend.onrender.com",
-  "https://visnet-backend.onrender.com",
   process.env.FRONTEND_URL,
 ].filter(Boolean); // Remove any undefined values
 
