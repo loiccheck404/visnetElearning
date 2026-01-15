@@ -855,36 +855,41 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
     this.selectedCourseName.set('');
   }
 
-  approveCourse() {
-    const courseId = this.selectedCourseId();
-    if (!courseId) return;
+  approveCourse(): void {
+    if (!this.selectedCourseId()) {
+      console.error('No course selected for approval');
+      return;
+    }
 
     this.isApproving.set(true);
-    this.adminService
-      .approveCourse(courseId, 'Course meets quality standards')
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: () => {
-          this.isApproving.set(false);
-          this.showApproveCourseDialog.set(false);
-          this.selectedCourseId.set(null);
-          this.selectedCourseName.set('');
 
-          this.successMessage.set('Course approved successfully!');
+    this.adminService.approveCourse(this.selectedCourseId()!).subscribe({
+      next: (response) => {
+        console.log('Course approved successfully:', response);
+        this.isApproving.set(false);
+        this.showApproveCourseDialog.set(false);
+
+        // FIXED: Wait for courses to reload before showing success
+        this.adminService.loadCourses();
+
+        // Show success message after a brief delay to ensure UI updates
+        setTimeout(() => {
+          this.successMessage.set('Course approved and published successfully!');
           this.showSuccessDialog.set(true);
+        }, 300);
 
-          this.adminService.loadCourses();
-          this.adminService.loadPlatformStats();
-        },
-        error: (err) => {
-          console.error('Error approving course:', err);
-          this.isApproving.set(false);
-          this.showApproveCourseDialog.set(false);
-
-          this.errorMessage.set('Failed to approve course. Please try again.');
-          this.showErrorDialog.set(true);
-        },
-      });
+        this.selectedCourseId.set(null);
+        this.selectedCourseName.set('');
+      },
+      error: (error) => {
+        console.error('Error approving course:', error);
+        this.isApproving.set(false);
+        this.errorMessage.set(
+          error?.error?.message || 'Failed to approve course. Please try again.'
+        );
+        this.showErrorDialog.set(true);
+      },
+    });
   }
 
   confirmRejectCourse(courseId: number, courseTitle: string) {
@@ -901,43 +906,43 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
     this.rejectionReasonInput.set('');
   }
 
-  rejectCourse() {
-    const courseId = this.selectedCourseId();
-    const reason = this.rejectionReasonInput().trim();
-
-    if (!courseId || !reason) {
-      this.errorMessage.set('Please provide a reason for rejection');
-      this.showErrorDialog.set(true);
+  rejectCourse(): void {
+    if (!this.selectedCourseId() || this.rejectionReasonInput().trim().length === 0) {
+      console.error('No course selected or rejection reason is empty');
       return;
     }
 
     this.isRejecting.set(true);
-    this.adminService
-      .rejectCourse(courseId, reason)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: () => {
-          this.isRejecting.set(false);
-          this.showRejectCourseDialog.set(false);
-          this.selectedCourseId.set(null);
-          this.selectedCourseName.set('');
-          this.rejectionReasonInput.set('');
+    const reason = this.rejectionReasonInput().trim();
 
+    this.adminService.rejectCourse(this.selectedCourseId()!, reason).subscribe({
+      next: (response) => {
+        console.log('Course rejected successfully:', response);
+        this.isRejecting.set(false);
+        this.showRejectCourseDialog.set(false);
+
+        // FIXED: Wait for courses to reload before showing success
+        this.adminService.loadCourses();
+
+        // Show success message after a brief delay to ensure UI updates
+        setTimeout(() => {
           this.successMessage.set('Course rejected and returned to draft for revision.');
           this.showSuccessDialog.set(true);
+        }, 300);
 
-          this.adminService.loadCourses();
-          this.adminService.loadPlatformStats();
-        },
-        error: (err) => {
-          console.error('Error rejecting course:', err);
-          this.isRejecting.set(false);
-          this.showRejectCourseDialog.set(false);
-
-          this.errorMessage.set('Failed to reject course. Please try again.');
-          this.showErrorDialog.set(true);
-        },
-      });
+        this.selectedCourseId.set(null);
+        this.selectedCourseName.set('');
+        this.rejectionReasonInput.set('');
+      },
+      error: (error) => {
+        console.error('Error rejecting course:', error);
+        this.isRejecting.set(false);
+        this.errorMessage.set(
+          error?.error?.message || 'Failed to reject course. Please try again.'
+        );
+        this.showErrorDialog.set(true);
+      },
+    });
   }
 
   // ============ COURSE ACTIONS ============
