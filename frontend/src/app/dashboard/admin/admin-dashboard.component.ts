@@ -172,7 +172,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy, AfterViewInit
           'Course statuses:',
           courses.map((c) => ({ id: c.id, title: c.title, status: c.status }))
         );
-        const pending = courses.filter((c) => c.status === 'pending').length;
+        const pending = courses.filter((c) => c.status === 'draft').length;
         this.pendingCoursesCount.set(pending);
         console.log('Updated pending courses count:', pending);
       }
