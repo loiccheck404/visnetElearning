@@ -161,12 +161,10 @@ const rejectCourse = async (req, res) => {
     const result = await db.query(
       `UPDATE courses 
        SET status = 'draft',
-           rejection_reason = $1,
-           rejection_date = NOW(),
            updated_at = NOW()
-       WHERE id = $2 
+       WHERE id = $1
        RETURNING *`,
-      [reason, id]
+      [id]
     );
 
     // Log activity
